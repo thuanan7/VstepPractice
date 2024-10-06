@@ -1,0 +1,26 @@
+{
+  "SCHEMA_KEYS": {
+    "SPECIAL": 0,
+    "MAIN": 1,
+    "ROWS": 2,
+    "TITLE": 3,
+    "URL": 4,
+    "DESCRIPTION": 5,
+    "DEADLINE": 6,
+    "DATE": 7,
+    "LOCATION": 8
+  },
+  "SPECIAL_WEBSITE_KEY": {
+    "CCFDDL": "Ccfddl"
+  },
+  "NORMAL_WEBSITE_KEY": {
+    "POLYTECHNIQUE": "Polytechnique"
+  },
+  "TYPE_WEBSITE": {
+    "NORMAL": 1,
+    "SPECIAL": 0
+  },
+  "SETTING_KEYS": {
+    "RUN_JOB": "node-cron-run"
+  }
+}
