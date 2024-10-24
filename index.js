@@ -6,7 +6,7 @@ const port = process.env.API_PORT || 4000;
 
 app.use(express.static(__dirname + '/dist'));
 
-app.use('/api/root', require('./back-end/routes/rootRouter'));
+app.use('/api', require('./back-end/routes/rootRouter'));
 app.use('/api/exams', require('./back-end/routes/examRouter'));
 app.listen(port, () => {
     console.log(`server start at port: ${port}`);

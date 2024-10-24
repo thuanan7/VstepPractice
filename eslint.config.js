@@ -10,7 +10,7 @@ export default tseslint.config(
     files: ['front-end/**/*.{ts,tsx}'],
     languageOptions: {
       ecmaVersion: 2020,
-      globals: globals.browser,
+        sourceType: "module"
     },
     plugins: {
       'react-hooks': reactHooks,
