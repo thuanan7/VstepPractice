@@ -6,12 +6,12 @@
   "scripts": {
     "c": "rm -rf node_modules && rm -rf dist && rm -rf pnpm-lock.yaml && rm -rf yarn.lock",
     "ci": "pnpm run c && pnpm i",
-    "dev": "npx nodemon index.js",
+    "api": "npx nodemon index.js",
     "web": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "start": "concurrently \"pnpm dev\" \"pnpm web\""
+    "dev": "concurrently \"pnpm api\" \"pnpm web\""
   },
   "dependencies": {
     "bcrypt": "^5.1.1",
