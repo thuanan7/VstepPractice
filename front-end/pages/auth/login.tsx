@@ -22,11 +22,10 @@ const Login: React.FC = () => {
                     borderRadius: 2,
                     p: 4,
                 }}>
+
                     <Typography component="h1" variant="h4" color="primary" sx={{ mb: 2 }}>
                         VSTEP B1 Test
                     </Typography>
-
-                    {/* Thông tin mô tả ngắn */}
                     <Typography variant="body1" color="textSecondary" align="center" sx={{ mb: 3 }}>
                         Hãy đăng nhập để tiếp tục bài thi VSTEP B1. Đây là bước đầu tiên trong hành trình đánh giá khả năng tiếng Anh của bạn.
                     </Typography>
@@ -36,11 +35,11 @@ const Login: React.FC = () => {
                             required
                             fullWidth
                             id="email"
-                            label="Email Address"
+                            label="Email"
                             name="email"
                             autoComplete="email"
                             autoFocus
-                            color="primary" // Áp dụng màu sắc từ theme
+                            color="primary"
                         />
                         <TextField
                             margin="normal"
@@ -51,7 +50,7 @@ const Login: React.FC = () => {
                             type="password"
                             id="password"
                             autoComplete="current-password"
-                            color="primary" // Áp dụng màu sắc từ theme
+                            color="primary"
                         />
                         <Button
                             type="submit"
