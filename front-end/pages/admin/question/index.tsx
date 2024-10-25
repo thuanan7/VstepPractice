@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect} from 'react';
 import {
     Box, Typography, Button, Dialog, DialogActions, DialogContent, DialogTitle,
-    TextField, IconButton, Paper, Tabs, Tab, MenuItem, Select, InputLabel, FormControl
+    TextField, IconButton, Paper, Tabs, Tab, MenuItem, Select, InputLabel, FormControl, SelectChangeEvent
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -9,9 +9,9 @@ import EditIcon from '@mui/icons-material/Edit';
 
 // Fake data cho các kỳ thi
 const exams = [
-    { id: 1, name: 'VSTEP B2 - Exam 1' },
-    { id: 2, name: 'VSTEP B2 - Exam 2' },
-    { id: 3, name: 'VSTEP B2 - Exam 3' },
+    {id: 1, name: 'VSTEP B2 - Exam 1'},
+    {id: 2, name: 'VSTEP B2 - Exam 2'},
+    {id: 3, name: 'VSTEP B2 - Exam 3'},
 ];
 
 // Cấu trúc dữ liệu câu hỏi và câu trả lời
@@ -26,16 +26,28 @@ interface Question {
 const ExamQuestionManagement: React.FC = () => {
     const [selectedExamId, setSelectedExamId] = useState<number | null>(null); // ID của kỳ thi đã chọn
     const [questions, setQuestions] = useState<Question[]>([
-        { id: 1, type: 'Listening', content: 'Listen to the conversation and answer the question.', choices: ['A', 'B', 'C', 'D'], correctAnswer: 'A' },
-        { id: 2, type: 'Reading', content: 'Read the passage and choose the correct answer.', choices: ['A', 'B', 'C', 'D'], correctAnswer: 'B' },
-        { id: 3, type: 'Writing', content: 'Write a response to the question.' },
-        { id: 4, type: 'Speaking', content: 'Discuss the following topic and record your answer.' }
+        {
+            id: 1,
+            type: 'Listening',
+            content: 'Listen to the conversation and answer the question.',
+            choices: ['A', 'B', 'C', 'D'],
+            correctAnswer: 'A'
+        },
+        {
+            id: 2,
+            type: 'Reading',
+            content: 'Read the passage and choose the correct answer.',
+            choices: ['A', 'B', 'C', 'D'],
+            correctAnswer: 'B'
+        },
+        {id: 3, type: 'Writing', content: 'Write a response to the question.'},
+        {id: 4, type: 'Speaking', content: 'Discuss the following topic and record your answer.'}
     ]);
     const [filteredQuestions, setFilteredQuestions] = useState<Question[]>([]); // Danh sách câu hỏi đã lọc
     const [selectedTab, setSelectedTab] = useState(0);
     const [openDialog, setOpenDialog] = useState(false);
     const [editQuestion, setEditQuestion] = useState<Question | null>(null);
-    const [newQuestion, setNewQuestion] = useState({ type: 'Listening', content: '', choices: [], correctAnswer: '' });
+    const [newQuestion, setNewQuestion] = useState({type: 'Listening', content: '', choices: [], correctAnswer: ''});
 
     useEffect(() => {
         // Lọc câu hỏi theo loại tab đã chọn
@@ -43,13 +55,12 @@ const ExamQuestionManagement: React.FC = () => {
         setFilteredQuestions(examQuestions);
     }, [selectedTab, questions]);
 
-    // Chuyển tab
+    // @ts-ignore
     const handleChangeTab = (event: React.SyntheticEvent, newValue: number) => {
         setSelectedTab(newValue);
     };
 
-    // Chọn kỳ thi mới từ dropdown
-    const handleSelectExam = (event: React.ChangeEvent<{ value: unknown }>) => {
+    const handleSelectExam = (event: SelectChangeEvent<number>) => {
         setSelectedExamId(event.target.value as number);
     };
 
@@ -62,15 +73,15 @@ const ExamQuestionManagement: React.FC = () => {
     const handleCloseDialog = () => {
         setEditQuestion(null);
         setOpenDialog(false);
-        setNewQuestion({ type: 'Listening', content: '', choices: [], correctAnswer: '' });
+        setNewQuestion({type: 'Listening', content: '', choices: [], correctAnswer: ''});
     };
 
     const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = event.target;
+        const {name, value} = event.target;
         if (editQuestion) {
-            setEditQuestion({ ...editQuestion, [name]: value });
+            setEditQuestion({...editQuestion, [name]: value});
         } else {
-            setNewQuestion({ ...newQuestion, [name]: value });
+            setNewQuestion({...newQuestion, [name]: value});
         }
     };
 
@@ -79,7 +90,7 @@ const ExamQuestionManagement: React.FC = () => {
             setQuestions(questions.map(q => q.id === editQuestion.id ? editQuestion : q));
         } else {
             const newId = questions.length ? questions[questions.length - 1].id + 1 : 1;
-            setQuestions([...questions, { ...newQuestion, id: newId }]);
+            setQuestions([...questions, {...newQuestion, id: newId}]);
         }
         handleCloseDialog();
     };
@@ -89,13 +100,12 @@ const ExamQuestionManagement: React.FC = () => {
     };
 
     return (
-        <Box sx={{ p: 3, display: 'flex', flexDirection: 'column', height: '100vh' }}>
+        <Box sx={{p: 3, display: 'flex', flexDirection: 'column', height: '100vh'}}>
             <Typography variant="h4" gutterBottom>
                 Exam Question Management
             </Typography>
 
-            {/* Dropdown chọn kỳ thi */}
-            <FormControl fullWidth sx={{ mb: 2 }}>
+            <FormControl fullWidth sx={{mb: 2}}>
                 <InputLabel id="select-exam-label">Select Exam</InputLabel>
                 <Select
                     labelId="select-exam-label"
@@ -113,17 +123,17 @@ const ExamQuestionManagement: React.FC = () => {
 
             {/* Tabs cho các phần kỹ năng */}
             <Tabs value={selectedTab} onChange={handleChangeTab} aria-label="Exam Sections">
-                <Tab label="Listening" />
-                <Tab label="Reading" />
-                <Tab label="Writing" />
-                <Tab label="Speaking" />
+                <Tab label="Listening"/>
+                <Tab label="Reading"/>
+                <Tab label="Writing"/>
+                <Tab label="Speaking"/>
             </Tabs>
 
             {selectedExamId ? (
-                <Box sx={{ mt: 3, flexGrow: 1, overflowY: 'auto', paddingRight: 1 }}>
+                <Box sx={{mt: 3, flexGrow: 1, overflowY: 'auto', paddingRight: 1}}>
                     {/* Danh sách câu hỏi có vùng cuộn riêng */}
                     {filteredQuestions.map((question) => (
-                        <Paper key={question.id} sx={{ mb: 2, p: 2 }}>
+                        <Paper key={question.id} sx={{mb: 2, p: 2}}>
                             <Typography variant="body1">{question.content}</Typography>
                             {question.choices && (
                                 <ul>
@@ -133,21 +143,22 @@ const ExamQuestionManagement: React.FC = () => {
                                 </ul>
                             )}
                             <IconButton color="primary" onClick={() => handleOpenDialog(question)}>
-                                <EditIcon />
+                                <EditIcon/>
                             </IconButton>
                             <IconButton color="error" onClick={() => handleDeleteQuestion(question.id)}>
-                                <DeleteIcon />
+                                <DeleteIcon/>
                             </IconButton>
                         </Paper>
                     ))}
                 </Box>
             ) : (
-                <Typography variant="h6" color="error" sx={{ mt: 3 }}>
+                <Typography variant="h6" color="error" sx={{mt: 3}}>
                     Please select an exam to manage questions.
                 </Typography>
             )}
 
-            <Button variant="contained" color="primary" startIcon={<AddIcon />} onClick={() => handleOpenDialog()} sx={{ mt: 2 }}>
+            <Button variant="contained" color="primary" startIcon={<AddIcon/>} onClick={() => handleOpenDialog()}
+                    sx={{mt: 2}}>
                 Add New Question
             </Button>
 
@@ -174,8 +185,8 @@ const ExamQuestionManagement: React.FC = () => {
                                 value={editQuestion ? editQuestion.choices?.join(', ') : newQuestion.choices.join(', ')}
                                 onChange={(e) => {
                                     const choices = e.target.value.split(',').map(choice => choice.trim());
-                                    if (editQuestion) setEditQuestion({ ...editQuestion, choices });
-                                    else setNewQuestion({ ...newQuestion, choices });
+                                    if (editQuestion) setEditQuestion({...editQuestion, choices});
+                                    // else setNewQuestion({...newQuestion, choices});
                                 }}
                                 fullWidth
                                 variant="outlined"
