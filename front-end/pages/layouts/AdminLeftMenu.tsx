@@ -20,6 +20,8 @@ const AdminLeftMenu = (props: AdminLayoutProps) => {
             <Divider/>
             <ItemMenu keyPath={'/admin'} onClick={() => handleAccessToPage('/admin')} title={'Dashboard'}/>
             <ItemMenu keyPath={'/admin/exams'} onClick={() => handleAccessToPage('/admin/exams')} title={'Bài thi'}/>
+            <ItemMenu keyPath={'/admin/questions'} onClick={() => handleAccessToPage('/admin/questions')} title={'Câu hỏi'}/>
+
         </Box>
     );
 

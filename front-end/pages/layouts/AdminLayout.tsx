@@ -20,7 +20,7 @@ interface Props {
 
 const AdminLayout: React.FC<Props> = (props) => {
     const {window} = props;
-    const [open, setOpen] = useState(false);
+    const [open, setOpen] = useState(true);
 
     const handleDrawerToggle = () => {
         setOpen(!open);

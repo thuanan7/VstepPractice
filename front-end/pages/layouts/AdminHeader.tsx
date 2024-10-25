@@ -7,9 +7,11 @@ import {routeTitle} from "@/app/routes/configs.ts";
 
 const AdminHeader = (props: AdminLayoutProps) => {
     const {isOpen, width, onDrawerToggle} = props;
-    const {pathname} = useLocation();
+    const {pathname,...rest} = useLocation();
     const title = useMemo(
         () => {
+
+            console.log('aaaaa',rest)
             if (Object.prototype.hasOwnProperty.call(routeTitle, pathname)) {
                 return routeTitle[pathname];
             }

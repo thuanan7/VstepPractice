@@ -27,7 +27,7 @@ const Login: React.FC = () => {
                         VSTEP B1 Test
                     </Typography>
                     <Typography variant="body1" color="textSecondary" align="center" sx={{ mb: 3 }}>
-                        Hãy đăng nhập để tiếp tục bài thi VSTEP B1. Đây là bước đầu tiên trong hành trình đánh giá khả năng tiếng Anh của bạn.
+                        Hãy đăng nhập để tiếp tục bài thi VSTEP B2. Đây là bước đầu tiên trong hành trình đánh giá khả năng tiếng Anh của bạn.
                     </Typography>
                     <Box component="form" noValidate sx={{mt: 1}}>
                         <TextField

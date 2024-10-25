@@ -3,6 +3,7 @@ import {MainLayout, AdminLayout} from '@/pages/layouts';
 import {
     LoginPage,
     ExamPage,
+    QuestionPage,
     AdminPage
 } from '@/pages';
 
@@ -29,6 +30,18 @@ export const routes: RouteObject[] = [
                         path: 'exams',
                         element: (
                             <ExamPage/>
+                        ),
+                    },
+                    {
+                        path: 'questions',
+                        element: (
+                            <QuestionPage/>
+                        ),
+                    },
+                    {
+                        path: 'questions/:id',
+                        element: (
+                            <QuestionPage/>
                         ),
                     },
                 ]

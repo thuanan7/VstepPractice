@@ -69,7 +69,7 @@ const ExamManagement: React.FC = () => {
                         <TableRow>
                             <TableCell>Title</TableCell>
                             <TableCell>Date</TableCell>
-                            <TableCell>Duration (minutes)</TableCell>
+                            <TableCell>Description</TableCell>
                             <TableCell align="center">Actions</TableCell>
                         </TableRow>
                     </TableHead>
