@@ -1,17 +1,31 @@
-import { RouteObject } from 'react-router-dom';
-import { MainLayout} from '@/pages/layouts';
+import {RouteObject} from 'react-router-dom';
+import {MainLayout, AdminLayout} from '@/pages/layouts';
 import {
     LoginPage,
+    ExamPage
 } from '@/pages';
+
 export const routes: RouteObject[] = [
     {
         path: '/',
-        element: <MainLayout />,
+        element: <MainLayout/>,
         children: [
             {
                 index: true,
-                element: <LoginPage />,
+                element: <LoginPage/>,
             },
+            {
+                path: 'admin',
+                element: <AdminLayout/>,
+                children: [
+                    {
+                        index: true,
+                        element: (
+                            <ExamPage/>
+                        ),
+                    },
+                ]
+            }
             // {
             //     path: ':websiteId',
             //     element: <HomePage />,
