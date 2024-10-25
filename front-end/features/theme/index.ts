@@ -3,59 +3,60 @@ import {createTheme} from '@mui/material/styles';
 const theme = createTheme({
     palette: {
         primary: {
-            light: '#EED2EE', // Màu tím nhạt hơn
-            main: '#D8BFD8',  // Màu tím pastel chính
-            dark: '#CDA0C5',  // Màu tím đậm hơn một chút
+            light: '#EED2EE',
+            main: '#D8BFD8',
+            dark: '#CDA0C5',
         },
         secondary: {
-            light: '#F0E6FA', // Sắc thái rất nhạt của tím
-            main: '#E6E6FA',  // Màu tím rất nhạt cho các yếu tố phụ
+            light: '#F0E6FA',
+            main: '#E6E6FA',
         },
         background: {
-            default: '#F8F8FF', // Màu nền tím rất nhạt
+            default: '#F8F8FF',
+        },
+        text: {
+            primary: '#3d3e67',
         },
     },
     typography: {
-        fontFamily: 'Roboto, sans-serif', // Font mặc định
+        fontFamily: 'Roboto, sans-serif',
     },
     components: {
-        // area for button
         MuiButton: {
             styleOverrides: {
                 root: {
-                    textTransform: 'none', // Loại bỏ chữ in hoa mặc định
-                    borderRadius: '8px',   // Bo góc nút
+                    textTransform: 'none',
+                    borderRadius: '8px',
                 },
                 containedPrimary: {
                     backgroundColor: '#D8BFD8',
-                    color: '#FFFFFF',            // Màu chữ trắng
+                    color: '#FFFFFF',
                     '&:hover': {
-                        backgroundColor: '#CDA0C5',  // Màu tím đậm hơn khi hover
+                        backgroundColor: '#CDA0C5',
                     },
                 },
             },
         },
-        //area for textinput
         MuiTextField: {
             styleOverrides: {
                 root: {
                     '& .MuiOutlinedInput-root': {
-                        borderRadius: '8px',        // Bo góc cho TextField
-                        backgroundColor: '#FFFFFF', // Màu nền trắng cho TextField
+                        borderRadius: '8px',
+                        backgroundColor: '#FFFFFF',
                         '& fieldset': {
-                            borderColor: '#D8BFD8',   // Màu viền tím pastel
+                            borderColor: '#D8BFD8',
                         },
                         '&:hover fieldset': {
-                            borderColor: '#CDA0C5',   // Màu viền tím đậm hơn khi hover
+                            borderColor: '#CDA0C5',
                         },
                         '&.Mui-focused fieldset': {
-                            borderColor: '#CDA0C5',   // Màu viền khi được focus
+                            borderColor: '#CDA0C5',
                         },
                     },
                     '& .MuiInputLabel-root': {
-                        color: '#D8BFD8',            // Màu nhãn label là tím pastel
+                        color: '#D8BFD8',
                         '&.Mui-focused': {
-                            color: '#CDA0C5',          // Màu label khi focus
+                            color: '#CDA0C5',
                         },
                     },
                 },

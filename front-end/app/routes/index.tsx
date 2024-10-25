@@ -2,7 +2,8 @@ import {RouteObject} from 'react-router-dom';
 import {MainLayout, AdminLayout} from '@/pages/layouts';
 import {
     LoginPage,
-    ExamPage
+    ExamPage,
+    AdminPage
 } from '@/pages';
 
 export const routes: RouteObject[] = [
@@ -20,6 +21,12 @@ export const routes: RouteObject[] = [
                 children: [
                     {
                         index: true,
+                        element: (
+                            <AdminPage/>
+                        ),
+                    },
+                    {
+                        path: 'exams',
                         element: (
                             <ExamPage/>
                         ),

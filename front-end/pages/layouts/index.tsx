@@ -1,5 +1,5 @@
 import {Outlet} from 'react-router-dom';
-import {Box} from "@mui/material";
+import AdminLayout from './AdminLayout';
 
 export const MainLayout = () => {
     return (
@@ -7,13 +7,6 @@ export const MainLayout = () => {
     );
 };
 
-export const AdminLayout = () => {
-    return <Box display={'flex'} flex={1} flexDirection={'row'}>
-        <Box width={200}>
-            dsadsa
-        </Box>
-        <Box flex={1} sx={{background: 'lightgreen'}}>
-            <Outlet/>
-        </Box>
-    </Box>
-}
+export {
+    AdminLayout
+};
