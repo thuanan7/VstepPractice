@@ -45,6 +45,7 @@ const AdminLayout: React.FC<Props> = (props) => {
                     p: 3,
                     width: {sm: `calc(100% - ${open ? drawerWidth : 0}px)`},
                     marginLeft: {xs: 0, sm: `${open ? drawerWidth : 0}px`},
+                    transition: 'margin 0.3s',
                     overflowY: 'auto',
                     mt: '64px',
                 }}

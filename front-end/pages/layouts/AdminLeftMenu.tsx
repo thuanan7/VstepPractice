@@ -1,8 +1,19 @@
-import {Box, Button, Divider, Drawer, IconButton, Typography} from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import {AdminLayoutProps} from "./AdminLayout";
-import { useMemo} from 'react';
-import {useNavigate, useLocation} from 'react-router-dom';
+import {useNavigate} from 'react-router-dom';
+import {
+    IconButton, Drawer, Box, Divider,
+    List, ListItem, ListItemButton, ListItemText, ListItemIcon, Typography, Avatar
+} from '@mui/material';
+import DashboardIcon from '@mui/icons-material/Dashboard';
+import AssignmentIcon from '@mui/icons-material/Assignment';
+import QuizIcon from '@mui/icons-material/Quiz';
+import BarChartIcon from '@mui/icons-material/BarChart';
+import SettingsIcon from '@mui/icons-material/Settings';
+import ExitToAppIcon from '@mui/icons-material/ExitToApp';
+import logoUrl from '@/assets/logo.webp'
+
+
 const AdminLeftMenu = (props: AdminLayoutProps) => {
     const navigate = useNavigate();
     const {window, width, isOpen, onDrawerToggle} = props
@@ -12,16 +23,39 @@ const AdminLeftMenu = (props: AdminLayoutProps) => {
     }
     const drawer = (
         <Box>
-            <Box sx={{display: 'flex', justifyContent: 'flex-end', padding: '16px'}}>
+            <Box sx={{display: 'flex', justifyContent: 'space-between', alignItems:'center', padding: '12px'}}>
+                <Avatar src={logoUrl} alt="Logo" sx={{ width: 40, height: 40, mr: 2 }} />
+                <Box flex={1}>
+                    <Typography color="textPrimary" variant={'h6'} sx={{ fontWeight: 'bold' }}>
+                        TKPM I/2024
+                    </Typography>
+                </Box>
+
                 <IconButton onClick={onDrawerToggle}>
                     <CloseIcon/>
                 </IconButton>
             </Box>
             <Divider/>
-            <ItemMenu keyPath={'/admin'} onClick={() => handleAccessToPage('/admin')} title={'Dashboard'}/>
-            <ItemMenu keyPath={'/admin/exams'} onClick={() => handleAccessToPage('/admin/exams')} title={'Bài thi'}/>
-            <ItemMenu keyPath={'/admin/questions'} onClick={() => handleAccessToPage('/admin/questions')} title={'Câu hỏi'}/>
-
+            <List>
+                <ListItemButton onClick={() => handleAccessToPage('/admin')}>
+                    <ListItemIcon>
+                        <DashboardIcon/>
+                    </ListItemIcon>
+                    <ListItemText primary="Dashboard"/>
+                </ListItemButton>
+                <ListItemButton onClick={() => handleAccessToPage('/admin/exams')}>
+                    <ListItemIcon>
+                        <AssignmentIcon/>
+                    </ListItemIcon>
+                    <ListItemText primary="Quản lý Bài thi"/>
+                </ListItemButton>
+                <ListItemButton onClick={() => handleAccessToPage('/admin/questions')}>
+                    <ListItemIcon>
+                        <QuizIcon/>
+                    </ListItemIcon>
+                    <ListItemText primary="Quản lý Câu hỏi"/>
+                </ListItemButton>
+            </List>
         </Box>
     );
 
@@ -40,23 +74,27 @@ const AdminLeftMenu = (props: AdminLayoutProps) => {
         }}
     >
         {drawer}
+        <Divider/>
+        <List>
+            <ListItem button>
+                <ListItemIcon>
+                    <BarChartIcon/>
+                </ListItemIcon>
+                <ListItemText primary="Analytics"/>
+            </ListItem>
+            <ListItem button>
+                <ListItemIcon>
+                    <SettingsIcon/>
+                </ListItemIcon>
+                <ListItemText primary="Settings"/>
+            </ListItem>
+            <ListItem button>
+                <ListItemIcon>
+                    <ExitToAppIcon/>
+                </ListItemIcon>
+                <ListItemText primary="Logout"/>
+            </ListItem>
+        </List>
     </Drawer>
 }
 export default AdminLeftMenu
-
-
-const ItemMenu = ({title, onClick, keyPath}: { title: string, keyPath: string, onClick: () => void }) => {
-    const {pathname} = useLocation();
-    const isActive = useMemo(
-        () => {
-            return pathname === keyPath;
-        },
-        [pathname, keyPath],
-    );
-    return <Button variant={isActive ? 'contained' : undefined} fullWidth sx={{pl: 1,borderRadius:0}} style={{textAlign: 'left'}}
-                   onClick={onClick}>
-        <Box width={'100%'}>
-            <Typography color={isActive ? 'white' : 'textPrimary'}> {title}</Typography>
-        </Box>
-    </Button>
-}

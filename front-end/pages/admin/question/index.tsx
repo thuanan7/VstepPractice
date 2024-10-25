@@ -64,7 +64,6 @@ const ExamQuestionManagement: React.FC = () => {
         setSelectedExamId(event.target.value as number);
     };
 
-    // Mở dialog cho việc thêm hoặc chỉnh sửa câu hỏi
     const handleOpenDialog = (question?: Question) => {
         if (question) setEditQuestion(question);
         setOpenDialog(true);

@@ -1,8 +1,11 @@
 import React from 'react';
 import {Box, Button, TextField, Typography, Paper, Grid} from '@mui/material';
 import backgroundImage from '@/assets/background_1.webp';
+import {useNavigate} from "react-router-dom";
 
 const Login: React.FC = () => {
+
+    const navigate = useNavigate();
     return (
         <Grid container component="main" sx={{height: '100vh'}}>
             <Grid item xs={false} sm={4} md={7} sx={{
@@ -24,7 +27,7 @@ const Login: React.FC = () => {
                 }}>
 
                     <Typography component="h1" variant="h4" color="primary" sx={{ mb: 2 }}>
-                        VSTEP B1 Test
+                        VSTEP B2 Test
                     </Typography>
                     <Typography variant="body1" color="textSecondary" align="center" sx={{ mb: 3 }}>
                         Hãy đăng nhập để tiếp tục bài thi VSTEP B2. Đây là bước đầu tiên trong hành trình đánh giá khả năng tiếng Anh của bạn.
@@ -53,6 +56,9 @@ const Login: React.FC = () => {
                             color="primary"
                         />
                         <Button
+                            onClick={()=>{
+                                navigate('/admin')
+                            }}
                             type="submit"
                             fullWidth
                             variant="contained"
