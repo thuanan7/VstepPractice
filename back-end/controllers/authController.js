@@ -1,5 +1,7 @@
 const bcrypt = require('bcryptjs')
 const models = require('../../models')
+
+const { formatResponse } = require('../utils/responseFormatter')
 const {
   generateAccessToken,
   generateRefreshToken,
@@ -30,25 +32,25 @@ const login = async (req, res) => {
     const { email, password } = req.body
     const user = await models.User.findOne({ email })
     if (!user || !(await bcrypt.compare(password, user.password))) {
-      return res.status(401).json({ error: 'Invalid credentials' })
+      return res.status(401).json(formatResponse(false, 'Invalid credentials'))
     }
     const accessToken = generateAccessToken(user)
     const refreshToken = generateRefreshToken(user)
-
-    // Cache access token for validation
     redisClient.setEx(`auth:${accessToken}`, 3600, JSON.stringify(user))
-    res.json({
-      accessToken,
-      refreshToken,
-      user: {
-        id: user.id,
-        role: user.role,
-        lastName: user.lastName,
-        firstName: user.firstName,
-      },
-    })
+    res.json(
+      formatResponse(true, 'Login successfully', {
+        accessToken,
+        refreshToken,
+        user: {
+          id: user.id,
+          role: user.role,
+          lastName: user.lastName,
+          firstName: user.firstName,
+        },
+      }),
+    )
   } catch (error) {
-    res.status(500).json({ error: 'Login failed' })
+    res.status(500).json(formatResponse(false, 'Login failed'))
   }
 }
 

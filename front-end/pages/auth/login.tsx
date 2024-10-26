@@ -1,10 +1,24 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { Box, Button, TextField, Typography, Paper, Grid } from '@mui/material'
+import {
+  Alert,
+  Box,
+  Button,
+  CircularProgress,
+  Grid,
+  Paper,
+  TextField,
+  Typography,
+} from '@mui/material'
 import backgroundImage from '@/assets/background_1.webp'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as Yup from 'yup'
 import { useNavigate } from 'react-router-dom'
+import { useDispatch } from 'react-redux'
+import { setCredentials } from '@/features/auth/authSlice.ts'
+import { authRequest } from '@/app/api'
+import { IResLogin } from '@/features/auth/type.ts'
+import { Role } from '@/features/auth/configs.ts'
 
 const validationSchema = Yup.object().shape({
   email: Yup.string()
@@ -16,6 +30,9 @@ const validationSchema = Yup.object().shape({
 })
 
 const Login: React.FC = () => {
+  const [loginError, setLoginError] = useState<string | null>(null)
+  const dispatch = useDispatch()
+  const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
   const {
     register,
@@ -25,9 +42,37 @@ const Login: React.FC = () => {
     resolver: yupResolver(validationSchema),
   })
 
-  const onSubmit = (data) => {
-    console.log('Thông tin đăng nhập:', data)
-    // Xử lý đăng nhập tại đây
+  const onSubmit = async (data: { email: string; password: string }) => {
+    try {
+      setLoading(true)
+      setLoginError(null)
+      const rs = await authRequest.login(data)
+      if (rs && rs.success) {
+        const response = rs.data as IResLogin
+        dispatch(
+          setCredentials({
+            accessToken: response.accessToken,
+            refreshToken: response.refreshToken,
+            user: response.user,
+          }),
+        )
+        if (response.user.role === Role.ADMIN) {
+          navigate('/admin')
+        } else {
+          navigate('/dashboard')
+        }
+      } else {
+        setLoginError(`${rs?.message || 'Server error'}`)
+      }
+    } catch (e: any) {
+      setLoginError(`${e.toString()}`)
+    } finally {
+      setLoading(false)
+    }
+
+    // console.log('Thông tin đăng nhập:', data)
+    // // Xử lý đăng nhập tại đây
+    //
   }
 
   return (
@@ -84,7 +129,16 @@ const Login: React.FC = () => {
             Hãy đăng nhập để tiếp tục bài thi VSTEP B2. Đây là bước đầu tiên
             trong hành trình đánh giá khả năng tiếng Anh của bạn.
           </Typography>
-          <Box component="form" noValidate sx={{ mt: 1 }}>
+          <Box
+            component="form"
+            onSubmit={handleSubmit(onSubmit)}
+            sx={{ mt: 1 }}
+          >
+            {loginError && (
+              <Alert severity="error" sx={{ mb: 2 }}>
+                {loginError}
+              </Alert>
+            )}
             <TextField
               label="Email"
               variant="outlined"
@@ -105,15 +159,14 @@ const Login: React.FC = () => {
               helperText={errors.password?.message}
             />
             <Button
-              onClick={() => {
-                navigate('/admin')
-              }}
               type="submit"
               fullWidth
               variant="contained"
               color="primary"
-              sx={{ mt: 3, mb: 2 }}
+              sx={{ mt: 3, mb: 2, gap: 2 }}
+              disabled={loading}
             >
+              {loading && <CircularProgress size="20px" />}
               Sign In
             </Button>
           </Box>

@@ -1,17 +1,43 @@
-import { createSlice } from '@reduxjs/toolkit';
-import { RootState } from '@/app/store';
-export interface IAuth {
-    isLoading: boolean;
-    errorMsg?: string;
-    accessToken?: string;
+import { createSlice, PayloadAction } from '@reduxjs/toolkit'
+import { RootState } from '@/app/store'
+import { IUser } from './type.ts'
+export interface AuthState {
+  accessToken: string | null
+  refreshToken: string | null
+  user: IUser | null
 }
-const initialState: IAuth = { isLoading: false };
+
+const initialState: AuthState = {
+  accessToken: null,
+  refreshToken: null,
+  user: null,
+}
 export const authSlice = createSlice({
-    name: 'auth',
-    initialState,
-    reducers: {
+  name: 'auth',
+  initialState,
+  reducers: {
+    setCredentials: (
+      state,
+      action: PayloadAction<{
+        accessToken: string
+        refreshToken: string
+        user: IUser
+      }>,
+    ) => {
+      state.accessToken = action.payload.accessToken
+      state.refreshToken = action.payload.refreshToken
+      state.user = action.payload.user
     },
-});
-export const selectAuth = (state: RootState) => state.auth || { isLoading: false };
-export const selectIsAuthenticated = (state: RootState) => state?.auth?.accessToken && state?.auth?.accessToken !== '';
-export const authReducer = authSlice.reducer;
+    clearCredentials: (state) => {
+      state.accessToken = null
+      state.refreshToken = null
+      state.user = null
+    },
+  },
+})
+export const { setCredentials, clearCredentials } = authSlice.actions
+
+export const selectAuth = (state: RootState) => state.auth || initialState
+export const selectIsAuthenticated = (state: RootState) =>
+  state?.auth?.accessToken && state?.auth?.accessToken !== ''
+export const authReducer = authSlice.reducer
