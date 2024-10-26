@@ -12,7 +12,7 @@ const authMiddleware = require('../middlewares/authMiddleware')
 
 /**
  * @swagger
- * /api/users/register:
+ * /users/register:
  *   post:
  *     summary: Register a new user
  *     tags: [Users]
@@ -43,7 +43,7 @@ router.post('/register', userController.register)
 
 /**
  * @swagger
- * /api/users/login:
+ * /users/login:
  *   post:
  *     summary: Login user and retrieve access and refresh tokens
  *     tags: [Users]
@@ -70,7 +70,7 @@ router.post('/login', userController.login)
 
 /**
  * @swagger
- * /api/users/refresh:
+ * /users/refresh:
  *   post:
  *     summary: Refresh access token using refresh token
  *     tags: [Users]
@@ -95,7 +95,7 @@ router.post('/refresh', userController.refreshAccessToken)
 
 /**
  * @swagger
- * /api/users/profile:
+ * /users/profile:
  *   get:
  *     summary: Get user profile information
  *     tags: [Users]
