@@ -1,84 +1,82 @@
-'use strict';
-const passport = require('./passport');
-const models = require('../../models');
-let controller = {};
-controller.login = async (req, res, next) => {
-    const keepSignedIn = req.body.keepSignedIn || false;
-    passport.authenticate('local-login', (error, user) => {
-        if (error) {
-            return next(error)
-        }
-        if (!user) {
-            return res.send({success: false, message: 'User not exist'});
-        }
-        req.logIn(user, (e) => {
-            if (e) return next(e)
-            req.session.cookie.maxAge = keepSignedIn ? (24 * 60 * 60 * 1000) : null;
-            return res.send({success: true, message: 'Login sucessfully'});
-        })
-    })(req, res, next);
+const bcrypt = require('bcryptjs')
+const models = require('../../models')
+const {
+  generateAccessToken,
+  generateRefreshToken,
+  invalidateTokens,
+} = require('../configs/jwt')
+const redisClient = require('../configs/redisClient')
 
-};
-
-controller.logout = (req, res, next) => {
-    req.logout((error) => {
-        if (error) return next(error);
-        return res.send({success: true, message: 'Logout sucessfully'});
-
+const register = async (req, res) => {
+  try {
+    const { email, password, lastName, firstName, role } = req.body
+    const hashedPassword = await bcrypt.hash(password, 10)
+    const user = new models.User({
+      email,
+      password: hashedPassword,
+      lastName,
+      firstName,
+      role,
     })
+    await user.save()
+    res.status(201).json({ message: 'User registered successfully' })
+  } catch (error) {
+    res.status(500).json({ error: 'Registration failed' })
+  }
 }
 
-controller.register = (req, res, next) => {
-    passport.authenticate('local-register', (error, user) => {
-        if (error) {
-            return next(error)
-        }
-        if (!user) {
-            return res.send({success: false, message: 'Cant register'});
-        }
-        req.logIn(user, (e) => {
-            if (e) return next(e)
-            return res.send({success: true, message: 'Register successfully'});
-        })
-    })(req, res, next);
-
-}
-controller.isLoggedIn = (req, res, next) => {
-    if (req.isAuthenticated()) {
-        return next();
+const login = async (req, res) => {
+  try {
+    const { email, password } = req.body
+    const user = await models.User.findOne({ email })
+    if (!user || !(await bcrypt.compare(password, user.password))) {
+      return res.status(401).json({ error: 'Invalid credentials' })
     }
-    res.status(401).send({success: false, message: 'Need login first'});
+    const accessToken = generateAccessToken(user)
+    const refreshToken = generateRefreshToken(user)
 
+    // Cache access token for validation
+    redisClient.setEx(`auth:${accessToken}`, 3600, JSON.stringify(user))
+    res.json({
+      accessToken,
+      refreshToken,
+      user: {
+        id: user.id,
+        role: user.role,
+        lastName: user.lastName,
+        firstName: user.firstName,
+      },
+    })
+  } catch (error) {
+    res.status(500).json({ error: 'Login failed' })
+  }
 }
 
-controller.forgotPassword = async (req, res) => {
-    let email = req.body?.email || '';
-    let user = await models.User.findOne({where: {email}});
-    if (user) {
-        const {sign} = require('./jwt');
-        const host = req.header('host');
-        const resetLink = `${req.protocol}://${host}/users/reset?token=${sign(email)}&email=${email}`;
-        const {sendForgotPasswordMail} = require('./mail');
-        sendForgotPasswordMail(user, host, resetLink).then(rs => {
-            return res.send({message: "Send message successfully", success: true});
-        }).catch(err => {
-            return res.send({
-                message: "An error has occured when sending to your email.Please check your email address!",
-                success: false
-            })
-        });
+const refreshAccessToken = async (req, res) => {
+  const { refreshToken } = req.body
+  if (!refreshToken)
+    return res.status(400).json({ error: 'Refresh token required' })
 
-    } else {
-        return res.send({message: "Email not exist", success: false})
+  try {
+    const decoded = jwt.verify(refreshToken, process.env.ACCESSTOKEN_SECRET)
+    const userData = await redisClient.get(`refresh:${refreshToken}`)
+    if (!userData)
+      return res.status(403).json({ error: 'Invalid or expired refresh token' })
 
-    }
+    const user = JSON.parse(userData)
+    const newAccessToken = generateAccessToken(user)
+    const newRefreshToken = generateRefreshToken(user)
 
+    redisClient.setEx(`auth:${newAccessToken}`, 3600, JSON.stringify(user))
+    redisClient.del(`refresh:${refreshToken}`)
+    res.json({ accessToken: newAccessToken, refreshToken: newRefreshToken })
+  } catch (error) {
+    res.status(403).json({ error: 'Invalid or expired refresh token' })
+  }
 }
-controller.resetPassword = async (req, res) => {
-    let email = req.body.email;
-    let bcrypt = require('bcrypt');
-    let password = bcrypt.hashSync(req.body.password, bcrypt.genSalt(8));
-    await models.User.update({password}, {where: {email}});
-    return res.send({message: "Reset password successfully", success: true})
+
+const profile = (req, res) => {
+  res.json(req.user)
 }
-module.exports = controller;
+
+module.exports = { register, login, refreshAccessToken, profile }

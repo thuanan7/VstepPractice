@@ -1,65 +1,112 @@
-'use strict';
-let express = require('express');
-let router = express.Router();
-let controller = require('../controllers/authController');
-let {body, getErrorMessage} = require('../controllers/validator');
-router.post('/login',
-    body('email').trim().notEmpty().withMessage('Email is required!!!').isEmail().withMessage('Invalid email address!'),
-    body('password').trim().notEmpty().withMessage('Password is required!!!'), (req, res, next) => {
-        const errorMessage = getErrorMessage(req);
-        if (errorMessage) {
-            return res.send({message: errorMessage, success: false});
-        }
-        next();
-    }, controller.login);
+const express = require('express')
+const router = express.Router()
+const userController = require('../controllers/authController')
+const authMiddleware = require('../middlewares/authMiddleware')
 
-router.post('/register',
-    body('firstName').trim().notEmpty().withMessage('First Name is required!!!'),
-    body('lastName').trim().notEmpty().withMessage('Last Name is required!!!'),
-    body('email').trim().notEmpty().withMessage('Email is required!!!').isEmail().withMessage('Invalid email address!'),
-    body('password').trim().notEmpty().withMessage('Password is required!!!'),
-    body('password').matches(/(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}/).withMessage('Must contain at least one  number and one uppercase and lowercase letter, and at least 8 or more characters'),
-    body('confirmPassword').custom((confirmPassword, {req}) => {
-        if (confirmPassword != req.body.password) {
-            throw new Error('Password not match');
-        }
-        return true;
-    }),
-    (req, res, next) => {
-        const errorMessage = getErrorMessage(req);
-        if (errorMessage) {
-            return res.send({message: errorMessage, success: false});
-        }
-        next();
-    }, controller.register);
+/**
+ * @swagger
+ * tags:
+ *   name: Users
+ *   description: User management and authentication
+ */
 
+/**
+ * @swagger
+ * /api/users/register:
+ *   post:
+ *     summary: Register a new user
+ *     tags: [Users]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *               lastName:
+ *                 type: string
+ *               firstName:
+ *                 type: string
+ *               role:
+ *                 type: integer
+ *     responses:
+ *       201:
+ *         description: User registered successfully
+ *       500:
+ *         description: Registration failed
+ */
+router.post('/register', userController.register)
 
-router.post('/forgot',
-    body('email').trim().notEmpty().withMessage('Email is required!!!').isEmail().withMessage('Invalid email address!'),
-    (req, res, next) => {
-        const errorMessage = getErrorMessage(req);
-        if (errorMessage) {
-            return res.send({message: errorMessage, success: false});
+/**
+ * @swagger
+ * /api/users/login:
+ *   post:
+ *     summary: Login user and retrieve access and refresh tokens
+ *     tags: [Users]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Login successful
+ *       401:
+ *         description: Invalid credentials
+ *       500:
+ *         description: Login failed
+ */
+router.post('/login', userController.login)
 
-        }
-        next();
-    }, controller.forgotPassword);
-router.post('/reset',
-    body('email').trim().notEmpty().withMessage('Email is required!!!').isEmail().withMessage('Invalid email address!'),
-    body('password').trim().notEmpty().withMessage('Password is required!!!'),
-    body('password').matches(/(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}/).withMessage('Must contain at least one  number and one uppercase and lowercase letter, and at least 8 or more characters'),
-    body('confirmPassword').custom((confirmPassword, {req}) => {
-        if (confirmPassword != req.body.password) {
-            throw new Error('Password not match');
-        }
-        return true;
-    }),
-    (req, res, next) => {
-        const errorMessage = getErrorMessage(req);
-        if (errorMessage) {
-            return res.send({message: errorMessage, success: false});
-        }
-        next();
-    }, controller.resetPassword);
+/**
+ * @swagger
+ * /api/users/refresh:
+ *   post:
+ *     summary: Refresh access token using refresh token
+ *     tags: [Users]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               refreshToken:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Access token refreshed
+ *       400:
+ *         description: Refresh token required
+ *       403:
+ *         description: Invalid or expired refresh token
+ */
+router.post('/refresh', userController.refreshAccessToken)
 
-module.exports = router;
+/**
+ * @swagger
+ * /api/users/profile:
+ *   get:
+ *     summary: Get user profile information
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Successful response with user profile
+ *       401:
+ *         description: Unauthorized
+ */
+router.get('/profile', authMiddleware, userController.profile)
+
+module.exports = router
