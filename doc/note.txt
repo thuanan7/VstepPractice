@@ -1,0 +1,26 @@
+Video setup link: https://youtu.be/Rit-zpSrWY8
+
+Install:
+1. install redis-server
+2. install postgres (need dbeaver tool for create db)
+3. install npm/yarn/pnpm (any for install node_modules + run app)
+
+Run app:
+1. Clone source form GitLab with url: git@gitlab.com:nguyenromio/tkpm.git
+
+2. At root project run:
+    yarn install/ pnpm install/ npm install
+
+3. Change value of POSTGRESQL_URL in .env file
+    ex: POSTGRESQL_URL=postgresql://postgres:123456@127.0.0.1:5432/tkpm2024
+
+4. Run redis server with command: redis-server
+
+5. Run API with Command:
+   yarn api/ pnpm run api/ npm run api
+   Go to url: http://localhost:4001/api/create-tables for migrate all table on projects
+   run command: sequelize db:seed:all for seed data
+
+6. Run yarn dev/pnpm run dev/ npm run dev  for run all projects
+
+
