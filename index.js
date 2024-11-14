@@ -35,6 +35,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs))
 app.use('/api', require('./back-end/routes/rootRouter'))
 app.use('/api/users', require('./back-end/routes/authRouter'))
 app.use('/api/exams', require('./back-end/routes/examRouter'))
+app.use('/api/ai', require('./back-end/routes/openAIRouter'))
 app.use(errorHandler)
 app.listen(port, () => {
   console.log(`server start at port: ${port}`)
