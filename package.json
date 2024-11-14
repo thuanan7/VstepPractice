@@ -6,12 +6,13 @@
   "scripts": {
     "c": "rm -rf node_modules && rm -rf dist && rm -rf pnpm-lock.yaml && rm -rf yarn.lock",
     "ci": "pnpm run c && pnpm i",
-    "api": "npx nodemon back-end/node/index.js",
+    "dotnet-api": "dotnet run --project ./back-end/netcore/VstepPractice.API",
+    "node-api": "npx nodemon back-end/node/index.js",
     "web": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "dev": "concurrently \"pnpm api\" \"pnpm web\""
+    "dev": "concurrently \"pnpm node-api\" \"pnpm web\""
   },
   "dependencies": {
     "@emotion/react": "^11.11.4",
