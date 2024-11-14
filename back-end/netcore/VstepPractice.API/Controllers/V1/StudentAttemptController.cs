@@ -19,6 +19,7 @@ public class StudentAttemptController : ApiController
         _studentAttemptService = studentAttemptService;
     }
     [HttpGet("test")]
+    [Authorize]
     [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(Error), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetTest()

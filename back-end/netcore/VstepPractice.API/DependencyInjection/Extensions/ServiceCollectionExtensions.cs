@@ -18,6 +18,7 @@ namespace VstepPractice.API.DependencyInjection.Extensions;
 
 public static class ServiceCollectionExtensions
 {
+    
     public static void AddIdentityServices(this IServiceCollection services)
     {
         services.AddIdentity<User, Role>(options =>
@@ -56,6 +57,9 @@ public static class ServiceCollectionExtensions
 
     public static void AddAuthenServices(this IServiceCollection services, IConfiguration configuration)
     {
+        var scret = configuration["JWT:SECRET"];
+        var key = Encoding.ASCII.GetBytes(scret ?? "b2TestProjectSecretKey1234567890123456!");
+
         services.AddAuthentication(x =>
         {
             x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -66,10 +70,11 @@ public static class ServiceCollectionExtensions
             x.TokenValidationParameters = new TokenValidationParameters
             {
                 ValidateIssuerSigningKey = true,
-                IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(configuration["JWT:SECRET"]!)),
-                ValidateIssuer = false,
+                IssuerSigningKey = new SymmetricSecurityKey(key),
+                ValidateIssuer = false, 
                 ValidateAudience = false,
-                ClockSkew = TimeSpan.Zero,
+                ValidateLifetime = true,
+                ClockSkew = TimeSpan.Zero
             };
         });
 

@@ -10,6 +10,7 @@ public class UserSeeder : BaseIdentitySeeder
     private readonly Dictionary<string, (string Password, string Role)> _usersToSeed = new()
     {
         { "admin@vstep.com", ("Admin@123", RoleConstants.Admin) },
+        { "admin@gmail.com", ("Demo@123", RoleConstants.Admin) },
         { "teacher1@vstep.com", ("Teacher@123", RoleConstants.Teacher) },
         { "teacher2@vstep.com", ("Teacher@123", RoleConstants.Teacher) },
         { "student1@vstep.com", ("Student@123", RoleConstants.Student) },
