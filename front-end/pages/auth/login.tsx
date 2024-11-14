@@ -69,10 +69,6 @@ const Login: React.FC = () => {
     } finally {
       setLoading(false)
     }
-
-    // console.log('Thông tin đăng nhập:', data)
-    // // Xử lý đăng nhập tại đây
-    //
   }
 
   return (

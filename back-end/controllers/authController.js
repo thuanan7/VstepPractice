@@ -78,7 +78,16 @@ const refreshAccessToken = async (req, res) => {
 }
 
 const profile = (req, res) => {
-  res.json(req.user)
+  res.status(200).json(
+    formatResponse(true, 'User Profile', {
+      user: {
+        id: req?.user.id,
+        role: req?.user.role,
+        lastName: req?.user.lastName,
+        firstName: req?.user.firstName,
+      },
+    }),
+  )
 }
 
 module.exports = { register, login, refreshAccessToken, profile }
