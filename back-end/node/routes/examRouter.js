@@ -1,7 +1,7 @@
-'use strict';
-const express = require('express');
-const router = express.Router();
-const examController = require('../controllers/examController');
+'use strict'
+const express = require('express')
+const router = express.Router()
+const examController = require('../controllers/examController')
 /**
  * @swagger
  * tags:
@@ -11,7 +11,7 @@ const examController = require('../controllers/examController');
 
 /**
  * @swagger
- * /api/exams:
+ * /exams:
  *   get:
  *     tags:
  *       - "Exams"
@@ -21,4 +21,4 @@ const examController = require('../controllers/examController');
  *         description: Thành công
  */
 router.get('/', examController.getAllExam)
-module.exports = router;
+module.exports = router

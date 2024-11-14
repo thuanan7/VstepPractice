@@ -1,5 +1,5 @@
 const bcrypt = require('bcryptjs')
-const models = require('../../models')
+const models = require('../../db/models')
 
 const { formatResponse } = require('../utils/responseFormatter')
 const {
