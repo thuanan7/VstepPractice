@@ -13,59 +13,18 @@ public class ExamRepository : RepositoryBase<Exam, int>, IExamRepository
     {
     }
 
-    public async Task<PagedResult<Exam>> GetPagedAsync(
-        Expression<Func<Exam, bool>>? predicate = null,
-        int pageIndex = 1,
-        int pageSize = 10,
+    public Task<PagedResult<Exam>> GetPagedAsync(Expression<Func<Exam, bool>>? predicate = null, int pageIndex = 1, int pageSize = 10,
         CancellationToken cancellationToken = default)
     {
-        var query = _context.Set<Exam>()
-            .AsNoTracking().AsQueryable();
-            // .Include(e => e.CreatedBy);
-        // .Include(e => e.Sections.OrderBy(s => s.OrderNum))
-        //     .ThenInclude(s => s.Parts.OrderBy(p => p.OrderNum))
-        //         .ThenInclude(p => p.Passages.OrderBy(pg => pg.OrderNum))
-        //             .ThenInclude(pg => pg.Questions.OrderBy(q => q.OrderNum))
-        //                 .ThenInclude(q => q.Options)
-        // .AsQueryable();
-        var k =await _context.Exams.AsNoTracking()
-                                                .AsQueryable()
-                                                .ToListAsync(cancellationToken);
-        var j = "";
-        if (predicate != null)
-            query = query.Where(predicate);
-
-        return await PagedResult<Exam>.CreateAsync(
-            query,
-            pageIndex,
-            pageSize,
-            cancellationToken);
+        throw new NotImplementedException();
     }
 
-    public override async Task<Exam?> FindByIdAsync(
-        int id,
-        CancellationToken cancellationToken = default,
-        params Expression<Func<Exam, object>>[] includeProperties)
+    public async Task<Exam> GetAllExamAsync(CancellationToken cancellationToken = default)
     {
-        var query = _context.Set<Exam>().AsQueryable();
-
-        // Include default relations
-        // query = query
-        //     .Include(e => e.CreatedBy);
-        // .Include(e => e.Sections.OrderBy(s => s.OrderNum))
-        //     .ThenInclude(s => s.Parts.OrderBy(p => p.OrderNum))
-        //         .ThenInclude(p => p.Passages.OrderBy(pg => pg.OrderNum))
-        //             .ThenInclude(pg => pg.Questions.OrderBy(q => q.OrderNum))
-        //                 .ThenInclude(q => q.Options);
-
-        // Add any additional includes
-        foreach (var property in includeProperties)
-        {
-            query = query.Include(property);
-        }
-
-        return await query
-            .AsTracking()
-            .FirstOrDefaultAsync(e => e.Id == id, cancellationToken);
+        var query = _context.Set<Exam>()
+            .AsNoTracking()
+            .AsQueryable();
+        var s =await query.ToListAsync();
+        throw new NotImplementedException();
     }
 }

@@ -8,8 +8,8 @@ public class Exam : BaseEntity
     public string? Title { get; set; }
     [Column("description")]
     public string? Description { get; set; }
-    
-    [Column("createdBy")]
+
+    [Column("userId")]
     public int CreatedById { get; set; }
 
     // [ForeignKey("CreatedById")]

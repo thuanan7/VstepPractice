@@ -5,9 +5,7 @@ namespace VstepPractice.API.Services.Exams;
 
 public interface IExamService
 {
-    Task<Result<PagedResult<ExamResponse>>> GetExamsAsync(
-        int pageIndex = 1,
-        int pageSize = 10,
+    Task<Result<String>> GetExamsAsync(
         CancellationToken cancellationToken = default);
    
 }

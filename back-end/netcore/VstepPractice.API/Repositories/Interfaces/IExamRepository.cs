@@ -11,4 +11,6 @@ public interface IExamRepository : IRepositoryBase<Exam, int>
         int pageIndex = 1,
         int pageSize = 10,
         CancellationToken cancellationToken = default);
+    Task<Exam> GetAllExamAsync(
+        CancellationToken cancellationToken = default);
 }
