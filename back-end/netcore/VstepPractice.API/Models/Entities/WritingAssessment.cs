@@ -4,21 +4,25 @@ namespace VstepPractice.API.Models.Entities;
 
 public class WritingAssessment : BaseEntity
 {
+    [Column("answerId")]
     public int AnswerId { get; set; }
 
-    [Column(TypeName = "decimal(4,2)")]
+    [Column("taskAchievement", TypeName = "decimal(4,2)")]
     public decimal TaskAchievement { get; set; }
 
-    [Column(TypeName = "decimal(4,2)")]
+    [Column("coherenceCohesion", TypeName = "decimal(4,2)")]
     public decimal CoherenceCohesion { get; set; }
 
-    [Column(TypeName = "decimal(4,2)")]
+    [Column("lexicalResource", TypeName = "decimal(4,2)")]
     public decimal LexicalResource { get; set; }
 
-    [Column(TypeName = "decimal(4,2)")]
+    [Column("grammarAccuracy", TypeName = "decimal(4,2)")]
     public decimal GrammarAccuracy { get; set; }
 
+    [Column("detailedFeedback")]
     public string DetailedFeedback { get; set; } = string.Empty;
+
+    [Column("assessedAt")]
     public DateTime AssessedAt { get; set; } = DateTime.UtcNow;
 
     [NotMapped]
