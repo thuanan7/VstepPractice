@@ -79,11 +79,11 @@ public class StudentAttemptService : IStudentAttemptService
             return Result.Failure<AnswerResponse>(
                 new Error("Attempt.NotInProgress", "This attempt is not in progress."));
 
-        var question = await _unitOfWork.QuestionRepository
-            .FindByIdAsync(request.QuestionId, cancellationToken, q => q.Section, q => q.Passage);
-
-        if (question == null)
-            return Result.Failure<AnswerResponse>(Error.NotFound);
+        // var question = await _unitOfWork.QuestionRepository
+        //     .FindByIdAsync(request.QuestionId, cancellationToken, q => q.Section, q => q.Passage);
+        //
+        // if (question == null)
+        //     return Result.Failure<AnswerResponse>(Error.NotFound);
 
         // Check if answer already exists
         var existingAnswer = await _unitOfWork.AnswerRepository
@@ -108,36 +108,36 @@ public class StudentAttemptService : IStudentAttemptService
         }
 
         // Handle different question types
-        switch (question.Section.Type)
-        {
-            case SectionType.Writing:
-                answer.EssayAnswer = request.EssayAnswer;
-                answer.SelectedOptionId = null; // Explicitly set to null for writing
-                answer.Score = null; // Reset score as it will be set by AI
-                answer.AiFeedback = null; // Reset feedback as it will be set by AI
-                break;
-
-            case SectionType.Reading:
-            case SectionType.Listening:
-                if (!request.SelectedOptionId.HasValue)
-                {
-                    return Result.Failure<AnswerResponse>(
-                        new Error("Answer.OptionRequired", "Multiple choice answer requires a selected option."));
-                }
-
-                answer.EssayAnswer = null; // Reset essay answer for multiple choice
-                answer.SelectedOptionId = request.SelectedOptionId;
-                answer.AiFeedback = null;
-
-                // Calculate score immediately for multiple choice
-                var selectedOption = await _unitOfWork.QuestionOptions
-                    .FindByIdAsync(request.SelectedOptionId.Value, cancellationToken);
-                answer.Score = selectedOption?.IsCorrect == true ? question.Points : 0;
-                break;
-
-            default:
-                throw new NotSupportedException($"Question type {question.Section.Type} is not supported.");
-        }
+        // switch (question.Section.Type)
+        // {
+        //     case SectionType.Writing:
+        //         answer.EssayAnswer = request.EssayAnswer;
+        //         answer.SelectedOptionId = null; // Explicitly set to null for writing
+        //         answer.Score = null; // Reset score as it will be set by AI
+        //         answer.AiFeedback = null; // Reset feedback as it will be set by AI
+        //         break;
+        //
+        //     case SectionType.Reading:
+        //     case SectionType.Listening:
+        //         if (!request.SelectedOptionId.HasValue)
+        //         {
+        //             return Result.Failure<AnswerResponse>(
+        //                 new Error("Answer.OptionRequired", "Multiple choice answer requires a selected option."));
+        //         }
+        //
+        //         answer.EssayAnswer = null; // Reset essay answer for multiple choice
+        //         answer.SelectedOptionId = request.SelectedOptionId;
+        //         answer.AiFeedback = null;
+        //
+        //         // Calculate score immediately for multiple choice
+        //         var selectedOption = await _unitOfWork.QuestionOptions
+        //             .FindByIdAsync(request.SelectedOptionId.Value, cancellationToken);
+        //         answer.Score = selectedOption?.IsCorrect == true ? question.Points : 0;
+        //         break;
+        //
+        //     default:
+        //         throw new NotSupportedException($"Question type {question.Section.Type} is not supported.");
+        // }
 
         // Save answer changes first
         if (existingAnswer != null)
@@ -147,17 +147,17 @@ public class StudentAttemptService : IStudentAttemptService
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         // Queue writing assessment if needed
-        if (question.Section.Type == SectionType.Writing && !string.IsNullOrEmpty(request.EssayAnswer))
-        {
-            await _scoringQueue.QueueScoringTaskAsync(new EssayScoringTask
-            {
-                AnswerId = answer.Id,
-                PassageTitle = question.Passage.Title,
-                PassageContent = question.Passage.Content ?? string.Empty,
-                QuestionText = question.QuestionText ?? string.Empty,
-                Essay = request.EssayAnswer
-            });
-        }
+        // if (question.Section.Type == SectionType.Writing && !string.IsNullOrEmpty(request.EssayAnswer))
+        // {
+        //     await _scoringQueue.QueueScoringTaskAsync(new EssayScoringTask
+        //     {
+        //         AnswerId = answer.Id,
+        //         PassageTitle = question.Passage.Title,
+        //         PassageContent = question.Passage.Content ?? string.Empty,
+        //         QuestionText = question.QuestionText ?? string.Empty,
+        //         Essay = request.EssayAnswer
+        //     });
+        // }
 
         var response = _mapper.Map<AnswerResponse>(answer);
         return Result.Success(response);
@@ -209,19 +209,19 @@ public class StudentAttemptService : IStudentAttemptService
 
         // Map answers with writing assessments
         var answers = new List<AnswerResponse>();
-        foreach (var answer in attempt.Answers)
-        {
-            var writingAssessment = answer.Question.Section.Type == SectionType.Writing
-                ? await _unitOfWork.WritingAssessmentRepository
-                    .GetByAnswerIdAsync(answer.Id, cancellationToken)
-                : null;
-
-            var answerResponse = _mapper.Map<AnswerResponse>(answer, opt =>
-            {
-                opt.Items["WritingAssessment"] = writingAssessment;
-            });
-            answers.Add(answerResponse);
-        }
+        // foreach (var answer in attempt.Answers)
+        // {
+        //     var writingAssessment = answer.Question.Section.Type == SectionType.Writing
+        //         ? await _unitOfWork.WritingAssessmentRepository
+        //             .GetByAnswerIdAsync(answer.Id, cancellationToken)
+        //         : null;
+        //
+        //     var answerResponse = _mapper.Map<AnswerResponse>(answer, opt =>
+        //     {
+        //         opt.Items["WritingAssessment"] = writingAssessment;
+        //     });
+        //     answers.Add(answerResponse);
+        // }
 
         var result = new AttemptResultResponse
         {
@@ -238,95 +238,95 @@ public class StudentAttemptService : IStudentAttemptService
         decimal readingScore = 0;
         decimal writingScore = 0;
 
-        foreach (var section in attempt.Exam.Sections)
-        {
-            var sectionAnswers = attempt.Answers
-                .Where(a => a.Question.SectionId == section.Id)
-                .ToList();
-
-            switch (section.Type)
-            {
-                case SectionType.Listening:
-                    var correctListeningAnswers = sectionAnswers.Count(a =>
-                        a.SelectedOptionId.HasValue &&
-                        a.Question.Options.Any(o =>
-                            o.Id == a.SelectedOptionId && o.IsCorrect));
-                    listeningScore = VstepScoreCalculator.CalculateListeningScore(correctListeningAnswers);
-                    sectionScores.Add("Listening", listeningScore);
-                    break;
-
-                case SectionType.Reading:
-                    var readingParts = sectionAnswers
-                        .GroupBy(a => a.Question.Part.PartNumber)
-                        .Select(g => new
-                        {
-                            PartNumber = g.Key,
-                            Score = g.Sum(a => a.Score ?? 0)
-                        })
-                        .ToList();
-
-                    var partScores = readingParts.Select(p => p.Score).ToList();
-                    readingScore = VstepScoreCalculator.CalculateReadingScore(partScores);
-                    sectionScores.Add("Reading", readingScore);
-                    break;
-
-                case SectionType.Writing:
-                    var writingParts = section.Parts
-                        .OrderBy(p => p.PartNumber)
-                        .ToList();
-
-                    var writingDetails = new WritingSectionScore();
-
-                    foreach (var part in writingParts)
-                    {
-                        var answer = sectionAnswers
-                            .FirstOrDefault(a => a.Question.PartId == part.Id);
-
-                        if (answer != null)
-                        {
-                            // Get writing assessment
-                            var assessment = await _unitOfWork.WritingAssessmentRepository
-                                .GetByAnswerIdAsync(answer.Id, cancellationToken);
-
-                            if (assessment != null)
-                            {
-                                var taskScore = new WritingTaskScore
-                                {
-                                    TaskNumber = part.PartNumber,
-                                    TaskAchievement = assessment.TaskAchievement,
-                                    CoherenceCohesion = assessment.CoherenceCohesion,
-                                    LexicalResource = assessment.LexicalResource,
-                                    GrammarAccuracy = assessment.GrammarAccuracy
-                                };
-
-                                writingDetails.TaskScores.Add(taskScore);
-                            }
-                        }
-                    }
-
-                    // Only calculate if we have both tasks
-                    if (writingDetails.TaskScores.Count == 2)
-                    {
-                        writingScore = writingDetails.FinalScore;
-                        sectionScores.Add("Writing", writingScore);
-                        result.WritingDetails = writingDetails;
-
-                        _logger.LogInformation(
-                            "Writing scores calculated. Task1: {Task1}, Task2: {Task2}, Final: {Final}",
-                            writingDetails.TaskScores[0].TotalScore,
-                            writingDetails.TaskScores[1].TotalScore,
-                            writingScore);
-                    }
-                    else
-                    {
-                        _logger.LogWarning(
-                            "Expected 2 writing tasks, but found {Count} for attempt {AttemptId}",
-                            writingDetails.TaskScores.Count,
-                            attemptId);
-                    }
-                    break;
-            }
-        }
+        // foreach (var section in attempt.Exam.Sections)
+        // {
+        //     var sectionAnswers = attempt.Answers
+        //         .Where(a => a.Question.SectionId == section.Id)
+        //         .ToList();
+        //
+        //     switch (section.Type)
+        //     {
+        //         case SectionType.Listening:
+        //             var correctListeningAnswers = sectionAnswers.Count(a =>
+        //                 a.SelectedOptionId.HasValue &&
+        //                 a.Question.Options.Any(o =>
+        //                     o.Id == a.SelectedOptionId && o.IsCorrect));
+        //             listeningScore = VstepScoreCalculator.CalculateListeningScore(correctListeningAnswers);
+        //             sectionScores.Add("Listening", listeningScore);
+        //             break;
+        //
+        //         case SectionType.Reading:
+        //             var readingParts = sectionAnswers
+        //                 .GroupBy(a => a.Question.Part.PartNumber)
+        //                 .Select(g => new
+        //                 {
+        //                     PartNumber = g.Key,
+        //                     Score = g.Sum(a => a.Score ?? 0)
+        //                 })
+        //                 .ToList();
+        //
+        //             var partScores = readingParts.Select(p => p.Score).ToList();
+        //             readingScore = VstepScoreCalculator.CalculateReadingScore(partScores);
+        //             sectionScores.Add("Reading", readingScore);
+        //             break;
+        //
+        //         case SectionType.Writing:
+        //             var writingParts = section.Parts
+        //                 .OrderBy(p => p.PartNumber)
+        //                 .ToList();
+        //
+        //             var writingDetails = new WritingSectionScore();
+        //
+        //             foreach (var part in writingParts)
+        //             {
+        //                 var answer = sectionAnswers
+        //                     .FirstOrDefault(a => a.Question.PartId == part.Id);
+        //
+        //                 if (answer != null)
+        //                 {
+        //                     // Get writing assessment
+        //                     var assessment = await _unitOfWork.WritingAssessmentRepository
+        //                         .GetByAnswerIdAsync(answer.Id, cancellationToken);
+        //
+        //                     if (assessment != null)
+        //                     {
+        //                         var taskScore = new WritingTaskScore
+        //                         {
+        //                             TaskNumber = part.PartNumber,
+        //                             TaskAchievement = assessment.TaskAchievement,
+        //                             CoherenceCohesion = assessment.CoherenceCohesion,
+        //                             LexicalResource = assessment.LexicalResource,
+        //                             GrammarAccuracy = assessment.GrammarAccuracy
+        //                         };
+        //
+        //                         writingDetails.TaskScores.Add(taskScore);
+        //                     }
+        //                 }
+        //             }
+        //
+        //             // Only calculate if we have both tasks
+        //             if (writingDetails.TaskScores.Count == 2)
+        //             {
+        //                 writingScore = writingDetails.FinalScore;
+        //                 sectionScores.Add("Writing", writingScore);
+        //                 result.WritingDetails = writingDetails;
+        //
+        //                 _logger.LogInformation(
+        //                     "Writing scores calculated. Task1: {Task1}, Task2: {Task2}, Final: {Final}",
+        //                     writingDetails.TaskScores[0].TotalScore,
+        //                     writingDetails.TaskScores[1].TotalScore,
+        //                     writingScore);
+        //             }
+        //             else
+        //             {
+        //                 _logger.LogWarning(
+        //                     "Expected 2 writing tasks, but found {Count} for attempt {AttemptId}",
+        //                     writingDetails.TaskScores.Count,
+        //                     attemptId);
+        //             }
+        //             break;
+        //     }
+        // }
 
         // Calculate final score
         var finalScore = VstepScoreCalculator.CalculateFinalScore(
