@@ -3,7 +3,7 @@ const { getGatewayJwtToken } = require('../configs/jwt')
 const openAIController = {}
 openAIController.testConnection = async (req, res) => {
   try {
-    const host = `http://localhost:${process.env.AI_PORT}/api/v1/StudentAttempt/test`
+    const host = `http://localhost:${process.env.NETCORE_PORT}/api/v1/StudentAttempt/test`
     const token = getGatewayJwtToken()
     console.log('url', host)
     const response = await axios({

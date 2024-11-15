@@ -2,6 +2,6 @@
 
 public enum AttemptStatus
 {
-    InProgress,
-    Completed
+    InProgress = 0,
+    Completed = 1
 }

@@ -8,12 +8,8 @@ public class Exam : BaseEntity
     public string? Title { get; set; }
     [Column("description")]
     public string? Description { get; set; }
-
     [Column("userId")]
     public int CreatedById { get; set; }
-
-    // [ForeignKey("CreatedById")]
-    // public virtual User CreatedBy { get; set; } = default!;
-    // public virtual ICollection<Section> Sections { get; set; } = default!;
-    // public virtual ICollection<StudentAttempt> StudentAttempts { get; set; } = default!;
+    public virtual ICollection<SectionPart> Sections { get; set; } = default!;
+    public virtual ICollection<StudentAttempt> StudentAttempts { get; set; } = default!;
 }
