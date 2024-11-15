@@ -6,7 +6,6 @@ public static class EnvLoader
     {
         // Load .env file
         DotNetEnv.Env.Load(filePath);
-
         // Add environment variables to configuration
         builder.AddEnvironmentVariables();
     }

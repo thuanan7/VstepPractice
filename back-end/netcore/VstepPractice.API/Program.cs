@@ -7,7 +7,7 @@ using VstepPractice.API.DependencyInjection.Extensions;
 var builder = WebApplication.CreateBuilder(args);
 
 // Load environment variables from .env file
-builder.Configuration.LoadEnv();
+builder.Configuration.LoadEnv("../../../.env");
 
 // Add services to the container.
 builder.Services.AddAiBackGroundServices();

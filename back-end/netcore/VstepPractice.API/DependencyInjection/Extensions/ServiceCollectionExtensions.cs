@@ -24,9 +24,7 @@ public static class ServiceCollectionExtensions
 
     public static void AddAuthenServices(this IServiceCollection services, IConfiguration configuration)
     {
-        var scret = configuration["JWT:SECRET"];
-        var key = Encoding.ASCII.GetBytes(scret ?? "b2TestProjectSecretKey1234567890123456!");
-
+        var key = Encoding.ASCII.GetBytes(configuration["SECRET_GATEWAY_KEY"] ?? "b2TestProjectSecretKey1234567890123456!");
         services.AddAuthentication(x =>
         {
             x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
