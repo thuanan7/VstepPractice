@@ -31,6 +31,7 @@ module.exports = (sequelize, DataTypes) => {
       instructions: { type: DataTypes.TEXT, allowNull: true },
       content: { type: DataTypes.TEXT, allowNull: true },
       orderNum: DataTypes.INTEGER,
+      type: DataTypes.INTEGER,
       examId: {
         type: DataTypes.INTEGER,
         allowNull: false,

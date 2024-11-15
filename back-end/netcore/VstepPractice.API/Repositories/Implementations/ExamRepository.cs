@@ -13,18 +13,46 @@ public class ExamRepository : RepositoryBase<Exam, int>, IExamRepository
     {
     }
 
-    public Task<PagedResult<Exam>> GetPagedAsync(Expression<Func<Exam, bool>>? predicate = null, int pageIndex = 1, int pageSize = 10,
+    public async Task<PagedResult<Exam>> GetPagedAsync(
+        Expression<Func<Exam, bool>>? predicate = null,
+        int pageIndex = 1,
+        int pageSize = 10,
         CancellationToken cancellationToken = default)
-    {
-        throw new NotImplementedException();
-    }
-
-    public async Task<Exam> GetAllExamAsync(CancellationToken cancellationToken = default)
     {
         var query = _context.Set<Exam>()
             .AsNoTracking()
+            .Include(e => e.Sections.OrderBy(s => s.OrderNum))
             .AsQueryable();
-        var s =await query.ToListAsync();
-        throw new NotImplementedException();
+
+        if (predicate != null)
+            query = query.Where(predicate);
+
+        return await PagedResult<Exam>.CreateAsync(
+            query,
+            pageIndex,
+            pageSize,
+            cancellationToken);
+    }
+
+    public override async Task<Exam?> FindByIdAsync(
+        int id,
+        CancellationToken cancellationToken = default,
+        params Expression<Func<Exam, object>>[] includeProperties)
+    {
+        var query = _context.Set<Exam>().AsQueryable();
+
+        // Include default relations
+        query = query
+            .Include(e => e.Sections.OrderBy(s => s.OrderNum));
+
+        // Add any additional includes
+        foreach (var property in includeProperties)
+        {
+            query = query.Include(property);
+        }
+
+        return await query
+            .AsTracking()
+            .FirstOrDefaultAsync(e => e.Id == id, cancellationToken);
     }
 }

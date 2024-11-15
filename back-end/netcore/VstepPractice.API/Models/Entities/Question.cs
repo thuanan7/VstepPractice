@@ -13,6 +13,8 @@ public class Question : BaseEntity
     public int Point { get; set; } = 1;
     [Column("orderNum")]
     public int OrderNum { get; set; }
+    [Column("type")]
+    public SectionType Type { get; set; }
     // Navigation properties
     [ForeignKey("sectionId")]
     public virtual SectionPart Section { get; set; } = default!;

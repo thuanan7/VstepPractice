@@ -11,15 +11,36 @@ public class UnitOfWork : IUnitOfWork
     private readonly ApplicationDbContext _context;
     private IDbContextTransaction? _transaction;
     private bool _disposed;
+
     private IExamRepository? _examRepository;
+    private IQuestionOptionRepository? _questionOptionRepository;
+    private IStudentAttemptRepository? _studentAttemptRepository;
+    private IAnswerRepository? _answerRepository;
+    private IQuestionRepository? _questionRepository;
+    private IWritingAssessmentRepository? _writingAssessmentRepository;
 
     public UnitOfWork(
         ApplicationDbContext context) // Inject các dependencies cần thiết
     {
         _context = context;
+        // Khởi tạo các repositories khi cần
         _examRepository = new ExamRepository(_context);
     }
+
     public IExamRepository ExamRepository => _examRepository ??= new ExamRepository(_context);
+
+    public IQuestionOptionRepository QuestionOptions => _questionOptionRepository ??= new QuestionOptionRepository(_context);
+
+    public IStudentAttemptRepository StudentAttemptRepository =>
+        _studentAttemptRepository ??= new StudentAttemptRepository(_context);
+
+    public IAnswerRepository AnswerRepository =>
+        _answerRepository ??= new AnswerRepository(_context);
+
+    public IQuestionRepository QuestionRepository => _questionRepository ??= new QuestionRepository(_context);
+
+    public IWritingAssessmentRepository WritingAssessmentRepository =>
+        _writingAssessmentRepository ??= new WritingAssessmentRepository(_context);
     public async Task BeginTransactionAsync(CancellationToken cancellationToken = default)
     {
         if (_transaction != null)

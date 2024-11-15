@@ -9,4 +9,5 @@ public class WritingAssessmentResponse
     public string DetailedFeedback { get; set; } = string.Empty;
 
     public decimal TotalScore => (TaskAchievement + CoherenceCohesion + LexicalResource + GrammarAccuracy) / 4;
+
 }

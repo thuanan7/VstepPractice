@@ -7,4 +7,5 @@ public class EssayScoringTask
     public string PassageContent { get; set; } = string.Empty;
     public string QuestionText { get; set; } = string.Empty;
     public string Essay { get; set; } = string.Empty;
+
 }

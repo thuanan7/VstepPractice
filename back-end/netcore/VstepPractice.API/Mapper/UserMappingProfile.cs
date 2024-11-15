@@ -1,8 +1,6 @@
 ﻿using VstepPractice.API.Models.Entities;
 using AutoMapper;
 using VstepPractice.API.Common.Utils;
-using VstepPractice.API.Models.DTOs.Users.Requests;
-using VstepPractice.API.Models.DTOs.Users.Responses;
 using VstepPractice.API.Models.DTOs.Exams.Responses;
 using VstepPractice.API.Models.DTOs.Sections.Responses;
 using VstepPractice.API.Models.DTOs.Questions.Responses;
