@@ -1,6 +1,8 @@
 const jwt = require('jsonwebtoken')
 const redisClient = require('./redisClient')
 
+let cachedToken = null
+let tokenExpiration = null
 const ACCESS_TOKEN_EXPIRY = '1h'
 const REFRESH_TOKEN_EXPIRY = '7d'
 
@@ -26,9 +28,34 @@ const generateRefreshToken = (user) => {
   return refreshToken
 }
 
+const generateGatewayJwtToken = () => {
+  const token = jwt.sign(
+    { iss: 'api-gateway' },
+    process.env.SECRET_GATEWAY_KEY,
+    {
+      expiresIn: '1h',
+    },
+  )
+  cachedToken = token
+  tokenExpiration = Date.now() + 60 * 60 * 1000
+  return token
+}
+
+const getGatewayJwtToken = () => {
+  if (cachedToken && Date.now() < tokenExpiration) {
+    return cachedToken
+  }
+  return generateGatewayJwtToken()
+}
+
 const invalidateTokens = (accessToken, refreshToken) => {
   redisClient.del(`auth:${accessToken}`)
   redisClient.del(`refresh:${refreshToken}`)
 }
 
-module.exports = { generateAccessToken, generateRefreshToken, invalidateTokens }
+module.exports = {
+  generateAccessToken,
+  generateRefreshToken,
+  invalidateTokens,
+  getGatewayJwtToken,
+}

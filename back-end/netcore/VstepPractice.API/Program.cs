@@ -17,11 +17,6 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     // options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
     options.UseNpgsql(builder.Configuration.GetConnectionString("PostgresConnection")));
 
-builder.Services.AddIdentityServices();
-
-// Add seeder services (put below AddIdentityServices)
-builder.Services.AddSeederServices();
-
 builder.Services.AddAutoMapper(Assembly.GetAssembly(typeof(Program)));
 
 builder.Services.AddDependencyInjections();
@@ -48,7 +43,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReact", policy =>
     {
-        policy.WithOrigins("http://localhost:5173") // Vite's default port
+        policy.WithOrigins("http://localhost:5173") 
               .AllowAnyMethod()
               .AllowAnyHeader();
     });
@@ -61,7 +56,8 @@ if (app.Environment.IsDevelopment())
 {
     app.ConfigureSwagger();
     app.ApplyMigration();
-    await app.SeedDataAsync();
+    // Dont need seedData
+    // await app.SeedDataAsync();
 }
 
 app.UseCors("AllowReact");

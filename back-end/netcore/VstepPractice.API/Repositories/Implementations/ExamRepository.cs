@@ -20,15 +20,18 @@ public class ExamRepository : RepositoryBase<Exam, int>, IExamRepository
         CancellationToken cancellationToken = default)
     {
         var query = _context.Set<Exam>()
-            .AsNoTracking()
-            .Include(e => e.CreatedBy)
-            .Include(e => e.Sections.OrderBy(s => s.OrderNum))
-                .ThenInclude(s => s.Parts.OrderBy(p => p.OrderNum))
-                    .ThenInclude(p => p.Passages.OrderBy(pg => pg.OrderNum))
-                        .ThenInclude(pg => pg.Questions.OrderBy(q => q.OrderNum))
-                            .ThenInclude(q => q.Options)
-            .AsQueryable();
-
+            .AsNoTracking().AsQueryable();
+            // .Include(e => e.CreatedBy);
+        // .Include(e => e.Sections.OrderBy(s => s.OrderNum))
+        //     .ThenInclude(s => s.Parts.OrderBy(p => p.OrderNum))
+        //         .ThenInclude(p => p.Passages.OrderBy(pg => pg.OrderNum))
+        //             .ThenInclude(pg => pg.Questions.OrderBy(q => q.OrderNum))
+        //                 .ThenInclude(q => q.Options)
+        // .AsQueryable();
+        var k =await _context.Exams.AsNoTracking()
+                                                .AsQueryable()
+                                                .ToListAsync(cancellationToken);
+        var j = "";
         if (predicate != null)
             query = query.Where(predicate);
 
@@ -47,13 +50,13 @@ public class ExamRepository : RepositoryBase<Exam, int>, IExamRepository
         var query = _context.Set<Exam>().AsQueryable();
 
         // Include default relations
-        query = query
-            .Include(e => e.CreatedBy)
-            .Include(e => e.Sections.OrderBy(s => s.OrderNum))
-                .ThenInclude(s => s.Parts.OrderBy(p => p.OrderNum))
-                    .ThenInclude(p => p.Passages.OrderBy(pg => pg.OrderNum))
-                        .ThenInclude(pg => pg.Questions.OrderBy(q => q.OrderNum))
-                            .ThenInclude(q => q.Options);
+        // query = query
+        //     .Include(e => e.CreatedBy);
+        // .Include(e => e.Sections.OrderBy(s => s.OrderNum))
+        //     .ThenInclude(s => s.Parts.OrderBy(p => p.OrderNum))
+        //         .ThenInclude(p => p.Passages.OrderBy(pg => pg.OrderNum))
+        //             .ThenInclude(pg => pg.Questions.OrderBy(q => q.OrderNum))
+        //                 .ThenInclude(q => q.Options);
 
         // Add any additional includes
         foreach (var property in includeProperties)
