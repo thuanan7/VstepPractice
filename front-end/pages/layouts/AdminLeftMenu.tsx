@@ -78,7 +78,7 @@ const AdminLeftMenu = (props: AdminLayoutProps) => {
           <ListItemIcon>
             <AssignmentIcon />
           </ListItemIcon>
-          <ListItemText primary="Quản lý Bài thi" />
+          <ListItemText primary="Exam Management" />
         </ListItemButton>
         <ListItemButton onClick={() => handleAccessToPage('/admin/questions')}>
           <ListItemIcon>
@@ -106,6 +106,19 @@ const AdminLeftMenu = (props: AdminLayoutProps) => {
       }}
     >
       {drawer}
+      <Divider />
+      <List>
+        <ListItemButton
+          onClick={() => {
+            navigate('/exam')
+          }}
+        >
+          <ListItemIcon>
+            <ExitToAppIcon />
+          </ListItemIcon>
+          <ListItemText primary="Student exam" />
+        </ListItemButton>
+      </List>
       <Divider />
       <List>
         <ListItem button>

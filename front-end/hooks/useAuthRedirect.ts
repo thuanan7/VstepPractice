@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { useSelector } from 'react-redux'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { RootState } from '@/app/store'
-import { Role } from '@/features/auth/configs'
+import { allowedRoutes } from '@/app/routes'
 
 const useAuthRedirect = () => {
   const navigate = useNavigate()
@@ -15,10 +15,17 @@ const useAuthRedirect = () => {
         navigate('/users/login')
       }
     } else if (user) {
-      if (user.role === Role.STUDENT) {
-        navigate('/exam')
-      } else if (user.role === Role.ADMIN || user.role === Role.TEACHER) {
-        navigate('/admin')
+      const userAllowedRoutes = allowedRoutes[user.role]
+      if (userAllowedRoutes) {
+        const isAllowed = userAllowedRoutes.some((route) =>
+          location.pathname.match(
+            new RegExp(`^${route.replace(/:\w+/g, '\\w+')}$`),
+          ),
+        )
+
+        if (!isAllowed) {
+          navigate('/exam')
+        }
       }
     }
   }, [accessToken, user, navigate, location.pathname])

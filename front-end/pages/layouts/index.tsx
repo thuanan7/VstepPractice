@@ -1,12 +1,9 @@
-import {Outlet} from 'react-router-dom';
-import AdminLayout from './AdminLayout';
+import { Outlet } from 'react-router-dom'
+import AdminLayout from './AdminLayout'
+import StudentLayout from './StudentLayout'
 
 export const MainLayout = () => {
-    return (
-        <Outlet/>
-    );
-};
+  return <Outlet />
+}
 
-export {
-    AdminLayout
-};
+export { AdminLayout, StudentLayout }

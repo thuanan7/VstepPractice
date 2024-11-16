@@ -26,7 +26,10 @@ export const authSlice = createSlice({
     ) => {
       state.accessToken = action.payload.accessToken
       state.refreshToken = action.payload.refreshToken
-      state.user = action.payload.user
+      state.user = {
+        ...action.payload.user,
+        fullName: `${action.payload.user.firstName} ${action.payload.user.lastName}`,
+      }
     },
     clearCredentials: (state) => {
       state.accessToken = null

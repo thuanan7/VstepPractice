@@ -1,5 +1,5 @@
 import { Navigate, RouteObject } from 'react-router-dom'
-import { MainLayout, AdminLayout } from '@/pages/layouts'
+import { MainLayout, AdminLayout, StudentLayout } from '@/pages/layouts'
 import {
   LoginPage,
   ExamPage,
@@ -10,6 +10,7 @@ import {
   NotFoundPage,
 } from '@/pages'
 import { PrivateRoute } from '@/app/routes/PrivateRoute'
+import { Role } from '@/features/auth/configs.ts'
 
 export const routes: RouteObject[] = [
   {
@@ -66,11 +67,17 @@ export const routes: RouteObject[] = [
   },
   {
     path: 'exam',
-    element: (
-      <PrivateRoute>
-        <StudentExamPage />
-      </PrivateRoute>
-    ),
+    element: <StudentLayout />,
+    children: [
+      {
+        index: true,
+        element: (
+          <PrivateRoute>
+            <StudentExamPage />
+          </PrivateRoute>
+        ),
+      },
+    ],
   },
   {
     path: 'exam/:id/attempt',
@@ -85,3 +92,9 @@ export const routes: RouteObject[] = [
     element: <NotFoundPage />,
   },
 ]
+
+export const allowedRoutes = {
+  [Role.STUDENT]: ['/exam', '/exam/:id/attempt'],
+  [Role.ADMIN]: null,
+  [Role.TEACHER]: null,
+}
