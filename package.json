@@ -13,6 +13,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
+    "backup-db": "pg_dump -U postgres -d tkpm2024 -F c -f ./doc/tkpm2024_db_backup_$(date +\"%Y%m%d_%H%M%S\").backup",
     "dev": "concurrently \"pnpm node-api\" \"pnpm web\""
   },
   "dependencies": {

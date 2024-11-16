@@ -33,7 +33,7 @@ app.use(express.json())
 app.use(passport.initialize())
 
 app.use('/swagger', swaggerUi.serve, swaggerUi.setup(swaggerDocs))
-app.use('/api', require('./routes/rootRouter'))
+app.use('/', require('./routes/rootRouter'))
 app.use('/api/users', require('./routes/authRouter'))
 app.use('/api/exams', require('./routes/examRouter'))
 app.use('/api/ai', require('./routes/openAIRouter'))

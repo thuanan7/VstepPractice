@@ -3,23 +3,32 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    const items = [
+    await queryInterface.bulkInsert('Exams', [
       {
-        title: 'VSTEP B1 1/2024',
-        description: 'Description for VSTEP B1 1/2024 ',
+        id: 1,
+        title: 'Exam 1',
+        description: 'Listening and Reading',
+        createdAt: new Date(),
+        updatedAt: new Date(),
         userId: 2,
       },
       {
-        title: 'VSTEP B1 1/2024',
-        description: 'Description for VSTEP B1 2/2024 ',
+        id: 2,
+        title: 'Exam 2',
+        description: 'Writing Test',
+        createdAt: new Date(),
+        updatedAt: new Date(),
         userId: 2,
       },
-    ]
-    items.forEach((item) => {
-      item.createdAt = Sequelize.literal('NOW()')
-      item.updatedAt = Sequelize.literal('NOW()')
-    })
-    await queryInterface.bulkInsert('Exams', items, {})
+      {
+        id: 3,
+        title: 'Exam 3',
+        description: 'Full VSTEP',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        userId: 2,
+      },
+    ])
   },
 
   async down(queryInterface, Sequelize) {
