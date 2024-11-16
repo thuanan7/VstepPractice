@@ -1,12 +1,7 @@
-import { PropsWithChildren } from 'react';
-import { Navigate } from 'react-router-dom';
-import { useAppSelector } from '@/hooks/useStore';
-import { selectIsAuthenticated } from '@/features/auth/authSlice';
+import { PropsWithChildren } from 'react'
+import useAuthRedirect from '@/hooks/useAuthRedirect.ts'
 
 export const PrivateRoute = ({ children }: PropsWithChildren) => {
-    const isAuthenticated = useAppSelector(selectIsAuthenticated);
-    if (!isAuthenticated) {
-        return <Navigate to={'/admin/login'} />;
-    }
-    return <>{children}</>;
-};
+  useAuthRedirect()
+  return <>{children}</>
+}

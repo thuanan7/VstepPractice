@@ -30,7 +30,7 @@ const register = async (req, res) => {
 const login = async (req, res) => {
   try {
     const { email, password } = req.body
-    const user = await models.User.findOne({ email })
+    const user = await models.User.findOne({ where: { email } })
     if (!user || !(await bcrypt.compare(password, user.password))) {
       return res.status(401).json(formatResponse(false, 'Invalid credentials'))
     }

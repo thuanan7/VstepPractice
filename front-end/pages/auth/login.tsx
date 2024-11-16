@@ -19,6 +19,7 @@ import { setCredentials } from '@/features/auth/authSlice.ts'
 import { authRequest } from '@/app/api'
 import { IResLogin } from '@/features/auth/type.ts'
 import { Role } from '@/features/auth/configs.ts'
+import useAuthRedirect from '@/hooks/useAuthRedirect.ts'
 
 const validationSchema = Yup.object().shape({
   email: Yup.string()
@@ -30,6 +31,7 @@ const validationSchema = Yup.object().shape({
 })
 
 const Login: React.FC = () => {
+  useAuthRedirect()
   const [loginError, setLoginError] = useState<string | null>(null)
   const dispatch = useDispatch()
   const [loading, setLoading] = useState(false)
@@ -59,7 +61,7 @@ const Login: React.FC = () => {
         if (response.user.role === Role.ADMIN) {
           navigate('/admin')
         } else {
-          navigate('/dashboard')
+          navigate('/exam')
         }
       } else {
         setLoginError(`${rs?.message || 'Server error'}`)
