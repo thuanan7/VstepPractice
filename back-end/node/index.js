@@ -8,7 +8,6 @@ const session = require('express-session')
 const RedisStore = require('connect-redis').default
 const passport = require('./configs/passport')
 const redisClient = require('./configs/redisClient')
-//
 const swaggerDocs = require('./utils/swaggerConfig')
 const { errorHandler } = require('./utils/responseFormatter')
 
@@ -36,6 +35,7 @@ app.use('/swagger', swaggerUi.serve, swaggerUi.setup(swaggerDocs))
 app.use('/', require('./routes/rootRouter'))
 app.use('/api/users', require('./routes/authRouter'))
 app.use('/api/exams', require('./routes/examRouter'))
+app.use('/api/section-parts', require('./routes/sectionPartRouter'))
 app.use('/api/ai', require('./routes/openAIRouter'))
 app.use(errorHandler)
 app.listen(port, () => {

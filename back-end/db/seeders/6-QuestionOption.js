@@ -5,7 +5,6 @@ module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.bulkInsert('QuestionOptions', [
       {
-        id: 1,
         content: "The speaker's intention",
         isCorrect: true,
         orderNum: 1,
@@ -14,7 +13,6 @@ module.exports = {
         updatedAt: new Date(),
       },
       {
-        id: 2,
         content: 'A specific detail in the passage',
         isCorrect: false,
         orderNum: 2,
@@ -23,7 +21,6 @@ module.exports = {
         updatedAt: new Date(),
       },
       {
-        id: 3,
         content: 'To clarify the concept',
         isCorrect: true,
         orderNum: 1,
@@ -32,7 +29,6 @@ module.exports = {
         updatedAt: new Date(),
       },
       {
-        id: 4,
         content: 'Confusing the listener',
         isCorrect: false,
         orderNum: 2,
@@ -41,7 +37,6 @@ module.exports = {
         updatedAt: new Date(),
       },
       {
-        id: 5,
         content: 'Choose synonym for "happy"',
         isCorrect: true,
         orderNum: 1,
@@ -50,7 +45,6 @@ module.exports = {
         updatedAt: new Date(),
       },
       {
-        id: 6,
         content: 'Choose antonym for "sad"',
         isCorrect: false,
         orderNum: 2,

@@ -5,7 +5,6 @@ module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.bulkInsert('SectionParts', [
       {
-        id: 1,
         title: 'Listening Section',
         instructions: 'Listen carefully to the audio',
         content: null,
@@ -16,7 +15,6 @@ module.exports = {
         updatedAt: new Date(),
       },
       {
-        id: 2,
         title: 'Reading Section',
         instructions: 'Read the passage carefully',
         content: null,
@@ -27,7 +25,6 @@ module.exports = {
         updatedAt: new Date(),
       },
       {
-        id: 3,
         title: 'Writing Section',
         instructions: 'Write your essay',
         content: null,
@@ -38,7 +35,6 @@ module.exports = {
         updatedAt: new Date(),
       },
       {
-        id: 4,
         title: 'Grammar Section',
         instructions: 'Fill in the blanks',
         content: null,
@@ -49,7 +45,6 @@ module.exports = {
         updatedAt: new Date(),
       },
       {
-        id: 5,
         title: 'Listening Part 1',
         instructions: 'Listen to the conversation',
         content: null,
@@ -60,7 +55,6 @@ module.exports = {
         updatedAt: new Date(),
       },
       {
-        id: 6,
         title: 'Reading Part 1',
         instructions: 'Comprehension Questions',
         content: null,

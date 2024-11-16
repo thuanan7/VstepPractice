@@ -57,6 +57,7 @@ export interface ListeningQuestion {
 export interface Section {
   id: string
   title: string
+  instructions: string
   type: 'listening' | 'reading' | 'writing' | 'speaking'
   essayText?: string
   questions: Question[] | ListeningQuestion[]
@@ -64,3 +65,5 @@ export interface Section {
 export interface VSTEPExam {
   sections: Section[]
 }
+
+export interface SectionListening extends Section {}

@@ -27,6 +27,11 @@ module.exports = (sequelize, DataTypes) => {
 
   SectionPart.init(
     {
+      id: {
+        type: DataTypes.INTEGER,
+        autoIncrement: true,
+        primaryKey: true,
+      },
       title: DataTypes.STRING,
       instructions: { type: DataTypes.TEXT, allowNull: true },
       content: { type: DataTypes.TEXT, allowNull: true },
