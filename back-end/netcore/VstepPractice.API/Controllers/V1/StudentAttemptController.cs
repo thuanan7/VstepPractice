@@ -1,7 +1,6 @@
 ﻿using Asp.Versioning;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using VstepPractice.API.Common.Constant;
+using System.ComponentModel.DataAnnotations;
 using VstepPractice.API.Common.Utils;
 using VstepPractice.API.Models.DTOs.StudentAttempts.Requests;
 using VstepPractice.API.Models.DTOs.StudentAttempts.Responses;
@@ -63,7 +62,7 @@ public class StudentAttemptController : ApiController
         [FromBody] SubmitAnswerRequest request,
         CancellationToken cancellationToken)
     {
-        var userId = int.Parse(User.FindFirst(CustomClaimTypes.UserId)!.Value);
+        var userId = request.userId;
         var result = await _studentAttemptService.SubmitAnswerAsync(
             userId, attemptId, request, cancellationToken);
 
@@ -83,12 +82,12 @@ public class StudentAttemptController : ApiController
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> FinishAttempt(
         int attemptId,
+        [FromBody] FinishAttemptRequest request,
         CancellationToken cancellationToken)
     {
-        var userId = int.Parse(User.FindFirst(CustomClaimTypes.UserId)!.Value);
-        var request = new FinishAttemptRequest { AttemptId = attemptId };
+        request.AttemptId = attemptId;
         var result = await _studentAttemptService.FinishAttemptAsync(
-            userId, request, cancellationToken);
+            request.UserId, request, cancellationToken);
 
         if (!result.IsSuccess)
             return result.Error == Error.NotFound ? NotFound(result.Error) : BadRequest(result.Error);
@@ -105,9 +104,9 @@ public class StudentAttemptController : ApiController
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> GetAttemptResult(
         int attemptId,
+        [FromQuery][Required] int userId,
         CancellationToken cancellationToken)
     {
-        var userId = int.Parse(User.FindFirst(CustomClaimTypes.UserId)!.Value);
         var result = await _studentAttemptService.GetAttemptResultAsync(
             userId, attemptId, cancellationToken);
 

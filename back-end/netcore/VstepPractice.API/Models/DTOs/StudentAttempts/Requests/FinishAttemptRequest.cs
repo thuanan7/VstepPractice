@@ -2,5 +2,6 @@
 
 public class FinishAttemptRequest
 {
+    public int UserId { get; set; }
     public int AttemptId { get; set; }
 }
