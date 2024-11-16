@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
 using VstepPractice.API.Common.Enums;
 using VstepPractice.API.Models.Entities;
 
@@ -67,8 +68,8 @@ public class ApplicationDbContext : DbContext
 
             entity.Property(e => e.Status)
                 .HasColumnName("status")
-                .HasColumnType("integer")
-                .HasDefaultValue(AttemptStatus.InProgress);
+                .HasDefaultValue(AttemptStatus.InProgress)
+                .HasConversion<int>();
 
             // Define relationships without duplicate FKs
             entity.HasOne(sa => sa.User)

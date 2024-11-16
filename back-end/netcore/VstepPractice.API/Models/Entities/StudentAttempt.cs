@@ -14,7 +14,7 @@ public class StudentAttempt : BaseEntity
     [Column("endTime")]
     public DateTime? EndTime { get; set; }
     [Column("status")]
-    public AttemptStatus Status { get; set; } = AttemptStatus.InProgress;
+    public AttemptStatus? Status { get; set; } = AttemptStatus.InProgress;
     // Navigation properties
     [ForeignKey(nameof(ExamId))]
     public virtual Exam Exam { get; set; } = default!;
