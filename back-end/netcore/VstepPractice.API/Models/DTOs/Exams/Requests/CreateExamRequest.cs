@@ -12,5 +12,5 @@ public class CreateExamRequest
     public string? Description { get; set; }
 
     [Required]
-    public List<CreateSectionRequest> Sections { get; set; } = new();
+    public List<SectionRequest> Sections { get; set; } = new();
 }

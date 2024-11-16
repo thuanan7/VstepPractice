@@ -21,7 +21,7 @@ public class ExamRepository : RepositoryBase<Exam, int>, IExamRepository
     {
         var query = _context.Set<Exam>()
             .AsNoTracking()
-            .Include(e => e.Sections.OrderBy(s => s.OrderNum))
+            .Include(e => e.SectionParts.OrderBy(s => s.OrderNum))
             .AsQueryable();
 
         if (predicate != null)
@@ -43,7 +43,7 @@ public class ExamRepository : RepositoryBase<Exam, int>, IExamRepository
 
         // Include default relations
         query = query
-            .Include(e => e.Sections.OrderBy(s => s.OrderNum));
+            .Include(e => e.SectionParts.OrderBy(s => s.OrderNum));
 
         // Add any additional includes
         foreach (var property in includeProperties)

@@ -17,5 +17,5 @@ public class CreatePassageRequest
     public int OrderNum { get; set; }
 
     [Required]
-    public List<CreateQuestionRequest> Questions { get; set; } = new();
+    public List<QuestionRequest> Questions { get; set; } = new();
 }

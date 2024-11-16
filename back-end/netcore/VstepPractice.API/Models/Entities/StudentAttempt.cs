@@ -18,5 +18,7 @@ public class StudentAttempt : BaseEntity
     // Navigation properties
     [ForeignKey("examId")]
     public virtual Exam Exam { get; set; } = default!;
+    [ForeignKey("userId")]
+    public virtual User User { get; set; } = default!;
     public virtual ICollection<Answer> Answers { get; set; } = default!;
 }
