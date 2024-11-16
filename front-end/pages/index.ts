@@ -3,6 +3,8 @@ export { default as AdminPage } from './admin'
 export { default as ExamPage } from './admin/exam'
 
 export { default as StudentExamAttemptPage } from './exam/attempt'
+export { default as StudentExamResultPage } from './exam/result'
+export { default as StudentExamSubmitPage } from './exam/submit'
 export { default as StudentExamPage } from './exam'
 
 export { default as NotFoundPage } from './error/page-not-found'

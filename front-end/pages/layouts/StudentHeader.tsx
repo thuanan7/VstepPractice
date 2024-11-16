@@ -48,7 +48,7 @@ const StudentHeader: React.FC = () => {
           sx={{ flexGrow: 1, cursor: 'pointer' }}
           onClick={() => navigate('/')}
         >
-          VSTEP B2
+          VSTEP B2 Exams
         </Typography>
 
         {user && (

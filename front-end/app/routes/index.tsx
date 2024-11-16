@@ -6,6 +6,8 @@ import {
   QuestionPage,
   AdminPage,
   StudentExamAttemptPage,
+  StudentExamResultPage,
+  StudentExamSubmitPage,
   StudentExamPage,
   NotFoundPage,
 } from '@/pages'
@@ -77,15 +79,31 @@ export const routes: RouteObject[] = [
           </PrivateRoute>
         ),
       },
+      {
+        path: ':id/attempt',
+        element: (
+          <PrivateRoute>
+            <StudentExamAttemptPage />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: ':id/result',
+        element: (
+          <PrivateRoute>
+            <StudentExamResultPage />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: ':id/submit',
+        element: (
+          <PrivateRoute>
+            <StudentExamSubmitPage />
+          </PrivateRoute>
+        ),
+      },
     ],
-  },
-  {
-    path: 'exam/:id/attempt',
-    element: (
-      <PrivateRoute>
-        <StudentExamAttemptPage />
-      </PrivateRoute>
-    ),
   },
   {
     path: '*',
@@ -94,7 +112,12 @@ export const routes: RouteObject[] = [
 ]
 
 export const allowedRoutes = {
-  [Role.STUDENT]: ['/exam', '/exam/:id/attempt'],
+  [Role.STUDENT]: [
+    '/exam',
+    '/exam/:id/attempt',
+    '/exam/:id/submit',
+    '/exam/:id/result',
+  ],
   [Role.ADMIN]: null,
   [Role.TEACHER]: null,
 }

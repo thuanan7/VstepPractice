@@ -8,6 +8,7 @@ import {
   CardHeader,
   Grid,
   Typography,
+  Container,
   Chip,
 } from '@mui/material'
 import { useNavigate } from 'react-router-dom'
@@ -65,51 +66,50 @@ const ExamList: React.FC = () => {
   }
 
   return (
-    <Box sx={{ padding: 3 }}>
-      <Typography variant="h4" component="h1" color="primary" sx={{ mb: 3 }}>
-        VSTEP B2 Exams
-      </Typography>
-      <Grid container spacing={3}>
-        {examList.map((exam) => (
-          <Grid item xs={12} sm={6} md={4} key={exam.id}>
-            <Card variant="outlined">
-              <CardHeader
-                title={exam.title}
-                subheader={exam.date}
-                action={
-                  <Chip
-                    label={exam.status}
-                    color={getStatusColor(exam.status)}
-                    size="small"
-                  />
-                }
-              />
-              <CardContent>
-                <Typography variant="body2" color="textSecondary">
-                  {exam.description}
-                </Typography>
-              </CardContent>
-              <CardActions>
-                {exam.status === 'upcoming' || exam.status === 'ongoing' ? (
-                  <Button
-                    size="small"
-                    color="primary"
-                    variant="contained"
-                    onClick={() => handleStartExam(exam.id)}
-                  >
-                    Start Exam
-                  </Button>
-                ) : (
-                  <Button size="small" color="secondary" disabled>
-                    Completed
-                  </Button>
-                )}
-              </CardActions>
-            </Card>
-          </Grid>
-        ))}
-      </Grid>
-    </Box>
+    <Container maxWidth="lg">
+      <Box sx={{ padding: 3 }}>
+        <Grid container spacing={3}>
+          {examList.map((exam) => (
+            <Grid item xs={12} sm={6} md={4} key={exam.id}>
+              <Card variant="outlined">
+                <CardHeader
+                  title={exam.title}
+                  subheader={exam.date}
+                  action={
+                    <Chip
+                      label={exam.status}
+                      color={getStatusColor(exam.status)}
+                      size="small"
+                    />
+                  }
+                />
+                <CardContent>
+                  <Typography variant="body2" color="textSecondary">
+                    {exam.description}
+                  </Typography>
+                </CardContent>
+                <CardActions>
+                  {exam.status === 'upcoming' || exam.status === 'ongoing' ? (
+                    <Button
+                      size="small"
+                      color="primary"
+                      variant="contained"
+                      onClick={() => handleStartExam(exam.id)}
+                    >
+                      Start Exam
+                    </Button>
+                  ) : (
+                    <Button size="small" color="secondary" disabled>
+                      Completed
+                    </Button>
+                  )}
+                </CardActions>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      </Box>
+    </Container>
   )
 }
 

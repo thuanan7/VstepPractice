@@ -35,6 +35,14 @@ const theme = createTheme({
           textTransform: 'none',
           borderRadius: '8px',
         },
+        outlined: {
+          backgroundColor: '#fff', // Màu nền trắng
+          border: '1px solid #ccc',
+          '&:hover': {
+            backgroundColor: '#f5f5f5', // Màu nền khi hover
+            borderColor: '#aaa', // Viền khi hover
+          },
+        },
         containedPrimary: {
           backgroundColor: '#D8BFD8',
           color: '#FFFFFF',
