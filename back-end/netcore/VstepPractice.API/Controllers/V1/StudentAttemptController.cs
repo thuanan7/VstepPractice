@@ -10,7 +10,6 @@ using VstepPractice.API.Services.StudentAttempts;
 namespace VstepPractice.API.Controllers.V1;
 
 [ApiVersion(1)]
-[Authorize]
 public class StudentAttemptController : ApiController
 {
     private readonly IStudentAttemptService _studentAttemptService;
@@ -38,7 +37,7 @@ public class StudentAttemptController : ApiController
         [FromBody] StartAttemptRequest request,
         CancellationToken cancellationToken)
     {
-        var userId = int.Parse(User.FindFirst(CustomClaimTypes.UserId)!.Value);
+        var userId = request.UserId;
         var result = await _studentAttemptService.StartAttemptAsync(
             userId, request, cancellationToken);
 

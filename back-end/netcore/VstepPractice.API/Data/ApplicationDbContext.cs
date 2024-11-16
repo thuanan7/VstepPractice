@@ -31,13 +31,11 @@ public class ApplicationDbContext : DbContext
 
             entity.HasMany(u => u.CreatedExams)
                 .WithOne(e => e.CreatedBy)
-                .HasForeignKey(e => e.userId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .HasForeignKey(e => e.userId);
 
             entity.HasMany(u => u.StudentAttempts)
                 .WithOne(sa => sa.User)
-                .HasForeignKey(sa => sa.UserId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .HasForeignKey(sa => sa.UserId);
         });
 
         // Exam configuration
@@ -47,52 +45,11 @@ public class ApplicationDbContext : DbContext
 
             entity.HasMany(e => e.SectionParts)
                 .WithOne(s => s.Exam)
-                .HasForeignKey(s => s.ExamId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .HasForeignKey(s => s.ExamId);
 
             entity.HasMany(e => e.StudentAttempts)
                 .WithOne(sa => sa.Exam)
-                .HasForeignKey(sa => sa.ExamId)
-                .OnDelete(DeleteBehavior.Restrict);
-        });
-
-        // SectionPart configuration
-        builder.Entity<SectionPart>(entity =>
-        {
-            entity.ToTable("SelectionParts");
-
-            // Self-referencing relationship
-            entity.HasOne(s => s.Parent)
-                .WithMany(s => s.Children)
-                .HasForeignKey(s => s.ParentId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            entity.HasMany(s => s.Questions)
-                .WithOne(q => q.Section)
-                .HasForeignKey(q => q.sectionId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            // Configure string-based Type
-            entity.Property(s => s.Type)
-                .HasMaxLength(50)
-                .IsRequired();
-        });
-
-        // Question configuration
-        builder.Entity<Question>(entity =>
-        {
-            entity.ToTable("Questions");
-
-            entity.HasMany(q => q.Options)
-                .WithOne(o => o.Question)
-                .HasForeignKey(o => o.QuestionId)
-                .OnDelete(DeleteBehavior.Cascade);
-        });
-
-        // QuestionOption configuration
-        builder.Entity<QuestionOption>(entity =>
-        {
-            entity.ToTable("QuestionOptions");
+                .HasForeignKey(sa => sa.ExamId);
         });
 
         // StudentAttempt configuration
@@ -100,69 +57,29 @@ public class ApplicationDbContext : DbContext
         {
             entity.ToTable("StudentAttempts");
 
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.UserId).HasColumnName("userId");
+            entity.Property(e => e.ExamId).HasColumnName("examId");
+            entity.Property(e => e.StartTime).HasColumnName("startTime");
+            entity.Property(e => e.EndTime).HasColumnName("endTime");
+            entity.Property(e => e.CreatedAt).HasColumnName("createdAt");
+            entity.Property(e => e.UpdateAt).HasColumnName("updatedAt");
+
             entity.Property(e => e.Status)
-                .HasConversion<string>()
-                .HasMaxLength(20)
+                .HasColumnName("status")
+                .HasColumnType("integer")
                 .HasDefaultValue(AttemptStatus.InProgress);
 
-            entity.HasMany(sa => sa.Answers)
-                .WithOne(a => a.Attempt)
-                .HasForeignKey(a => a.AttemptId)
-                .OnDelete(DeleteBehavior.Cascade);
-        });
-
-        // Answer configuration
-        builder.Entity<Answer>(entity =>
-        {
-            entity.ToTable("Answers");
-
-            entity.HasOne(a => a.Question)
-                .WithMany()
-                .HasForeignKey(a => a.QuestionId)
+            // Define relationships without duplicate FKs
+            entity.HasOne(sa => sa.User)
+                .WithMany(u => u.StudentAttempts)
+                .HasForeignKey(sa => sa.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            entity.HasOne(a => a.SelectedOption)
-                .WithMany()
-                .HasForeignKey(a => a.QuestionOptionId)
-                .IsRequired(false)
+            entity.HasOne(sa => sa.Exam)
+                .WithMany(e => e.StudentAttempts)
+                .HasForeignKey(sa => sa.ExamId)
                 .OnDelete(DeleteBehavior.Restrict);
-        });
-
-        // WritingAssessment configuration
-        builder.Entity<WritingAssessment>(entity =>
-        {
-            entity.ToTable("WritingAssessments");
-
-            entity.Property(e => e.TaskAchievement)
-                .HasPrecision(4, 2)
-                .IsRequired();
-
-            entity.Property(e => e.CoherenceCohesion)
-                .HasPrecision(4, 2)
-                .IsRequired();
-
-            entity.Property(e => e.LexicalResource)
-                .HasPrecision(4, 2)
-                .IsRequired();
-
-            entity.Property(e => e.GrammarAccuracy)
-                .HasPrecision(4, 2)
-                .IsRequired();
-
-            entity.Property(e => e.DetailedFeedback)
-                .IsRequired();
-
-            entity.Property(e => e.AssessedAt)
-                .IsRequired();
-
-            entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                .IsRequired();
-
-            entity.HasOne(w => w.Answer)
-                .WithOne()
-                .HasForeignKey<WritingAssessment>(w => w.AnswerId)
-                .OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

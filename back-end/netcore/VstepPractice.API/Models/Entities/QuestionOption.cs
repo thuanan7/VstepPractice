@@ -14,6 +14,6 @@ public class QuestionOption : BaseEntity
     [Column("orderNum")]
     public int OrderNum { get; set; }
     // Navigation property
-    [ForeignKey("questionId")] 
+    [ForeignKey(nameof(QuestionId))] 
     public virtual Question Question { get; set; } = default!;
 }
