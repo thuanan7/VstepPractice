@@ -4,6 +4,7 @@ using Microsoft.Extensions.Options;
 using Polly;
 using Polly.Retry;
 using System.Text.Json;
+using VstepPractice.API.Common.Enums;
 using VstepPractice.API.Common.Utils;
 using VstepPractice.API.Models.DTOs.AI;
 
@@ -33,16 +34,12 @@ public class OpenAiScoringService : IAiScoringService
                 retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
                 (exception, timeSpan, retryCount, _) =>
                 {
-                    if (exception.Exception != null)
-                    {
-                        _logger.LogWarning(
-                            exception.Exception,
-                            "Error attempting to assess essay. Retry {RetryCount} of {MaxRetries} after {DelaySeconds} seconds",
-                            retryCount,
-                            _options.MaxRetries,
-                            timeSpan.TotalSeconds);
-                    }
-                    return Task.CompletedTask;
+                    _logger.LogWarning(
+                        exception.Exception,
+                        "Error attempting to assess essay. Retry {RetryCount} of {MaxRetries} after {DelaySeconds} seconds",
+                        retryCount,
+                        _options.MaxRetries,
+                        timeSpan.TotalSeconds);
                 });
     }
 
@@ -50,6 +47,12 @@ public class OpenAiScoringService : IAiScoringService
         EssayScoringTask task,
         CancellationToken cancellationToken = default)
     {
+        if (task.SectionType != SectionTypes.Writing)
+        {
+            return Result.Failure<WritingAssessmentResponse>(
+                new Error("AiScoring.InvalidSectionType", "Only writing tasks can be assessed."));
+        }
+
         return await _retryPolicy.ExecuteAsync(async () =>
         {
             try
@@ -79,6 +82,9 @@ Task Title: {task.PassageTitle}
 
 Task Description:
 {task.PassageContent}
+
+Question:
+{task.QuestionText}
 
 Student's Essay:
 {task.Essay}
@@ -139,16 +145,16 @@ Provide assessment in this JSON format:
                         .Select(x => $"- {x.GetString()}"));
 
                     var formattedFeedback = $@"Strengths:
-                                            {strengths}
+{strengths}
 
-                                            Areas for Improvement:
-                                            {weaknesses}
+Areas for Improvement:
+{weaknesses}
 
-                                            Grammar Errors:
-                                            {grammarErrors}
+Grammar Errors:
+{grammarErrors}
 
-                                            Suggestions:
-                                            {suggestions}";
+Suggestions:
+{suggestions}";
 
                     var response = new WritingAssessmentResponse
                     {
@@ -170,7 +176,6 @@ Provide assessment in this JSON format:
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
-                // Normal cancellation
                 throw;
             }
             catch (Exception ex)
