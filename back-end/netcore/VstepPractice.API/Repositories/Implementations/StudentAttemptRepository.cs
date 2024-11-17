@@ -26,16 +26,17 @@ public class StudentAttemptRepository : RepositoryBase<StudentAttempt, int>, ISt
     }
 
     public async Task<StudentAttempt?> GetAttemptWithDetailsAsync(
-        int attemptId,
-        CancellationToken cancellationToken = default)
+    int attemptId,
+    CancellationToken cancellationToken = default)
     {
         return await _context.StudentAttempts
             .Include(a => a.Exam)
                 .ThenInclude(e => e.SectionParts)
+                    .ThenInclude(s => s.Questions)  // Add this
+                        .ThenInclude(q => q.Options) // Add this
             .Include(a => a.Answers)
                 .ThenInclude(ans => ans.Question)
-            .Include(a => a.Answers)
-                .ThenInclude(ans => ans.Question)
+                    .ThenInclude(q => q.Section)  // Add section to get sectionType
             .Include(a => a.Answers)
                 .ThenInclude(ans => ans.Question)
                     .ThenInclude(q => q.Options)

@@ -13,8 +13,8 @@ public class AnswerRepository : RepositoryBase<Answer, int>, IAnswerRepository
     }
 
     public async Task<Answer?> GetAnswerWithDetailsAsync(
-        int answerId,
-        CancellationToken cancellationToken = default)
+    int answerId,
+    CancellationToken cancellationToken = default)
     {
         return await _context.Answers
             .Include(a => a.Question)
@@ -24,17 +24,17 @@ public class AnswerRepository : RepositoryBase<Answer, int>, IAnswerRepository
     }
 
     public override async Task<Answer?> FindByIdAsync(
-        int id,
-        CancellationToken cancellationToken = default,
-        params Expression<Func<Answer, object>>[] includeProperties)
+    int id,
+    CancellationToken cancellationToken = default,
+    params Expression<Func<Answer, object>>[] includeProperties)
     {
-        // Override to include default relations
         var defaultIncludes = new List<Expression<Func<Answer, object>>>
-        {
-            a => a.Question,
-            a => a.Question.Options,
-            a => a.SelectedOption
-        };
+    {
+        a => a.Question,
+        a => a.Question.Options,
+        a => a.Question.Section, // Add section to get sectionType
+        a => a.SelectedOption
+    };
 
         if (includeProperties != null)
             defaultIncludes.AddRange(includeProperties);

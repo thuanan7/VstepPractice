@@ -74,36 +74,10 @@ public class AutoMapperProfile : Profile
             .ForMember(dest => dest.SectionScores,
                 opt => opt.Ignore())  // Calculated in service
             .ForMember(dest => dest.FinalScore,
-                opt => opt.Ignore())  // Calculated in service
-            .ForMember(dest => dest.WritingDetails,
-                opt => opt.Ignore()); // Calculated in service
+                opt => opt.Ignore());  // Calculated in service
 
         // Answer mappings
-        CreateMap<Answer, AnswerResponse>()
-            .ForMember(dest => dest.QuestionText,
-                opt => opt.MapFrom(src => src.Question.QuestionText ?? string.Empty))
-            .ForMember(dest => dest.IsCorrect,
-                opt => opt.MapFrom(src =>
-                    src.QuestionOptionId.HasValue &&
-                    src.SelectedOption != null &&
-                    src.SelectedOption.IsCorrect))
-            .ForMember(dest => dest.WritingScore,
-                opt => opt.MapFrom((src, dest, _, context) =>
-                {
-                    if (context.TryGetItems(out var items) &&
-                        items.TryGetValue("WritingAssessment", out var assessmentObj) &&
-                        assessmentObj is WritingAssessment assessment)
-                    {
-                        return new WritingScoreDetails
-                        {
-                            TaskAchievement = assessment.TaskAchievement,
-                            CoherenceCohesion = assessment.CoherenceCohesion,
-                            LexicalResource = assessment.LexicalResource,
-                            GrammarAccuracy = assessment.GrammarAccuracy
-                        };
-                    }
-                    return null;
-                }));
+        CreateMap<Answer, AnswerResponse>();
 
         // WritingAssessment mappings
         CreateMap<WritingAssessment, WritingScoreDetails>()

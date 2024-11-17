@@ -6,5 +6,6 @@ public class WritingScoreDetails
     public decimal CoherenceCohesion { get; set; }
     public decimal LexicalResource { get; set; }
     public decimal GrammarAccuracy { get; set; }
-    public decimal TotalScore => TaskAchievement + CoherenceCohesion + LexicalResource + GrammarAccuracy;
+    public decimal TotalScore =>
+        Math.Round((TaskAchievement + CoherenceCohesion + LexicalResource + GrammarAccuracy), 1);
 }

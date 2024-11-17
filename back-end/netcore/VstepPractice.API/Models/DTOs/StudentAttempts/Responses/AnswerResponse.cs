@@ -1,4 +1,6 @@
-﻿namespace VstepPractice.API.Models.DTOs.StudentAttempts.Responses;
+﻿using VstepPractice.API.Common.Enums;
+
+namespace VstepPractice.API.Models.DTOs.StudentAttempts.Responses;
 
 public class AnswerResponse
 {
@@ -12,5 +14,6 @@ public class AnswerResponse
     public string? AiFeedback { get; set; }
     public decimal? Score { get; set; }
     public bool IsCorrect { get; set; }
+    public SectionTypes SectionType { get; set; }
     public WritingScoreDetails? WritingScore { get; set; }
 }
