@@ -7,15 +7,22 @@ namespace VstepPractice.API.Services.ScoreCalculation.Implementations;
 
 public class VstepScoreCalculator : IVstepScoreCalculator
 {
-    private readonly IEnumerable<ISectionScoreCalculator> _calculators;
+    private readonly IDictionary<SectionTypes, ISectionScoreCalculator> _calculators;
     private readonly ILogger<VstepScoreCalculator> _logger;
 
     public VstepScoreCalculator(
-        IEnumerable<ISectionScoreCalculator> calculators,
+        ISectionScoreCalculator listeningCalculator,
+        ISectionScoreCalculator readingCalculator,
+        ISectionScoreCalculator writingCalculator,
         ILogger<VstepScoreCalculator> logger)
     {
-        _calculators = calculators;
         _logger = logger;
+        _calculators = new Dictionary<SectionTypes, ISectionScoreCalculator>
+        {
+            [SectionTypes.Listening] = listeningCalculator,
+            [SectionTypes.Reading] = readingCalculator,
+            [SectionTypes.Writing] = writingCalculator
+        };
     }
 
     public async Task<VstepScore> CalculateScoreAsync(
@@ -30,15 +37,14 @@ public class VstepScoreCalculator : IVstepScoreCalculator
                 .GroupBy(s => s.SectionType)
                 .ToDictionary(g => g.Key, g => g.ToList());
 
-            foreach (var calculator in _calculators)
+            foreach (var (sectionType, sections) in sectionParts)
             {
-                // Lấy type của calculator để biết nó xử lý section nào
-                var sectionType = GetCalculatorSectionType(calculator);
-
-                if (!sectionParts.ContainsKey(sectionType))
+                if (!_calculators.TryGetValue(sectionType, out var calculator))
+                {
+                    _logger.LogWarning("No calculator found for section type: {SectionType}", sectionType);
                     continue;
+                }
 
-                var sections = sectionParts[sectionType];
                 var questions = sections.SelectMany(s => s.Questions).ToList();
 
                 if (!questions.Any())
@@ -68,16 +74,5 @@ public class VstepScoreCalculator : IVstepScoreCalculator
                 attempt.Id);
             throw;
         }
-    }
-
-    private static SectionTypes GetCalculatorSectionType(ISectionScoreCalculator calculator)
-    {
-        return calculator switch
-        {
-            ListeningScoreCalculator => SectionTypes.Listening,
-            AlternativeReadingScoreCalculator => SectionTypes.Reading,
-            WritingScoreCalculator => SectionTypes.Writing,
-            _ => throw new InvalidOperationException($"Unknown calculator type: {calculator.GetType().Name}")
-        };
     }
 }

@@ -5,15 +5,16 @@ using System.Linq.Expressions;
 using VstepPractice.API.Common.Enums;
 using VstepPractice.API.Common.Utils;
 using VstepPractice.API.Models.DTOs.AI;
+using VstepPractice.API.Models.DTOs.Scores;
 using VstepPractice.API.Models.DTOs.StudentAttempts.Requests;
 using VstepPractice.API.Models.DTOs.StudentAttempts.Responses;
 using VstepPractice.API.Models.Entities;
 using VstepPractice.API.Repositories.Interfaces;
 using VstepPractice.API.Services.AI;
+using VstepPractice.API.Services.ScoreCalculation;
 using VstepPractice.API.Services.StudentAttempts;
-using Xunit;
 
-namespace VstepPractice.API.Tests.Services;
+namespace VstepPractice.Tests.Services.StudentAttempts;
 
 public class StudentAttemptServiceTests
 {
@@ -21,6 +22,7 @@ public class StudentAttemptServiceTests
     private readonly Mock<IMapper> _mockMapper;
     private readonly Mock<IEssayScoringQueue> _mockScoringQueue;
     private readonly Mock<ILogger<StudentAttemptService>> _mockLogger;
+    private readonly Mock<IVstepScoreCalculator> _mockScoreCalculator;
     private readonly StudentAttemptService _service;
 
     public StudentAttemptServiceTests()
@@ -28,12 +30,14 @@ public class StudentAttemptServiceTests
         _mockUnitOfWork = new Mock<IUnitOfWork>();
         _mockMapper = new Mock<IMapper>();
         _mockScoringQueue = new Mock<IEssayScoringQueue>();
+        _mockScoreCalculator = new Mock<IVstepScoreCalculator>();
         _mockLogger = new Mock<ILogger<StudentAttemptService>>();
 
         _service = new StudentAttemptService(
             _mockUnitOfWork.Object,
             _mockMapper.Object,
             _mockScoringQueue.Object,
+            _mockScoreCalculator.Object,
             _mockLogger.Object);
     }
 
@@ -268,63 +272,70 @@ public class StudentAttemptServiceTests
         }
         };
 
-        var expectedResponse = new AttemptResultResponse
+        var mockScore = new VstepScore
         {
-            Id = 1,
-            ExamTitle = "Test Exam",
-            StartTime = attempt.StartTime,
-            EndTime = attempt.EndTime.Value,
-            Answers = new List<AnswerResponse>
-        {
-            new AnswerResponse
+            FinalScore = 8.5m,
+            SectionScores = new Dictionary<SectionTypes, SectionScore>
             {
-                Id = 1,
-                QuestionId = 1,
-                QuestionText = "Test Question",
-                Score = 1,
-                SectionType = SectionTypes.Reading
+                [SectionTypes.Reading] = new SectionScore
+                {
+                    Score = 8.5m,
+                    DetailScores = new Dictionary<string, decimal>
+                    {
+                        ["Part 1"] = 8.5m
+                    }
+                }
             }
-        }
         };
 
+        var expectedAnswers = new List<AnswerResponse>
+    {
+        new AnswerResponse
+        {
+            Id = 1,
+            QuestionId = 1,
+            QuestionText = "Test Question",
+            Score = 1,
+            SectionType = SectionTypes.Reading
+        }
+    };
+
         _mockUnitOfWork.Setup(x => x.StudentAttemptRepository.GetAttemptWithDetailsAsync(
-            It.IsAny<int>(), It.IsAny<CancellationToken>()))
+                It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(attempt);
 
-        _mockUnitOfWork.Setup(x => x.WritingAssessmentRepository.GetByAnswerIdAsync(
-            It.IsAny<int>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((WritingAssessment)null);
+        _mockScoreCalculator.Setup(x => x.CalculateScoreAsync(
+                It.IsAny<StudentAttempt>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(mockScore);
 
-        // Sửa lại cách setup Mapper
-        _mockMapper.Setup(x => x.Map<AnswerResponse>(
-        It.IsAny<object>(),
-        It.IsAny<Action<IMappingOperationOptions<object, AnswerResponse>>>()))
-        .Returns((object src, Action<IMappingOperationOptions<object, AnswerResponse>> opt) =>
-        {
-            var answer = src as Answer;
-            if (answer == null) return null!;
-
-            return new AnswerResponse
-            {
-                Id = answer.Id,
-                QuestionId = answer.QuestionId,
-                QuestionText = answer.Question.QuestionText,
-                Score = answer.Score,
-                SectionType = answer.Question.Section.SectionType
-            };
-        });
+        _mockMapper.Setup(x => x.Map<List<AnswerResponse>>(It.IsAny<IEnumerable<Answer>>()))
+            .Returns(expectedAnswers);
 
         // Act
         var result = await _service.GetAttemptResultAsync(1, 1, CancellationToken.None);
 
         // Assert
         Assert.True(result.IsSuccess);
-        Assert.Equal(expectedResponse.Id, result.Value.Id);
-        Assert.Equal(expectedResponse.ExamTitle, result.Value.ExamTitle);
-        Assert.Equal(expectedResponse.StartTime, result.Value.StartTime);
-        Assert.Equal(expectedResponse.EndTime, result.Value.EndTime);
-        Assert.Single(result.Value.Answers);
-        Assert.Equal(SectionTypes.Reading, result.Value.Answers[0].SectionType);
+
+        var response = result.Value;
+        Assert.Equal(attempt.Id, response.Id);
+        Assert.Equal(attempt.Exam.Title, response.ExamTitle);
+        Assert.Equal(attempt.StartTime, response.StartTime);
+        Assert.Equal(attempt.EndTime!.Value, response.EndTime);
+
+        Assert.Single(response.Answers);
+        Assert.Equal(expectedAnswers[0].Id, response.Answers[0].Id);
+        Assert.Equal(expectedAnswers[0].QuestionText, response.Answers[0].QuestionText);
+        Assert.Equal(expectedAnswers[0].SectionType, response.Answers[0].SectionType);
+
+        Assert.Equal(mockScore.FinalScore, response.FinalScore);
+        Assert.Equal(mockScore.SectionScores[SectionTypes.Reading].Score,
+            response.SectionScores[SectionTypes.Reading]);
+
+        _mockScoreCalculator.Verify(x => x.CalculateScoreAsync(
+            It.IsAny<StudentAttempt>(),
+            It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 
     [Fact]
@@ -412,35 +423,35 @@ public class StudentAttemptServiceTests
                 Id = 1,
                 Title = "Test Exam",
                 SectionParts = new List<SectionPart>
+            {
+                new SectionPart
                 {
-                    new SectionPart
+                    Id = 1,
+                    Title = "Section 1",
+                    SectionType = SectionTypes.Reading
+                }
+            }
+            },
+            Answers = new List<Answer>
+        {
+            new Answer
+            {
+                Id = 1,
+                QuestionId = 1,
+                Question = new Question
+                {
+                    Id = 1,
+                    QuestionText = "Test Question",
+                    Section = new SectionPart
                     {
                         Id = 1,
                         Title = "Section 1",
                         SectionType = SectionTypes.Reading
                     }
-                }
-            },
-            Answers = new List<Answer>
-            {
-                new Answer
-                {
-                    Id = 1,
-                    QuestionId = 1,
-                    Question = new Question
-                    {
-                        Id = 1,
-                        QuestionText = "Test Question",
-                        Section = new SectionPart
-                        {
-                            Id = 1,
-                            Title = "Section 1",
-                            SectionType = SectionTypes.Reading
-                        }
-                    },
-                    Score = 1
-                }
+                },
+                Score = 1
             }
+        }
         };
 
         var expectedResponse = new AttemptResultResponse
@@ -449,14 +460,30 @@ public class StudentAttemptServiceTests
             ExamTitle = "Test Exam",
             StartTime = attempt.StartTime,
             Answers = new List<AnswerResponse>
+        {
+            new AnswerResponse
             {
-                new AnswerResponse
+                Id = 1,
+                QuestionId = 1,
+                QuestionText = "Test Question",
+                Score = 1,
+                SectionType = SectionTypes.Reading
+            }
+        }
+        };
+
+        var mockScore = new VstepScore
+        {
+            FinalScore = 8.5m,
+            SectionScores = new Dictionary<SectionTypes, SectionScore>
+            {
+                [SectionTypes.Reading] = new SectionScore
                 {
-                    Id = 1,
-                    QuestionId = 1,
-                    QuestionText = "Test Question",
-                    Score = 1,
-                    SectionType = SectionTypes.Reading
+                    Score = 8.5m,
+                    DetailScores = new Dictionary<string, decimal>
+                    {
+                        ["Part 1"] = 8.5m
+                    }
                 }
             }
         };
@@ -469,23 +496,12 @@ public class StudentAttemptServiceTests
             It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(attempt);
 
-        _mockMapper.Setup(x => x.Map<AnswerResponse>(
-            It.IsAny<object>(),
-            It.IsAny<Action<IMappingOperationOptions<object, AnswerResponse>>>()))
-        .Returns((object src, Action<IMappingOperationOptions<object, AnswerResponse>> opt) =>
-        {
-            var answer = src as Answer;
-            if (answer == null) return null!;
+        _mockScoreCalculator.Setup(x => x.CalculateScoreAsync(
+            It.IsAny<StudentAttempt>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(mockScore);
 
-            return new AnswerResponse
-            {
-                Id = answer.Id,
-                QuestionId = answer.QuestionId,
-                QuestionText = answer.Question.QuestionText,
-                Score = answer.Score,
-                SectionType = answer.Question.Section.SectionType
-            };
-        });
+        _mockMapper.Setup(x => x.Map<List<AnswerResponse>>(It.IsAny<IEnumerable<Answer>>()))
+            .Returns(expectedResponse.Answers);
 
         // Act
         var result = await _service.FinishAttemptAsync(
@@ -499,6 +515,9 @@ public class StudentAttemptServiceTests
         Assert.NotNull(result.Value.EndTime);
         Assert.Single(result.Value.Answers);
         Assert.Equal(SectionTypes.Reading, result.Value.Answers[0].SectionType);
+        Assert.Equal(mockScore.FinalScore, result.Value.FinalScore);
+        Assert.Equal(mockScore.SectionScores[SectionTypes.Reading].Score,
+            result.Value.SectionScores[SectionTypes.Reading]);
 
         _mockUnitOfWork.Verify(x => x.StudentAttemptRepository.Update(
             It.Is<StudentAttempt>(a =>

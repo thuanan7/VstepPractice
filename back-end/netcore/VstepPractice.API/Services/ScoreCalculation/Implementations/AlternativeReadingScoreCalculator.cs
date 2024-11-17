@@ -14,7 +14,7 @@ public class AlternativeReadingScoreCalculator : ISectionScoreCalculator
         _logger = logger;
     }
 
-    public async Task<SectionScore> CalculateScoreAsync(
+    public virtual async Task<SectionScore> CalculateScoreAsync(
         IEnumerable<Answer> answers,
         IEnumerable<Question> questions,
         CancellationToken cancellationToken = default)

@@ -14,7 +14,7 @@ public class ListeningScoreCalculator : ISectionScoreCalculator
         _logger = logger;
     }
 
-    public async Task<SectionScore> CalculateScoreAsync(
+    public virtual async Task<SectionScore> CalculateScoreAsync(
         IEnumerable<Answer> answers,
         IEnumerable<Question> questions,
         CancellationToken cancellationToken = default)
@@ -29,6 +29,7 @@ public class ListeningScoreCalculator : ISectionScoreCalculator
             var partScores = new List<PartScore>();
             var totalCorrect = 0;
             var totalQuestions = 0;
+            var hasMissingAnswers = false;
 
             foreach (var part in parts)
             {
@@ -36,6 +37,15 @@ public class ListeningScoreCalculator : ISectionScoreCalculator
                 var partAnswers = answers
                     .Where(a => partQuestions.Select(q => q.Id).Contains(a.QuestionId))
                     .ToList();
+
+                // Check for missing answers
+                if (partAnswers.Count < partQuestions.Count)
+                {
+                    hasMissingAnswers = true;
+                    _logger.LogWarning(
+                        "Missing answers for part {PartTitle}. Expected: {Expected}, Found: {Found}",
+                        part.Key.Title, partQuestions.Count, partAnswers.Count);
+                }
 
                 var correctCount = partAnswers.Count(a =>
                     a.SelectedOption != null && a.SelectedOption.IsCorrect);
@@ -45,7 +55,7 @@ public class ListeningScoreCalculator : ISectionScoreCalculator
                     PartTitle = part.Key.Title,
                     CorrectAnswers = correctCount,
                     TotalQuestions = partQuestions.Count,
-                    Score = correctCount // Each correct answer = 1 point in listening
+                    Score = correctCount // Each correct answer = 1 point
                 });
 
                 totalCorrect += correctCount;
@@ -61,7 +71,7 @@ public class ListeningScoreCalculator : ISectionScoreCalculator
                 DetailScores = partScores.ToDictionary(
                     p => p.PartTitle,
                     p => p.Score),
-                Feedback = GenerateFeedback(partScores)
+                Feedback = GenerateFeedback(partScores, hasMissingAnswers)
             };
         }
         catch (Exception ex)
@@ -71,7 +81,7 @@ public class ListeningScoreCalculator : ISectionScoreCalculator
         }
     }
 
-    private static string GenerateFeedback(List<PartScore> partScores)
+    private static string GenerateFeedback(List<PartScore> partScores, bool hasMissingAnswers)
     {
         var feedback = new StringBuilder();
         feedback.AppendLine("Listening Score Breakdown:");
@@ -84,6 +94,11 @@ public class ListeningScoreCalculator : ISectionScoreCalculator
         var totalCorrect = partScores.Sum(p => p.CorrectAnswers);
         var totalQuestions = partScores.Sum(p => p.TotalQuestions);
         feedback.AppendLine($"Total: {totalCorrect}/{totalQuestions} correct");
+
+        if (hasMissingAnswers)
+        {
+            feedback.AppendLine("\nWarning: Missing answers detected. This may affect your final score.");
+        }
 
         return feedback.ToString();
     }
