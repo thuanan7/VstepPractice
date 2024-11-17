@@ -31,12 +31,28 @@ router.get('/test', authMiddleware, openAIController.testConnection)
  * /ai/start:
  *   post:
  *     summary: Start Student Attempt
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               userId:
+ *                 type: integer
+ *                 description: ID of the user
+ *                 example: 1
+ *               examId:
+ *                 type: integer
+ *                 nullable: false
+ *                 description: ID of the exam
+ *                 example: 2
  *     tags: [AI]
  *     security:
  *       - bearerAuth: []
  *     responses:
  *       200:
- *         description:need add code
+ *         description: Successful response
  *       401:
  *         description: Unauthorized
  */
@@ -62,6 +78,10 @@ router.post('/start', authMiddleware, openAIController.startStudentAttempt)
  *           schema:
  *             type: object
  *             properties:
+ *               userId:
+ *                 type: integer
+ *                 description: ID of the user
+ *                 example: 1
  *               QuestionId:
  *                 type: integer
  *                 description: ID of the question
@@ -105,6 +125,17 @@ router.post(
  *           type: integer
  *         required: true
  *         description: ID of the attempt
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               userId:
+ *                 type: integer
+ *                 description: ID of the user
+ *                 example: 1
  *     tags: [AI]
  *     security:
  *       - bearerAuth: []
@@ -123,7 +154,7 @@ router.post(
 /**
  * @swagger
  * /ai/{attemptId}/result:
- *   post:
+ *   get:
  *     summary: result Student Attempt
  *     parameters:
  *       - in: path
@@ -132,6 +163,12 @@ router.post(
  *           type: integer
  *         required: true
  *         description: ID of the attempt
+ *       - in: query
+ *         name: userId
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: ID of the user
  *     tags: [AI]
  *     security:
  *       - bearerAuth: []
@@ -141,7 +178,7 @@ router.post(
  *       401:
  *         description: Unauthorized
  */
-router.post(
+router.get(
   '/:attemptId/result',
   authMiddleware,
   openAIController.resultStudentAnswer,
