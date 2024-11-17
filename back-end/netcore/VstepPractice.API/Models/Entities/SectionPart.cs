@@ -3,9 +3,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace VstepPractice.API.Models.Entities;
 
-public class SectionPart: BaseEntity
+public class SectionPart : BaseEntity
 {
-
     [Column("title")]
     [StringLength(255)]
     public string Title { get; set; } = string.Empty;
@@ -19,6 +18,9 @@ public class SectionPart: BaseEntity
     [Column("orderNum")]
     public int OrderNum { get; set; }
 
+    [Column("type")]
+    public string Type { get; set; }
+
     [Column("examId")]
     public int ExamId { get; set; }
 
@@ -26,10 +28,12 @@ public class SectionPart: BaseEntity
     public int? ParentId { get; set; }
 
     // Navigation properties
-    [ForeignKey("ExamId")]
+    [ForeignKey(nameof(ExamId))]
     public virtual Exam Exam { get; set; } = default!;
 
-    [ForeignKey("ParentId")]
+    [ForeignKey(nameof(ParentId))]
     public virtual SectionPart? Parent { get; set; }
+
     public virtual ICollection<SectionPart> Children { get; set; } = new List<SectionPart>();
+    public virtual ICollection<Question> Questions { get; set; } = new List<Question>();
 }

@@ -103,8 +103,9 @@ openAIController.resultStudentAnswer = async (req, res) => {
     let id = isNaN(req.params.attemptId)
       ? 0
       : parseInt(`${req.params.attemptId}`)
-    if (id > 0) {
-      const host = `http://localhost:${process.env.NETCORE_PORT}/api/v1/StudentAttempt/${id}/result`
+    const userId = req.query.userId
+    if (id > 0 && userId) {
+      const host = `http://localhost:${process.env.NETCORE_PORT}/api/v1/StudentAttempt/${id}/result?userId=${userId}`
       const token = getGatewayJwtToken()
       const response = await axios({
         method: req.method,
@@ -116,7 +117,7 @@ openAIController.resultStudentAnswer = async (req, res) => {
       })
       res.status(response.status).json(response.data)
     } else {
-      res.status(500).json({ error: 'Please send your attemptId' })
+      res.status(500).json({ error: 'Please send your attemptId and userId' })
     }
   } catch (error) {
     console.error('Error calling .NET Core API:', error.message)

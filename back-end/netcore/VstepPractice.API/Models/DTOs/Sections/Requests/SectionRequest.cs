@@ -4,7 +4,7 @@ using VstepPractice.API.Models.DTOs.SectionParts.Requests;
 
 namespace VstepPractice.API.Models.DTOs.Sections.Requests;
 
-public class CreateSectionRequest
+public class SectionRequest
 {
     [Required]
     public SectionType Type { get; set; }
@@ -19,5 +19,5 @@ public class CreateSectionRequest
     public int OrderNum { get; set; }
 
     [Required]
-    public List<CreateSectionPartRequest> Parts { get; set; } = new();
+    public List<SectionPartRequest> Parts { get; set; } = new();
 }

@@ -2,7 +2,7 @@
 
 namespace VstepPractice.API.Models.DTOs.Questions.Requests;
 
-public class CreateQuestionRequest
+public class QuestionRequest
 {
     [Required]
     [StringLength(1000)]
@@ -18,5 +18,5 @@ public class CreateQuestionRequest
 
     [Required]
     [MinLength(2)]
-    public List<CreateQuestionOptionRequest> Options { get; set; } = new();
+    public List<QuestionOptionRequest> Options { get; set; } = new();
 }

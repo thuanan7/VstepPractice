@@ -7,7 +7,7 @@ public class AnswerResponse
     public string QuestionText { get; set; } = string.Empty;
     public string PassageTitle { get; set; } = string.Empty;
     public string? PassageContent { get; set; }
-    public int? SelectedOptionId { get; set; }
+    public int? QuestionOptionId { get; set; }
     public string? EssayAnswer { get; set; }
     public string? AiFeedback { get; set; }
     public decimal? Score { get; set; }

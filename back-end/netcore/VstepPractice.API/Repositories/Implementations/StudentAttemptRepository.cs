@@ -31,7 +31,7 @@ public class StudentAttemptRepository : RepositoryBase<StudentAttempt, int>, ISt
     {
         return await _context.StudentAttempts
             .Include(a => a.Exam)
-                .ThenInclude(e => e.Sections)
+                .ThenInclude(e => e.SectionParts)
             .Include(a => a.Answers)
                 .ThenInclude(ans => ans.Question)
             .Include(a => a.Answers)

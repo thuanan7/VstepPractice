@@ -204,7 +204,7 @@ public class StudentAttemptService : IStudentAttemptService
 
         _logger.LogInformation(
             "Processing attempt result. Sections: {SectionCount}, Answers: {AnswerCount}",
-            attempt.Exam.Sections.Count,
+            attempt.Exam.SectionParts.Count,
             attempt.Answers.Count);
 
         // Map answers with writing assessments
