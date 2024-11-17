@@ -7,6 +7,7 @@ using VstepPractice.API.Models.DTOs.StudentAttempts.Responses;
 using VstepPractice.API.Models.Entities;
 using VstepPractice.API.Repositories.Interfaces;
 using VstepPractice.API.Services.AI;
+using VstepPractice.API.Services.ScoreCalculation;
 
 namespace VstepPractice.API.Services.StudentAttempts;
 
@@ -15,18 +16,21 @@ public class StudentAttemptService : IStudentAttemptService
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
     private readonly IEssayScoringQueue _scoringQueue;
+    private readonly IVstepScoreCalculator _scoreCalculator;
     private readonly ILogger<StudentAttemptService> _logger;
 
     public StudentAttemptService(
         IUnitOfWork unitOfWork,
         IMapper mapper,
         IEssayScoringQueue scoringQueue,
+        IVstepScoreCalculator scoreCalculator,
         ILogger<StudentAttemptService> logger)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
         _scoringQueue = scoringQueue;
         _logger = logger;
+        _scoreCalculator = scoreCalculator;
     }
 
     public async Task<Result<AttemptResponse>> StartAttemptAsync(
@@ -173,27 +177,8 @@ public class StudentAttemptService : IStudentAttemptService
             return Result.Failure<AttemptResultResponse>(
                 new Error("Attempt.NotCompleted", "This attempt is not completed."));
 
-        _logger.LogInformation(
-            "Processing attempt result. Sections: {SectionCount}, Answers: {AnswerCount}",
-            attempt.Exam.SectionParts.Count,
-            attempt.Answers.Count);
-
-        // Map answers with section types and writing assessments
-        var answers = new List<AnswerResponse>();
-        foreach (var answer in attempt.Answers)
-        {
-            var writingAssessment = answer.Question.Section.SectionType == SectionTypes.Writing
-                ? await _unitOfWork.WritingAssessmentRepository
-                    .GetByAnswerIdAsync(answer.Id, cancellationToken)
-                : null;
-
-            var answerResponse = _mapper.Map<AnswerResponse>(answer, opt =>
-            {
-                opt.Items["WritingAssessment"] = writingAssessment;
-                opt.Items["SectionType"] = answer.Question.Section.SectionType;
-            });
-            answers.Add(answerResponse);
-        }
+        // Calculate scores using VstepScoreCalculator
+        var score = await _scoreCalculator.CalculateScoreAsync(attempt, cancellationToken);
 
         var result = new AttemptResultResponse
         {
@@ -201,9 +186,11 @@ public class StudentAttemptService : IStudentAttemptService
             ExamTitle = attempt.Exam.Title!,
             StartTime = attempt.StartTime,
             EndTime = attempt.EndTime!.Value,
-            Answers = answers,
-            SectionScores = new Dictionary<SectionTypes, decimal>(), // Sẽ implement logic tính điểm sau
-            FinalScore = 0 // Sẽ implement logic tính điểm sau
+            Answers = _mapper.Map<List<AnswerResponse>>(attempt.Answers),
+            SectionScores = score.SectionScores.ToDictionary(
+                kvp => kvp.Key,
+                kvp => kvp.Value.Score),
+            FinalScore = score.FinalScore
         };
 
         return Result.Success(result);
