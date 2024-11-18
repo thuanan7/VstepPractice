@@ -174,7 +174,15 @@ router.post(
  *       - bearerAuth: []
  *     responses:
  *       200:
- *         description:need add code
+ *         description: Successful retrieval of the result
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 result:
+ *                   type: string
+ *                   description: The result of the student attempt
  *       401:
  *         description: Unauthorized
  */
