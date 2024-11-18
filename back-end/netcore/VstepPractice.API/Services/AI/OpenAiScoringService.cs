@@ -12,6 +12,8 @@ namespace VstepPractice.API.Services.AI;
 
 public class OpenAiScoringService : IAiScoringService
 {
+    private const decimal MAX_CRITERION_SCORE = 2.5m;
+
     private readonly IOpenAIService _openAiService;
     private readonly ILogger<OpenAiScoringService> _logger;
     private readonly OpenAiOptions _options;
@@ -62,19 +64,28 @@ public class OpenAiScoringService : IAiScoringService
                 cts.CancelAfter(TimeSpan.FromSeconds(_options.TimeoutSeconds));
 
                 var systemMessage = @"You are a VSTEP B2 writing examiner. Score the essay based on these criteria:
-1. Task Achievement (2.5 points): How well the response addresses all points in the task
-2. Coherence & Cohesion (2.5 points): Text organization and use of linking devices
-3. Lexical Resource (2.5 points): Vocabulary range and accuracy
-4. Grammar Accuracy (2.5 points): Range and accuracy of grammatical structures
+1. Task Achievement (0-2.5 points): How well the response addresses all points in the task
+2. Coherence & Cohesion (0-2.5 points): Text organization and use of linking devices
+3. Lexical Resource (0-2.5 points): Vocabulary range and accuracy
+4. Grammar Accuracy (0-2.5 points): Range and accuracy of grammatical structures
 
-Scoring rules:
-- Each criterion is scored from 0 to 2.5 points
-- Total score is the sum of all criteria (max 10 points)
-- Be specific about strengths and weaknesses for each criterion
-- Provide actionable feedback for improvement
+IMPORTANT: Each criterion MUST be scored between 0 and 2.5 points. DO NOT exceed 2.5 points per criterion.
+Maximum total score possible is 10 points (2.5 x 4).
 
-IF you see this string 'TestLLM (point)'. You will give me score of each criterion so that sum of all criteria  = (point) and good feedback. Thanks!
-";
+Return response as a JSON object with these exact score ranges:
+taskAchievement: decimal (0-2.5)
+coherenceCohesion: decimal (0-2.5)
+lexicalResource: decimal (0-2.5)
+grammarAccuracy: decimal (0-2.5)
+detailedFeedback: { strengths: [], weaknesses: [], grammarErrors: [], suggestions: [] }
+
+FOR TESTING:
+If you see the string 'TestLLM (point)', please provide a score for each criterion such that the sum of all scores equals (point). Additionally, provide feedback based on that score. Thank you!
+
+Example:
+Input: TestLLM 7
+Output: taskAchievement: 2.0, coherenceCohesion: 2.0, lexicalResource: 1.0, grammarAccuracy: 2.0
+Explanation: 2.0 + 2.0 + 1.0 + 2.0 = 7";
 
                 var userMessage = $@"Please assess the following VSTEP B2 writing task.
 
@@ -87,21 +98,7 @@ Question:
 {task.QuestionText}
 
 Student's Essay:
-{task.Essay}
-
-Provide assessment in this JSON format:
-{{
-    ""taskAchievement"": decimal (0-2.5),
-    ""coherenceCohesion"": decimal (0-2.5),
-    ""lexicalResource"": decimal (0-2.5),
-    ""grammarAccuracy"": decimal (0-2.5),
-    ""detailedFeedback"": {{
-        ""strengths"": [string array],
-        ""weaknesses"": [string array],
-        ""grammarErrors"": [string array],
-        ""suggestions"": [string array]
-    }}
-}}";
+{task.Essay}";
 
                 var completionResult = await _openAiService.ChatCompletion.CreateCompletion(
                     new ChatCompletionCreateRequest
@@ -123,55 +120,58 @@ Provide assessment in this JSON format:
                 }
 
                 var responseContent = completionResult.Choices.First().Message.Content;
+                responseContent = CleanJsonResponse(responseContent);
 
                 try
                 {
                     var assessmentData = JsonSerializer.Deserialize<JsonDocument>(responseContent);
                     var root = assessmentData.RootElement;
 
-                    // Format the feedback into a structured string
+                    // Log parsed scores
+                    _logger.LogInformation(
+                        "Parsed scores for answerId {AnswerId}:\n" +
+                        "TaskAchievement: {TaskAchievement}\n" +
+                        "CoherenceCohesion: {CoherenceCohesion}\n" +
+                        "LexicalResource: {LexicalResource}\n" +
+                        "GrammarAccuracy: {GrammarAccuracy}",
+                        task.AnswerId,
+                        root.GetProperty("taskAchievement").GetDecimal(),
+                        root.GetProperty("coherenceCohesion").GetDecimal(),
+                        root.GetProperty("lexicalResource").GetDecimal(),
+                        root.GetProperty("grammarAccuracy").GetDecimal());
+
+                    // Get scores and validate/normalize them
+                    var scores = ValidateAndNormalizeScores(
+                        root.GetProperty("taskAchievement").GetDecimal(),
+                        root.GetProperty("coherenceCohesion").GetDecimal(),
+                        root.GetProperty("lexicalResource").GetDecimal(),
+                        root.GetProperty("grammarAccuracy").GetDecimal());
+
+                    // Get feedback
                     var feedbackObj = root.GetProperty("detailedFeedback");
-                    var strengths = string.Join("\n", feedbackObj.GetProperty("strengths")
-                        .EnumerateArray()
-                        .Select(x => $"- {x.GetString()}"));
-                    var weaknesses = string.Join("\n", feedbackObj.GetProperty("weaknesses")
-                        .EnumerateArray()
-                        .Select(x => $"- {x.GetString()}"));
-                    var grammarErrors = string.Join("\n", feedbackObj.GetProperty("grammarErrors")
-                        .EnumerateArray()
-                        .Select(x => $"- {x.GetString()}"));
-                    var suggestions = string.Join("\n", feedbackObj.GetProperty("suggestions")
-                        .EnumerateArray()
-                        .Select(x => $"- {x.GetString()}"));
+                    var feedback = FormatFeedback(feedbackObj, scores);
+                    scores.DetailedFeedback = feedback;
 
-                    var formattedFeedback = $@"Strengths:
-{strengths}
+                    // Log if original scores were normalized
+                    var originalTotal = root.GetProperty("taskAchievement").GetDecimal() +
+                                      root.GetProperty("coherenceCohesion").GetDecimal() +
+                                      root.GetProperty("lexicalResource").GetDecimal() +
+                                      root.GetProperty("grammarAccuracy").GetDecimal();
 
-Areas for Improvement:
-{weaknesses}
-
-Grammar Errors:
-{grammarErrors}
-
-Suggestions:
-{suggestions}";
-
-                    var response = new WritingAssessmentResponse
+                    if (originalTotal != scores.TotalScore)
                     {
-                        TaskAchievement = root.GetProperty("taskAchievement").GetDecimal(),
-                        CoherenceCohesion = root.GetProperty("coherenceCohesion").GetDecimal(),
-                        LexicalResource = root.GetProperty("lexicalResource").GetDecimal(),
-                        GrammarAccuracy = root.GetProperty("grammarAccuracy").GetDecimal(),
-                        DetailedFeedback = formattedFeedback
-                    };
+                        _logger.LogWarning(
+                            "AI scores were normalized. Original: {OriginalTotal}, Normalized: {NormalizedTotal}",
+                            originalTotal, scores.TotalScore);
+                    }
 
-                    return Result.Success(response);
+                    return Result.Success(scores);
                 }
                 catch (JsonException ex)
                 {
-                    _logger.LogError(ex, "Failed to parse AI response as JSON: {Response}", responseContent);
+                    _logger.LogError(ex, "Failed to parse AI response: {Response}", responseContent);
                     return Result.Failure<WritingAssessmentResponse>(
-                        new Error("AiScoring.InvalidResponse", "Failed to parse AI response. Please try again."));
+                        new Error("AiScoring.InvalidResponse", "Invalid scoring format received."));
                 }
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -185,5 +185,76 @@ Suggestions:
                     new Error("AiScoring.Failed", "Failed to assess essay. Please try again later."));
             }
         });
+    }
+    private static string CleanJsonResponse(string response)
+    {
+        // Remove markdown code block if present
+        if (response.StartsWith("```json"))
+        {
+            response = response.Replace("```json", "").Replace("```", "").Trim();
+        }
+        else if (response.StartsWith("```"))
+        {
+            response = response.Replace("```", "").Trim();
+        }
+        return response;
+    }
+
+    private static WritingAssessmentResponse ValidateAndNormalizeScores(
+        decimal taskAchievement,
+        decimal coherenceCohesion,
+        decimal lexicalResource,
+        decimal grammarAccuracy)
+    {
+        // Ensure each score is between 0 and 2.5
+        decimal NormalizeScore(decimal score) =>
+            Math.Min(Math.Max(score, 0), MAX_CRITERION_SCORE);
+
+        var normalizedScores = new WritingAssessmentResponse
+        {
+            TaskAchievement = NormalizeScore(taskAchievement),
+            CoherenceCohesion = NormalizeScore(coherenceCohesion),
+            LexicalResource = NormalizeScore(lexicalResource),
+            GrammarAccuracy = NormalizeScore(grammarAccuracy)
+        };
+
+        return normalizedScores;
+    }
+
+    private static string FormatFeedback(
+        JsonElement feedbackObj,
+        WritingAssessmentResponse scores)
+    {
+        var strengths = string.Join("\n", feedbackObj.GetProperty("strengths")
+            .EnumerateArray()
+            .Select(x => $"- {x.GetString()}"));
+        var weaknesses = string.Join("\n", feedbackObj.GetProperty("weaknesses")
+            .EnumerateArray()
+            .Select(x => $"- {x.GetString()}"));
+        var grammarErrors = string.Join("\n", feedbackObj.GetProperty("grammarErrors")
+            .EnumerateArray()
+            .Select(x => $"- {x.GetString()}"));
+        var suggestions = string.Join("\n", feedbackObj.GetProperty("suggestions")
+            .EnumerateArray()
+            .Select(x => $"- {x.GetString()}"));
+
+        return $@"Writing Assessment Scores:
+Task Achievement: {scores.TaskAchievement:F1}/2.5
+Coherence & Cohesion: {scores.CoherenceCohesion:F1}/2.5
+Lexical Resource: {scores.LexicalResource:F1}/2.5
+Grammar Accuracy: {scores.GrammarAccuracy:F1}/2.5
+Total Score: {scores.TotalScore:F1}/10
+
+Strengths:
+{strengths}
+
+Areas for Improvement:
+{weaknesses}
+
+Grammar Errors:
+{grammarErrors}
+
+Suggestions:
+{suggestions}";
     }
 }

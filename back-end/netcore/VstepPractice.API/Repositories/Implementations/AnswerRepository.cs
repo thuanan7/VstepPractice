@@ -19,6 +19,8 @@ public class AnswerRepository : RepositoryBase<Answer, int>, IAnswerRepository
         return await _context.Answers
             .Include(a => a.Question)
                 .ThenInclude(q => q.Options)
+            .Include(a => a.Question)
+                .ThenInclude(q => q.Section) // Add section to get sectionType
             .Include(a => a.SelectedOption)
             .FirstOrDefaultAsync(a => a.Id == answerId, cancellationToken);
     }

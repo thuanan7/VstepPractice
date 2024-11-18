@@ -68,10 +68,10 @@ public class StudentAttemptService : IStudentAttemptService
     }
 
     public async Task<Result<AnswerResponse>> SubmitAnswerAsync(
-        int userId,
-        int attemptId,
-        SubmitAnswerRequest request,
-        CancellationToken cancellationToken = default)
+    int userId,
+    int attemptId,
+    SubmitAnswerRequest request,
+    CancellationToken cancellationToken = default)
     {
         var attempt = await _unitOfWork.StudentAttemptRepository
             .FindByIdAsync(attemptId, cancellationToken);
@@ -85,7 +85,7 @@ public class StudentAttemptService : IStudentAttemptService
 
         // Get question to verify it exists and get section type
         var question = await _unitOfWork.QuestionRepository
-            .FindByIdAsync(request.QuestionId, cancellationToken);
+            .FindByIdAsync(request.QuestionId, cancellationToken, q => q.Section);
 
         if (question == null)
             return Result.Failure<AnswerResponse>(
@@ -102,39 +102,101 @@ public class StudentAttemptService : IStudentAttemptService
         if (existingAnswer != null)
         {
             answer = existingAnswer;
-            answer.QuestionOptionId = request.SelectedOptionId;
-            answer.EssayAnswer = request.EssayAnswer;
-            _unitOfWork.AnswerRepository.Update(answer);
         }
         else
         {
             answer = new Answer
             {
                 AttemptId = attemptId,
-                QuestionId = request.QuestionId,
-                QuestionOptionId = request.SelectedOptionId,
-                EssayAnswer = request.EssayAnswer
+                QuestionId = request.QuestionId
             };
             _unitOfWork.AnswerRepository.Add(answer);
         }
 
-        // Queue writing assessment if it's a writing question
-        if (question.Section.SectionType == SectionTypes.Writing && !string.IsNullOrEmpty(request.EssayAnswer))
+        // Handle different section types
+        switch (question.Section.SectionType)
         {
-            await _scoringQueue.QueueScoringTaskAsync(new EssayScoringTask
-            {
-                AnswerId = answer.Id,
-                PassageTitle = question.Section.Title,
-                PassageContent = question.Section.Content ?? string.Empty,
-                QuestionText = question.QuestionText ?? string.Empty,
-                Essay = request.EssayAnswer,
-                SectionType = question.Section.SectionType
-            });
+            case SectionTypes.Writing:
+                answer.EssayAnswer = request.EssayAnswer;
+                answer.QuestionOptionId = null; // Explicitly set to null for writing
+                answer.Score = null; // Reset score as it will be set by AI
+                answer.AiFeedback = null; // Reset feedback as it will be set by AI
+                break;
+
+            case SectionTypes.Reading:
+            case SectionTypes.Listening:
+                if (!request.SelectedOptionId.HasValue)
+                {
+                    return Result.Failure<AnswerResponse>(
+                        new Error("Answer.OptionRequired", "Multiple choice answer requires a selected option."));
+                }
+
+                // Verify the selected option exists and belongs to this question
+                var selectedOption = await _unitOfWork.QuestionOptions
+                    .FindByIdAsync(request.SelectedOptionId.Value, cancellationToken);
+
+                if (selectedOption == null || selectedOption.QuestionId != question.Id)
+                {
+                    return Result.Failure<AnswerResponse>(
+                        new Error("Answer.InvalidOption", "Selected option is not valid for this question."));
+                }
+
+                answer.EssayAnswer = null; // Reset essay answer for multiple choice
+                answer.QuestionOptionId = request.SelectedOptionId;
+                answer.AiFeedback = null;
+                // Calculate score immediately for multiple choice
+                answer.Score = selectedOption.IsCorrect ? question.Point : 0;
+                break;
+
+            default:
+                _logger.LogError(
+                    "Unsupported section type {SectionType} for question {QuestionId}",
+                    question.Section.SectionType, question.Id);
+                throw new NotSupportedException(
+                    $"Section type {question.Section.SectionType} is not supported.");
+        }
+
+        if (existingAnswer != null)
+        {
+            _unitOfWork.AnswerRepository.Update(answer);
         }
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         var response = _mapper.Map<AnswerResponse>(answer);
+
+        // If it's a writing answer, get the assessment if it exists
+        if (question.Section.SectionType == SectionTypes.Writing)
+        {
+            var assessment = await _unitOfWork.WritingAssessmentRepository
+                .GetByAnswerIdAsync(answer.Id, cancellationToken);
+
+            if (assessment != null)
+            {
+                response.WritingScore = new WritingScoreDetails
+                {
+                    TaskAchievement = assessment.TaskAchievement,
+                    CoherenceCohesion = assessment.CoherenceCohesion,
+                    LexicalResource = assessment.LexicalResource,
+                    GrammarAccuracy = assessment.GrammarAccuracy
+                };
+            }
+
+            // Queue for assessment if has essay answer
+            if (!string.IsNullOrEmpty(request.EssayAnswer))
+            {
+                await _scoringQueue.QueueScoringTaskAsync(new EssayScoringTask
+                {
+                    AnswerId = answer.Id,
+                    PassageTitle = question.Section.Title,
+                    PassageContent = question.Section.Content ?? string.Empty,
+                    QuestionText = question.QuestionText ?? string.Empty,
+                    Essay = request.EssayAnswer,
+                    SectionType = question.Section.SectionType
+                });
+            }
+        }
+
         return Result.Success(response);
     }
 
@@ -163,9 +225,9 @@ public class StudentAttemptService : IStudentAttemptService
     }
 
     public async Task<Result<AttemptResultResponse>> GetAttemptResultAsync(
-        int userId,
-        int attemptId,
-        CancellationToken cancellationToken = default)
+    int userId,
+    int attemptId,
+    CancellationToken cancellationToken = default)
     {
         var attempt = await _unitOfWork.StudentAttemptRepository
             .GetAttemptWithDetailsAsync(attemptId, cancellationToken);
@@ -180,13 +242,39 @@ public class StudentAttemptService : IStudentAttemptService
         // Calculate scores using VstepScoreCalculator
         var score = await _scoreCalculator.CalculateScoreAsync(attempt, cancellationToken);
 
+        // Map answers and include writing assessments
+        var answers = new List<AnswerResponse>();
+        foreach (var answer in attempt.Answers)
+        {
+            var answerResponse = _mapper.Map<AnswerResponse>(answer);
+
+            if (answer.Question.Section.SectionType == SectionTypes.Writing)
+            {
+                var assessment = await _unitOfWork.WritingAssessmentRepository
+                    .GetByAnswerIdAsync(answer.Id, cancellationToken);
+
+                if (assessment != null)
+                {
+                    answerResponse.WritingScore = new WritingScoreDetails
+                    {
+                        TaskAchievement = assessment.TaskAchievement,
+                        CoherenceCohesion = assessment.CoherenceCohesion,
+                        LexicalResource = assessment.LexicalResource,
+                        GrammarAccuracy = assessment.GrammarAccuracy
+                    };
+                }
+            }
+
+            answers.Add(answerResponse);
+        }
+
         var result = new AttemptResultResponse
         {
             Id = attempt.Id,
             ExamTitle = attempt.Exam.Title!,
             StartTime = attempt.StartTime,
             EndTime = attempt.EndTime!.Value,
-            Answers = _mapper.Map<List<AnswerResponse>>(attempt.Answers),
+            Answers = answers,
             SectionScores = score.SectionScores.ToDictionary(
                 kvp => kvp.Key,
                 kvp => kvp.Value.Score),

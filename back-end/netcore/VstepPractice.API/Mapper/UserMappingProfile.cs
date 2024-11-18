@@ -105,20 +105,6 @@ public class AutoMapperProfile : Profile
                     src.SelectedOption != null &&
                     src.SelectedOption.IsCorrect))
             .ForMember(dest => dest.WritingScore,
-                opt => opt.MapFrom((src, dest, _, context) =>
-                {
-                    if (context.Items.TryGetValue("WritingAssessment", out var assessment) &&
-                        assessment is WritingAssessment writingAssessment)
-                    {
-                        return new WritingScoreDetails
-                        {
-                            TaskAchievement = writingAssessment.TaskAchievement,
-                            CoherenceCohesion = writingAssessment.CoherenceCohesion,
-                            LexicalResource = writingAssessment.LexicalResource,
-                            GrammarAccuracy = writingAssessment.GrammarAccuracy
-                        };
-                    }
-                    return null;
-                }));
+                opt => opt.Ignore()); // We'll set this separately when needed
     }
 }

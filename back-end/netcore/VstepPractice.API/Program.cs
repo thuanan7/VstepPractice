@@ -8,6 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Load environment variables from .env file
 builder.Configuration.LoadEnv("../../../.env");
+builder.Configuration.LoadEnv();
 
 // Add services to the container.
 builder.Services.AddAiBackGroundServices();
