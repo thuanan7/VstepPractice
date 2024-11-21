@@ -2,7 +2,7 @@ import React from 'react'
 import { Box, Tabs, Tab } from '@mui/material'
 import { useParams, useSearchParams } from 'react-router-dom'
 import ButtonPreview from './components/ButtonPreview'
-import ListeningSection from './components/ListeningSection'
+import ListeningSection from './components/listening/ListeningSection'
 
 const ExamQuestionManagement: React.FC = () => {
   const { id } = useParams<{ id: string }>()
@@ -36,7 +36,9 @@ const ExamQuestionManagement: React.FC = () => {
       </Box>
 
       <Box sx={{ mt: 2 }}>
-        {activeTab === 'listening' && <ListeningSection />}
+        {activeTab === 'listening' && id !== '' && (
+          <ListeningSection examId={id} />
+        )}
         {activeTab === 'reading' && <div>Reading Content</div>}
         {activeTab === 'writing' && <div>Writing Content</div>}
         {activeTab === 'speaking' && <div>Speaking Content</div>}

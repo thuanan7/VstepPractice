@@ -8,6 +8,7 @@ import WritingSection from '@/pages/exam/attempt/components/WritingSection'
 import ReadingSection from '@/pages/exam/attempt/components/ReadingSection'
 import ListeningSection from '@/pages/exam/attempt/components/ListeningSection'
 import { useNavigate } from 'react-router-dom'
+import { SectionPartType } from '@/features/exam/configs'
 
 const ExamPage: React.FC = () => {
   const navigate = useNavigate()
@@ -89,7 +90,7 @@ const ExamPage: React.FC = () => {
             height: 'calc(100vh - 100px)',
           }}
         >
-          {currentSection.type === 'listening' &&
+          {currentSection.type === SectionPartType.listening &&
             currentQuestion.type === 'audio' && (
               <ListeningSection
                 currentQuestion={currentQuestion}
@@ -98,7 +99,7 @@ const ExamPage: React.FC = () => {
               />
             )}
 
-          {currentSection.type === 'reading' &&
+          {currentSection.type === SectionPartType.reading &&
             currentQuestion.type === 'multiple-choice' && (
               <ReadingSection
                 currentSection={currentSection}
@@ -108,7 +109,7 @@ const ExamPage: React.FC = () => {
               />
             )}
 
-          {currentSection.type === 'writing' &&
+          {currentSection.type === SectionPartType.writing &&
             currentQuestion.type === 'essay' && (
               <WritingSection
                 currentQuestion={currentQuestion}
@@ -117,7 +118,7 @@ const ExamPage: React.FC = () => {
               />
             )}
 
-          {currentSection.type === 'speaking' &&
+          {currentSection.type === SectionPartType.speaking &&
             currentQuestion.type === 'speaking' && (
               <SpeakingSection currentQuestion={currentQuestion} />
             )}

@@ -18,7 +18,7 @@ const ReadingSection: React.FC<ReadingSectionProps> = ({
   return (
     <>
       <Typography variant="body1" gutterBottom>
-        {currentSection.essayText}
+        {currentSection.content}
       </Typography>
       <Typography variant="body2" sx={{ mt: 3 }}>
         {currentQuestion.questionText}

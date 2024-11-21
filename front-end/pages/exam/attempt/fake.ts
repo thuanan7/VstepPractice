@@ -1,11 +1,12 @@
 import { VSTEPExam } from '@/features/exam/type'
+import { SectionPartType } from '@/features/exam/configs.ts'
 
 export const VSTEPExamConfig: VSTEPExam = {
   sections: [
     {
-      id: 'listening',
+      id: 1,
       title: 'Listening Section',
-      type: 'listening',
+      type: SectionPartType.listening,
       questions: [
         {
           id: 'L1',
@@ -59,10 +60,10 @@ export const VSTEPExamConfig: VSTEPExam = {
       ],
     },
     {
-      id: 'reading',
+      id: 2,
       title: 'Reading Section',
-      type: 'reading',
-      essayText:
+      type: SectionPartType.reading,
+      content:
         'This is an essay about the importance of education in modern society.',
       questions: [
         {
@@ -75,9 +76,9 @@ export const VSTEPExamConfig: VSTEPExam = {
       ],
     },
     {
-      id: 'writing',
+      id: 3,
       title: 'Writing Section',
-      type: 'writing',
+      type: SectionPartType.writing,
       questions: [
         {
           id: 'W1',
@@ -88,9 +89,9 @@ export const VSTEPExamConfig: VSTEPExam = {
       ],
     },
     {
-      id: 'speaking',
+      id: 4,
       title: 'Speaking Section',
-      type: 'speaking',
+      type: SectionPartType.speaking,
       questions: [
         {
           id: 'S1',
