@@ -21,8 +21,6 @@ builder.Services.AddAutoMapper(Assembly.GetAssembly(typeof(Program)));
 
 builder.Services.AddDependencyInjections();
 
-builder.Services.AddAuthenServices(builder.Configuration);
-
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services
@@ -41,9 +39,9 @@ builder.Services
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowReact", policy =>
+    options.AddPolicy("AllowNodejs", policy =>
     {
-        policy.WithOrigins("http://localhost:5173") 
+        policy.WithOrigins("http://localhost:4001") 
               .AllowAnyMethod()
               .AllowAnyHeader();
     });
@@ -60,9 +58,9 @@ if (app.Environment.IsDevelopment())
     // await app.SeedDataAsync();
 }
 
-app.UseCors("AllowReact");
+app.UseCors("AllowNodejs");
 
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection();
 
 app.UseAuthorization();
 

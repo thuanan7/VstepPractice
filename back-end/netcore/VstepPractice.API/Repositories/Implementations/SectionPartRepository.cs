@@ -1,0 +1,59 @@
+﻿using Microsoft.EntityFrameworkCore;
+using VstepPractice.API.Data;
+using VstepPractice.API.Models.Entities;
+using VstepPractice.API.Repositories.Interfaces;
+
+namespace VstepPractice.API.Repositories.Implementations;
+
+public class SectionPartRepository : RepositoryBase<SectionPart, int>, ISectionPartRepository
+{
+    public SectionPartRepository(ApplicationDbContext context) : base(context)
+    {
+    }
+
+    public async Task<List<SectionPart>> GetHierarchyForExamAsync(
+        int examId,
+        CancellationToken cancellationToken = default)
+    {
+        return await _context.SectionParts
+            .Where(sp => sp.ExamId == examId)
+            .Include(sp => sp.Children)
+            .Include(sp => sp.Questions)
+                .ThenInclude(q => q.Options)
+            .OrderBy(sp => sp.OrderNum)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<bool> HasCircularReference(
+        int sectionPartId,
+        int? parentId,
+        CancellationToken cancellationToken = default)
+    {
+        if (!parentId.HasValue)
+            return false;
+
+        var current = parentId.Value;
+        var visited = new HashSet<int>();
+
+        while (current != 0)
+        {
+            if (!visited.Add(current))
+                return true;
+
+            if (current == sectionPartId)
+                return true;
+
+            var parent = await _context.SectionParts
+                .Where(sp => sp.Id == current)
+                .Select(sp => sp.ParentId)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (!parent.HasValue)
+                break;
+
+            current = parent.Value;
+        }
+
+        return false;
+    }
+}
