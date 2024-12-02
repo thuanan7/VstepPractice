@@ -8,13 +8,13 @@ import {
 import { AudioQuestion } from '@/features/exam/type'
 
 interface ListeningSectionProps {
-  currentQuestion: AudioQuestion
+  currentPart: AudioQuestion
   answers: Record<string, string>
   handleAnswerChange: (questionId: string, answer: string) => void
 }
 
 const ListeningSection: React.FC<ListeningSectionProps> = ({
-  currentQuestion,
+  currentPart,
   answers,
   handleAnswerChange,
 }) => {
@@ -25,10 +25,10 @@ const ListeningSection: React.FC<ListeningSectionProps> = ({
       </Typography>
       <audio
         controls
-        src={currentQuestion.audioUrl}
+        src="../../../../../public/Con Mua Ngang Qua (Part.2).mp3"
         style={{ width: '100%', marginBottom: 16 }}
       />
-      {currentQuestion.questions.map((question) => (
+      {currentPart.questions.map((question) => (
         <Box key={question.id} sx={{ mt: 2 }}>
           <Typography variant="body2" gutterBottom>
             {question.questionText}

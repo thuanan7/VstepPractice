@@ -12,33 +12,38 @@ import { useNavigate } from 'react-router-dom'
 const ExamPage: React.FC = () => {
   const navigate = useNavigate()
   const [currentSectionIndex, setCurrentSectionIndex] = useState(0)
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
+  const [currentPartIndex, setCurrentPartIndex] = useState(0)
   const [answers, setAnswers] = useState<Record<string, string>>({})
 
   const flatQuestions = VSTEPExamConfig.sections.flatMap(
     (section, sectionIndex) =>
-      section.questions.map((question, questionIndex) => ({
+      section.sectionPart.map((question, questionIndex) => ({
         ...question,
         sectionIndex,
         questionIndex,
       })),
   )
 
+  // console.log(flatQuestions);
+      console.log("answers: ");
+      console.log(answers);
   useEffect(() => {
-    setCurrentSectionIndex(currentQuestion.sectionIndex)
+    //console.log("useEffect currentQuestion.sectionIndex: "+currentQuestion.sectionIndex)
+    setCurrentSectionIndex(currentPart.sectionIndex)
     document.body.style.overflow = 'hidden'
     return () => {
       document.body.style.overflow = 'auto'
     }
-  }, [currentQuestionIndex])
+  }, [currentPartIndex])
 
-  const currentQuestion = flatQuestions[currentQuestionIndex]
-  const currentSection = VSTEPExamConfig.sections[currentQuestion.sectionIndex]
-  const findFirstQuestionIndexOfSection = (sectionIndex: number) => {
+  const currentPart = flatQuestions[currentPartIndex]
+  const currentSection = VSTEPExamConfig.sections[currentPart.sectionIndex]
+  const findFirstPartIndexOfSection = (sectionIndex: number) => {
     return flatQuestions.findIndex((q) => q.sectionIndex === sectionIndex)
   }
 
   const handleAnswerChange = (questionId: string, answer: string) => {
+    console.log(answer);
     setAnswers((prev) => ({
       ...prev,
       [questionId]: answer,
@@ -46,26 +51,29 @@ const ExamPage: React.FC = () => {
   }
 
   const handleNextQuestion = () => {
-    if (currentQuestionIndex < flatQuestions.length - 1) {
-      setCurrentQuestionIndex((prev) => prev + 1)
+    if (currentPartIndex < flatQuestions.length - 1) {
+      setCurrentPartIndex((prev) => prev + 1)
     }
   }
 
   const handlePreviousQuestion = () => {
-    if (currentQuestionIndex > 0) {
-      setCurrentQuestionIndex((prev) => prev - 1)
+    if (currentPartIndex > 0) {
+      setCurrentPartIndex((prev) => prev - 1)
     }
   }
 
   const handleSectionChange = (sectionIndex: number) => {
     setCurrentSectionIndex(sectionIndex)
-    const firstQuestionIndex = findFirstQuestionIndexOfSection(sectionIndex)
-    setCurrentQuestionIndex(firstQuestionIndex)
+    const firstPartIndex = findFirstPartIndexOfSection(sectionIndex)
+    setCurrentPartIndex(firstPartIndex)
   }
 
-  const handleQuestionClick = (questionIndex: number) => {
-    setCurrentQuestionIndex(questionIndex)
-    setCurrentSectionIndex(flatQuestions[questionIndex].sectionIndex)
+  const handlePartClick = (partIndex: number) => {
+    setCurrentPartIndex(partIndex)
+    // Chi hien thi cac part tong section nen ko can
+    //setCurrentSectionIndex(flatQuestions[partIndex].sectionIndex)
+    // console.log("handleQuestionClick-questionIndex: "+questionIndex)
+    // console.log("handleQuestionClick - flatQuestions[questionIndex].sectionIndex: "+flatQuestions[questionIndex].sectionIndex);
   }
 
   const handleSubmit = () => {
@@ -90,36 +98,36 @@ const ExamPage: React.FC = () => {
           }}
         >
           {currentSection.type === 'listening' &&
-            currentQuestion.type === 'audio' && (
+            currentPart.type === 'audio' && (
               <ListeningSection
-                currentQuestion={currentQuestion}
+                currentPart={currentPart}
                 answers={answers}
                 handleAnswerChange={handleAnswerChange}
               />
             )}
 
           {currentSection.type === 'reading' &&
-            currentQuestion.type === 'multiple-choice' && (
+            currentPart.type === 'multiple-choice' && (
               <ReadingSection
                 currentSection={currentSection}
-                currentQuestion={currentQuestion}
+                currentPart={currentPart}
                 answers={answers}
                 handleAnswerChange={handleAnswerChange}
               />
             )}
 
           {currentSection.type === 'writing' &&
-            currentQuestion.type === 'essay' && (
+            currentPart.type === 'essay' && (
               <WritingSection
-                currentQuestion={currentQuestion}
+                currentPart={currentPart}
                 answers={answers}
                 handleAnswerChange={handleAnswerChange}
               />
             )}
 
           {currentSection.type === 'speaking' &&
-            currentQuestion.type === 'speaking' && (
-              <SpeakingSection currentQuestion={currentQuestion} />
+            currentPart.type === 'speaking' && (
+              <SpeakingSection currentPart={currentPart} />
             )}
         </Paper>
 
@@ -138,28 +146,32 @@ const ExamPage: React.FC = () => {
         >
           <Button
             variant="outlined"
-            disabled={currentQuestionIndex === 0}
+            disabled={currentPartIndex === 0}
             onClick={handlePreviousQuestion}
           >
-            Previous Question
+            Previous Part
           </Button>
-          {currentQuestionIndex === flatQuestions.length - 1 ? (
+          {currentPartIndex === flatQuestions.length - 1 ? (
             <Button variant="contained" color="success" onClick={handleSubmit}>
               Submit Exam
             </Button>
           ) : (
             <Button variant="contained" onClick={handleNextQuestion}>
-              Next Question
+              Next Part
             </Button>
           )}
         </Box>
       </Grid>
 
       <TableQuestion
-        data={flatQuestions.map((_, index) => index)}
-        onChoose={handleQuestionClick}
+        // mang flatQuestions phai duoc sort theo id roi
+        data={flatQuestions.map((item, index) => item.sectionIndex === currentSectionIndex ? index : -1 )}
+        onChoose={handlePartClick}
         onAutoSubmit={handleSubmit}
-        active={currentQuestionIndex}
+        active={currentPartIndex}
+        currentSectionIndex={currentSectionIndex}
+        totalAnswerOnPart={Object.keys(answers).filter(obj => obj.includes(flatQuestions[currentPartIndex].id)).length || 0}
+        totalQuestions={(() => { try { return flatQuestions[currentPartIndex].questions.length ; } catch { return 0; }})()}
       />
     </Grid>
   )

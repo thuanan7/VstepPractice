@@ -28,16 +28,27 @@ export interface MultipleChoiceQuestion extends BaseQuestion {
 
 export interface EssayQuestion extends BaseQuestion {
   type: 'essay'
+  instructions: string
 }
 
 export interface SpeakingQuestion extends BaseQuestion {
   type: 'speaking'
+  title: string
+  questionText: string
+  audioUrl: string
+  pictureUrl: string
+  questions: Question[]
   speakingPrompt: string
 }
 
 export interface AudioQuestion extends BaseQuestion {
   type: 'audio'
   audioUrl: string
+  questions: MultipleChoiceQuestion[]
+}
+
+export interface ReadingQuestions extends BaseQuestion {
+  type: 'multiple-choice'
   questions: MultipleChoiceQuestion[]
 }
 
@@ -54,13 +65,20 @@ export interface ListeningQuestion {
   questions: Question[]
 }
 
+export interface ReadingQuestion {
+  id: string
+  type: 'multiple-choice'
+  questionText: string
+  questions: Question[]
+}
+
 export interface Section {
   id: string
   title: string
   instructions: string
   type: 'listening' | 'reading' | 'writing' | 'speaking'
   essayText?: string
-  questions: Question[] | ListeningQuestion[]
+  sectionPart: Question[] | ListeningQuestion[] | ReadingQuestion[] | SpeakingQuestion
 }
 export interface VSTEPExam {
   sections: Section[]
