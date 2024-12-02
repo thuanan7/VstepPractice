@@ -1,6 +1,6 @@
 import { Grid, Box, Typography, Button } from '@mui/material'
 import { SpeakingQuestion } from '@/features/exam/type'
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 
 interface SpeakingSectionProps {
   currentPart: SpeakingQuestion
@@ -169,6 +169,20 @@ const SpeakingSection: React.FC<SpeakingSectionProps> = ({
       console.error("Error sending audio to API:", error);
     }
   };
+
+    // Reset recording when currentPart changes
+    useEffect(() => {
+      // Stop any ongoing recording
+      if (isRecording) {
+        stopRecording();
+      }
+  
+      // Reset states
+      setAudioUrl(null);
+      setRemainingTime(120);
+      audioChunks.current = [];
+      mediaRecorderRef.current = null;
+    }, [currentPart]);
 
   return (
     <>
