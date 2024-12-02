@@ -6,13 +6,22 @@ export interface IExam {
 }
 // Interface cho một câu hỏi
 export interface Question {
-  id: string
+  orderNum: number
+  point: number
+  id: number
   type: 'multiple-choice' | 'essay' | 'audio' | 'speaking'
   questionText: string
   options?: string[]
   correctAnswer?: string
   audioUrl?: string
   speakingPrompt?: string
+}
+export interface QuestionOption {
+
+  content: string
+  isCorrect: any
+  orderNum: string
+  id: number
 }
 export interface BaseQuestion {
   id: string
@@ -57,7 +66,12 @@ export type QuestionType =
   | EssayQuestion
   | SpeakingQuestion
   | AudioQuestion
-
+export enum SectionType {
+  Listening = 1,
+  Reading = 2,
+  Writing = 3,
+  Speaking = 4
+}
 export interface ListeningQuestion {
   id: string
   type: 'audio'
@@ -73,15 +87,21 @@ export interface ReadingQuestion {
 }
 
 export interface Section {
-  id: string
+  id?: string
   title: string
   instructions: string
   type: 'listening' | 'reading' | 'writing' | 'speaking'
   essayText?: string
+  parent?: Section
+  exam?: IExam
+  orderNum?: number
+  questions: Question[] | ListeningQuestion[]
+
   sectionPart: Question[] | ListeningQuestion[] | ReadingQuestion[] | SpeakingQuestion
+
 }
 export interface VSTEPExam {
   sections: Section[]
 }
 
-export interface SectionListening extends Section {}
+export interface SectionListening extends Section { }
