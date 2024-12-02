@@ -18,6 +18,8 @@ const AttemptTabs = (props: AttemptTabsProps) => {
           variant={active === index ? 'contained' : 'outlined'}
           onClick={() => onChoose(index)}
           sx={{ mb: 1 }}
+          //disabled={true}
+          // disabled={disabledIndexs.includes(index)}
         >
           {section}
         </Button>
