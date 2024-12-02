@@ -2,7 +2,15 @@ const express = require('express')
 const { body, validationResult } = require('express-validator')
 const {
   createListeningSectionPart,
-} = require('../controllers/sectionPartControllers')
+  getSectionParts,
+  createSectionPart,
+  updateSectionPart,
+  deleteSectionPart,
+  getParts,
+  createPart,
+  updatePart,
+  deletePart
+} = require("../controllers/sectionPartController");
 
 const sectionPartRouter = express.Router()
 
@@ -88,5 +96,15 @@ sectionPartRouter.post(
   ],
   createListeningSectionPart,
 )
+
+sectionPartRouter.get("/", getSectionParts);
+sectionPartRouter.post("/", createSectionPart);
+sectionPartRouter.put("/:id", updateSectionPart);
+sectionPartRouter.delete("/:id", deleteSectionPart);
+
+router.get("/:parentId/children", getParts);
+router.post("/:parentId/children", createPart);
+router.put("/:id", updatePart);
+router.delete("/:id", deletePart);
 
 module.exports = sectionPartRouter
