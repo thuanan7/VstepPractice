@@ -6,7 +6,7 @@ namespace VstepPractice.API.Models.Entities;
 public class Question : BaseEntity
 {
     [Column("sectionId")]
-    public int sectionId { get; set; }
+    public int SectionId { get; set; }
     [Column("questionText")]
     public string? QuestionText { get; set; } = "";
     [Column("point")]
@@ -15,7 +15,7 @@ public class Question : BaseEntity
     public int OrderNum { get; set; }
     
     // Navigation properties
-    [ForeignKey(nameof(sectionId))]
+    [ForeignKey(nameof(SectionId))]
     public virtual SectionPart Section { get; set; } = default!;
     public virtual ICollection<QuestionOption> Options { get; set; } = new List<QuestionOption>();
 }

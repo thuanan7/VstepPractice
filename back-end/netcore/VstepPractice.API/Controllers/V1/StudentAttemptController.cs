@@ -62,7 +62,7 @@ public class StudentAttemptController : ApiController
         [FromBody] SubmitAnswerRequest request,
         CancellationToken cancellationToken)
     {
-        var userId = request.userId;
+        var userId = request.UserId;
         var result = await _studentAttemptService.SubmitAnswerAsync(
             userId, attemptId, request, cancellationToken);
 

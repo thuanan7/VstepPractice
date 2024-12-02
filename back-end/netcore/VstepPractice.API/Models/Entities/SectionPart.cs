@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using VstepPractice.API.Common.Enums;
 
 namespace VstepPractice.API.Models.Entities;
 
@@ -17,9 +18,10 @@ public class SectionPart : BaseEntity
 
     [Column("orderNum")]
     public int OrderNum { get; set; }
-
+    [Column("sectionType")]
+    public SectionTypes SectionType { get; set; }
     [Column("type")]
-    public string Type { get; set; }
+    public SectionPartTypes Type { get; set; }
 
     [Column("examId")]
     public int ExamId { get; set; }

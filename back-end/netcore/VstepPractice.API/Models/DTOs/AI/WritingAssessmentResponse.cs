@@ -8,6 +8,5 @@ public class WritingAssessmentResponse
     public decimal GrammarAccuracy { get; set; }
     public string DetailedFeedback { get; set; } = string.Empty;
 
-    public decimal TotalScore => (TaskAchievement + CoherenceCohesion + LexicalResource + GrammarAccuracy) / 4;
-
+    public decimal TotalScore => Math.Round((TaskAchievement + CoherenceCohesion + LexicalResource + GrammarAccuracy), 1);
 }

@@ -1,4 +1,5 @@
-﻿using VstepPractice.API.Models.DTOs.Sections.Responses;
+﻿
+using VstepPractice.API.Models.DTOs.SectionParts.Responses;
 
 namespace VstepPractice.API.Models.DTOs.Exams.Responses;
 
@@ -8,5 +9,5 @@ public class ExamResponse
     public string Title { get; set; } = string.Empty;
     public string? Description { get; set; }
     public DateTime CreatedAt { get; set; }
-    public List<SectionResponse> Sections { get; set; } = new();
+    public List<SectionPartResponse> Sections { get; set; } = new();
 }

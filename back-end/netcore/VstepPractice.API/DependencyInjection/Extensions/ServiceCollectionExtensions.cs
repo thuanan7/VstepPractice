@@ -18,6 +18,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IAnswerRepository, AnswerRepository>();
         services.AddScoped<IQuestionRepository, QuestionRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
+        services.AddScoped<IWritingAssessmentRepository, WritingAssessmentRepository>();
 
     }
 

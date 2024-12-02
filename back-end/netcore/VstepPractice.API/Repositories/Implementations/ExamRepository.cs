@@ -14,14 +14,16 @@ public class ExamRepository : RepositoryBase<Exam, int>, IExamRepository
     }
 
     public async Task<PagedResult<Exam>> GetPagedAsync(
-        Expression<Func<Exam, bool>>? predicate = null,
-        int pageIndex = 1,
-        int pageSize = 10,
-        CancellationToken cancellationToken = default)
+    Expression<Func<Exam, bool>>? predicate = null,
+    int pageIndex = 1,
+    int pageSize = 10,
+    CancellationToken cancellationToken = default)
     {
         var query = _context.Set<Exam>()
             .AsNoTracking()
             .Include(e => e.SectionParts.OrderBy(s => s.OrderNum))
+                .ThenInclude(s => s.Questions.OrderBy(q => q.OrderNum))
+                    .ThenInclude(q => q.Options.OrderBy(o => o.OrderNum))
             .AsQueryable();
 
         if (predicate != null)
@@ -35,15 +37,17 @@ public class ExamRepository : RepositoryBase<Exam, int>, IExamRepository
     }
 
     public override async Task<Exam?> FindByIdAsync(
-        int id,
-        CancellationToken cancellationToken = default,
-        params Expression<Func<Exam, object>>[] includeProperties)
+    int id,
+    CancellationToken cancellationToken = default,
+    params Expression<Func<Exam, object>>[] includeProperties)
     {
         var query = _context.Set<Exam>().AsQueryable();
 
         // Include default relations
         query = query
-            .Include(e => e.SectionParts.OrderBy(s => s.OrderNum));
+            .Include(e => e.SectionParts.OrderBy(s => s.OrderNum))
+                .ThenInclude(s => s.Questions.OrderBy(q => q.OrderNum))
+                    .ThenInclude(q => q.Options.OrderBy(o => o.OrderNum));
 
         // Add any additional includes
         foreach (var property in includeProperties)

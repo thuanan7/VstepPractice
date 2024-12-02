@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
+using VstepPractice.API.Common.Enums;
 
 namespace VstepPractice.API.Models.Entities;
 
@@ -13,7 +14,7 @@ public class User : BaseEntity
     [Column("lastName")]
     public string? LastName { get; set; }
     [Column("role")]
-    public string? Role { get; set; }
+    public UserRoles Role { get; set; }
     public virtual ICollection<Exam> CreatedExams { get; set; } = default!;
     public virtual ICollection<StudentAttempt> StudentAttempts { get; set; } = default!;
 }
