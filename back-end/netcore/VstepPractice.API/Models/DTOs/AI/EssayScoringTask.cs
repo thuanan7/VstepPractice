@@ -1,4 +1,6 @@
-﻿namespace VstepPractice.API.Models.DTOs.AI;
+﻿using VstepPractice.API.Common.Enums;
+
+namespace VstepPractice.API.Models.DTOs.AI;
 
 public class EssayScoringTask
 {
@@ -7,5 +9,5 @@ public class EssayScoringTask
     public string PassageContent { get; set; } = string.Empty;
     public string QuestionText { get; set; } = string.Empty;
     public string Essay { get; set; } = string.Empty;
-
+    public SectionTypes SectionType { get; set; }
 }

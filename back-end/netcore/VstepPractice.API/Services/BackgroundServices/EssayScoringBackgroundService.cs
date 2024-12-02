@@ -1,4 +1,5 @@
 ﻿using System.Threading.Channels;
+using VstepPractice.API.Common.Enums;
 using VstepPractice.API.Models.DTOs.AI;
 using VstepPractice.API.Models.Entities;
 using VstepPractice.API.Repositories.Interfaces;
@@ -19,7 +20,6 @@ public class EssayScoringBackgroundService : BackgroundService, IEssayScoringQue
         _scopeFactory = scopeFactory;
         _logger = logger;
 
-        // Create unbounded channel
         _taskChannel = Channel.CreateUnbounded<EssayScoringTask>(new UnboundedChannelOptions
         {
             SingleReader = true,
@@ -30,8 +30,16 @@ public class EssayScoringBackgroundService : BackgroundService, IEssayScoringQue
     public async Task QueueScoringTaskAsync(EssayScoringTask task)
     {
         if (task == null) throw new ArgumentNullException(nameof(task));
+
+        // Verify this is a writing task
+        if (task.SectionType != SectionTypes.Writing)
+        {
+            _logger.LogWarning("Attempted to queue non-writing task for scoring. SectionType: {SectionType}", task.SectionType);
+            return;
+        }
+
         await _taskChannel.Writer.WriteAsync(task);
-        _logger.LogInformation("Queued scoring task for answerId {AnswerId}", task.AnswerId);
+        _logger.LogInformation("Queued writing assessment task for answerId {AnswerId}", task.AnswerId);
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -40,13 +48,11 @@ public class EssayScoringBackgroundService : BackgroundService, IEssayScoringQue
         {
             try
             {
-                // Wait for task from channel
                 var task = await _taskChannel.Reader.ReadAsync(stoppingToken);
                 await ProcessScoringTaskAsync(task, stoppingToken);
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {
-                // Normal shutdown
                 break;
             }
             catch (Exception ex)
@@ -64,20 +70,29 @@ public class EssayScoringBackgroundService : BackgroundService, IEssayScoringQue
             var aiScoringService = scope.ServiceProvider.GetRequiredService<IAiScoringService>();
             var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
 
-            // Start transaction
             await unitOfWork.BeginTransactionAsync(cancellationToken);
 
             try
             {
                 _logger.LogInformation(
-                    "Starting to process assessment for answerId {AnswerId}", task.AnswerId);
+                    "Starting to process writing assessment for answerId {AnswerId}", task.AnswerId);
+
                 // Get answer with tracking
-                var answer = await unitOfWork.AnswerRepository
-                    .FindByIdAsync(task.AnswerId, cancellationToken);
+                var answer = await unitOfWork.AnswerRepository.GetAnswerWithDetailsAsync(task.AnswerId, cancellationToken);
 
                 if (answer == null)
                 {
                     _logger.LogError("Answer not found for answerId {AnswerId}", task.AnswerId);
+                    return;
+                }
+
+                // Verify this is a writing question
+                if (answer.Question.Section.SectionType != SectionTypes.Writing)
+                {
+                    _logger.LogError(
+                        "Invalid section type for writing assessment. AnswerId: {AnswerId}, SectionType: {SectionType}",
+                        task.AnswerId,
+                        answer.Question.Section.SectionType);
                     return;
                 }
 
@@ -88,7 +103,7 @@ public class EssayScoringBackgroundService : BackgroundService, IEssayScoringQue
                 if (existingAssessment != null)
                 {
                     _logger.LogInformation(
-                        "Assessment already exists for answerId {AnswerId}", task.AnswerId);
+                        "Writing assessment already exists for answerId {AnswerId}", task.AnswerId);
                     return;
                 }
 
@@ -120,41 +135,35 @@ public class EssayScoringBackgroundService : BackgroundService, IEssayScoringQue
                     AssessedAt = DateTime.UtcNow
                 };
 
-                // Update Answer
+                // Update Answer score and feedback
                 answer.Score = assessment.TotalScore;
                 answer.AiFeedback = assessment.DetailedFeedback;
 
-                // Log the assessment details before saving
                 _logger.LogDebug(
-                    "Assessment details for answerId {AnswerId}: TaskAchievement={TaskAchievement}, " +
-                    "CoherenceCohesion={CoherenceCohesion}, LexicalResource={LexicalResource}, " +
-                    "GrammarAccuracy={GrammarAccuracy}",
+                    "Writing Assessment details for answerId {AnswerId}: " +
+                    "TaskAchievement={TaskAchievement}, CoherenceCohesion={CoherenceCohesion}, " +
+                    "LexicalResource={LexicalResource}, GrammarAccuracy={GrammarAccuracy}, " +
+                    "TotalScore={TotalScore}",
                     task.AnswerId,
                     writingAssessment.TaskAchievement,
                     writingAssessment.CoherenceCohesion,
                     writingAssessment.LexicalResource,
-                    writingAssessment.GrammarAccuracy);
+                    writingAssessment.GrammarAccuracy,
+                    assessment.TotalScore);
 
-                // Log before each major operation
-                _logger.LogDebug("Updating Answer entity");
                 unitOfWork.AnswerRepository.Update(answer);
-
-                _logger.LogDebug("Adding WritingAssessment entity");
                 unitOfWork.WritingAssessmentRepository.Add(writingAssessment);
 
-                _logger.LogDebug("Saving changes to database");
                 await unitOfWork.SaveChangesAsync(cancellationToken);
-
-                _logger.LogDebug("Committing transaction");
                 await unitOfWork.CommitAsync(cancellationToken);
 
                 _logger.LogInformation(
-                    "Successfully processed assessment for answerId {AnswerId}", task.AnswerId);
+                    "Successfully processed writing assessment for answerId {AnswerId}", task.AnswerId);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex,
-                    "Detailed error for answerId {AnswerId}: {ErrorMessage}",
+                    "Error processing writing assessment for answerId {AnswerId}: {ErrorMessage}",
                     task.AnswerId,
                     ex.ToString());
                 await unitOfWork.RollbackAsync(cancellationToken);
@@ -164,7 +173,7 @@ public class EssayScoringBackgroundService : BackgroundService, IEssayScoringQue
         catch (Exception ex)
         {
             _logger.LogError(ex,
-                "Error processing assessment for answerId {AnswerId}", task.AnswerId);
+                "Error processing writing assessment for answerId {AnswerId}", task.AnswerId);
         }
     }
 }

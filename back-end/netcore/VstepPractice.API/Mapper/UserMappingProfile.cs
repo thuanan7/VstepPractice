@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 using VstepPractice.API.Common.Enums;
-using VstepPractice.API.Common.Utils;
 using VstepPractice.API.Models.DTOs.Exams.Responses;
 using VstepPractice.API.Models.DTOs.Questions.Responses;
 using VstepPractice.API.Models.DTOs.SectionParts.Responses;
@@ -32,6 +31,8 @@ public class AutoMapperProfile : Profile
                 opt => opt.MapFrom(src => src.Instructions))
             .ForMember(dest => dest.Content,
                 opt => opt.MapFrom(src => src.Content))
+            .ForMember(dest => dest.SectionType,
+                opt => opt.MapFrom(src => src.SectionType))
             .ForMember(dest => dest.Type,
                 opt => opt.MapFrom(src => src.Type))
             .ForMember(dest => dest.Children,
@@ -45,6 +46,8 @@ public class AutoMapperProfile : Profile
                 opt => opt.MapFrom(src => src.QuestionText ?? string.Empty))
             .ForMember(dest => dest.Points,
                 opt => opt.MapFrom(src => src.Point))
+            .ForMember(dest => dest.SectionType,
+                opt => opt.MapFrom(src => src.Section.SectionType))
             .ForMember(dest => dest.Options,
                 opt => opt.MapFrom(src => src.Options.OrderBy(o => o.OrderNum)));
 
@@ -59,6 +62,8 @@ public class AutoMapperProfile : Profile
         CreateMap<StudentAttempt, AttemptResponse>()
             .ForMember(dest => dest.ExamTitle,
                 opt => opt.MapFrom(src => src.Exam.Title ?? string.Empty))
+            .ForMember(dest => dest.Status,
+                opt => opt.MapFrom(src => src.Status))
             .ForMember(dest => dest.Answers,
                 opt => opt.MapFrom(src => src.Answers.OrderBy(a => a.Question.OrderNum)));
 
@@ -68,52 +73,38 @@ public class AutoMapperProfile : Profile
             .ForMember(dest => dest.StartTime,
                 opt => opt.MapFrom(src => src.StartTime))
             .ForMember(dest => dest.EndTime,
-                opt => opt.MapFrom(src => src.EndTime!))
+                opt => opt.MapFrom(src => src.EndTime!.Value))
             .ForMember(dest => dest.Answers,
                 opt => opt.MapFrom(src => src.Answers.OrderBy(a => a.Question.OrderNum)))
             .ForMember(dest => dest.SectionScores,
-                opt => opt.Ignore())  // Calculated in service
+                opt => opt.MapFrom(src => new Dictionary<SectionTypes, decimal>()))
             .ForMember(dest => dest.FinalScore,
-                opt => opt.Ignore())  // Calculated in service
-            .ForMember(dest => dest.WritingDetails,
-                opt => opt.Ignore()); // Calculated in service
+                opt => opt.Ignore());  // Sẽ được tính toán sau
 
         // Answer mappings
         CreateMap<Answer, AnswerResponse>()
             .ForMember(dest => dest.QuestionText,
                 opt => opt.MapFrom(src => src.Question.QuestionText ?? string.Empty))
+            .ForMember(dest => dest.PassageTitle,
+                opt => opt.MapFrom(src => src.Question.Section.Title))
+            .ForMember(dest => dest.PassageContent,
+                opt => opt.MapFrom(src => src.Question.Section.Content))
+            .ForMember(dest => dest.QuestionOptionId,
+                opt => opt.MapFrom(src => src.QuestionOptionId))
+            .ForMember(dest => dest.EssayAnswer,
+                opt => opt.MapFrom(src => src.EssayAnswer))
+            .ForMember(dest => dest.AiFeedback,
+                opt => opt.MapFrom(src => src.AiFeedback))
+            .ForMember(dest => dest.Score,
+                opt => opt.MapFrom(src => src.Score))
+            .ForMember(dest => dest.SectionType,
+                opt => opt.MapFrom(src => src.Question.Section.SectionType))
             .ForMember(dest => dest.IsCorrect,
                 opt => opt.MapFrom(src =>
-                    src.QuestionOptionId.HasValue &&
+                    src.Question.Section.SectionType != SectionTypes.Writing &&
                     src.SelectedOption != null &&
                     src.SelectedOption.IsCorrect))
             .ForMember(dest => dest.WritingScore,
-                opt => opt.MapFrom((src, dest, _, context) =>
-                {
-                    if (context.TryGetItems(out var items) &&
-                        items.TryGetValue("WritingAssessment", out var assessmentObj) &&
-                        assessmentObj is WritingAssessment assessment)
-                    {
-                        return new WritingScoreDetails
-                        {
-                            TaskAchievement = assessment.TaskAchievement,
-                            CoherenceCohesion = assessment.CoherenceCohesion,
-                            LexicalResource = assessment.LexicalResource,
-                            GrammarAccuracy = assessment.GrammarAccuracy
-                        };
-                    }
-                    return null;
-                }));
-
-        // WritingAssessment mappings
-        CreateMap<WritingAssessment, WritingScoreDetails>()
-            .ForMember(dest => dest.TaskAchievement,
-                opt => opt.MapFrom(src => src.TaskAchievement))
-            .ForMember(dest => dest.CoherenceCohesion,
-                opt => opt.MapFrom(src => src.CoherenceCohesion))
-            .ForMember(dest => dest.LexicalResource,
-                opt => opt.MapFrom(src => src.LexicalResource))
-            .ForMember(dest => dest.GrammarAccuracy,
-                opt => opt.MapFrom(src => src.GrammarAccuracy));
+                opt => opt.Ignore()); // We'll set this separately when needed
     }
 }

@@ -6,11 +6,17 @@ interface TableQuestionProps {
   onChoose: (pos: number) => void
   onAutoSubmit: () => void
   active: number
+  currentSectionIndex: number
+  totalAnswerOnPart: number
+  totalQuestions: number
 }
+
 const TableQuestion = (props: TableQuestionProps) => {
-  const { data, onChoose, active, onAutoSubmit } = props
+  const { data, onChoose, active, currentSectionIndex, onAutoSubmit, totalAnswerOnPart, totalQuestions } = props;
+
   return (
     <Grid item xs={2} sx={{ overflow: 'hidden' }}>
+      { currentSectionIndex === 3 || currentSectionIndex === 2 ? "" : <h3>Selected {totalAnswerOnPart}/{totalQuestions}</h3> }
       <AttemptTimer minutes={30} onTimeUp={onAutoSubmit} />
       <Box
         sx={{
@@ -26,12 +32,12 @@ const TableQuestion = (props: TableQuestionProps) => {
             gap: 1,
           }}
         >
-          {data.map((_, index) => (
+          {data.filter(obj => obj != -1).map((item, index) => (
             <Button
-              key={index}
+              key={item}
               size={'small'}
-              variant={index === active ? 'contained' : 'outlined'}
-              onClick={() => onChoose(index)}
+              variant={item === active ? 'contained' : 'outlined'}
+              onClick={() => onChoose(item)}
               sx={{
                 textAlign: 'center',
                 padding: 0,
@@ -39,7 +45,7 @@ const TableQuestion = (props: TableQuestionProps) => {
                 height: 36,
               }}
             >
-              {index + 1}
+              {index+1}
             </Button>
           ))}
         </Box>

@@ -12,14 +12,16 @@ public class SectionPartRepository : RepositoryBase<SectionPart, int>, ISectionP
     }
 
     public async Task<List<SectionPart>> GetHierarchyForExamAsync(
-        int examId,
-        CancellationToken cancellationToken = default)
+    int examId,
+    CancellationToken cancellationToken = default)
     {
         return await _context.SectionParts
             .Where(sp => sp.ExamId == examId)
-            .Include(sp => sp.Children)
-            .Include(sp => sp.Questions)
-                .ThenInclude(q => q.Options)
+            .Include(sp => sp.Children.OrderBy(c => c.OrderNum))
+                .ThenInclude(sp => sp.Questions.OrderBy(q => q.OrderNum))
+                    .ThenInclude(q => q.Options.OrderBy(o => o.OrderNum))
+            .Include(sp => sp.Questions.OrderBy(q => q.OrderNum))
+                .ThenInclude(q => q.Options.OrderBy(o => o.OrderNum))
             .OrderBy(sp => sp.OrderNum)
             .ToListAsync(cancellationToken);
     }

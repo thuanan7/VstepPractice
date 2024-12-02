@@ -1,5 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using VstepPractice.API.Models.DTOs.Sections.Requests;
+using VstepPractice.API.Models.DTOs.SectionParts.Requests;
 
 namespace VstepPractice.API.Models.DTOs.Exams.Requests;
 
@@ -12,5 +12,5 @@ public class CreateExamRequest
     public string? Description { get; set; }
 
     [Required]
-    public List<SectionRequest> Sections { get; set; } = new();
+    public List<SectionPartRequest> Sections { get; set; } = new();
 }

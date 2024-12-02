@@ -8,6 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Load environment variables from .env file
 builder.Configuration.LoadEnv("../../../.env");
+builder.Configuration.LoadEnv();
 
 // Add services to the container.
 builder.Services.AddAiBackGroundServices();
@@ -20,6 +21,8 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services.AddAutoMapper(Assembly.GetAssembly(typeof(Program)));
 
 builder.Services.AddDependencyInjections();
+
+builder.Services.AddScoreCalculationServices();
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
