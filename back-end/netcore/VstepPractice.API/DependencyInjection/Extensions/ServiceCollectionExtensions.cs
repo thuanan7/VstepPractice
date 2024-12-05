@@ -19,7 +19,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IQuestionRepository, QuestionRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<IWritingAssessmentRepository, WritingAssessmentRepository>();
-
+        services.AddScoped<ISpeakingAssessmentRepository, SpeakingAssessmentRepository>();
     }
 
     public static void AddAiBackGroundServices(this IServiceCollection services)

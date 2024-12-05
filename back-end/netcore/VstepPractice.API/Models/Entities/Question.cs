@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations.Schema;
-using VstepPractice.API.Common.Enums;
 
 namespace VstepPractice.API.Models.Entities;
 
@@ -10,7 +9,7 @@ public class Question : BaseEntity
     [Column("questionText")]
     public string? QuestionText { get; set; } = "";
     [Column("point")]
-    public int Point { get; set; } = 1;
+    public decimal Point { get; set; } = 1;
     [Column("orderNum")]
     public int OrderNum { get; set; }
     
