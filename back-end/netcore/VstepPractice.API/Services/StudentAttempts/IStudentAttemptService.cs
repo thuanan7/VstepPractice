@@ -17,6 +17,12 @@ public interface IStudentAttemptService
         SubmitAnswerRequest request,
         CancellationToken cancellationToken = default);
 
+    Task<Result<AnswerResponse>> SubmitSpeakingAnswerAsync(
+        int userId,
+        int attemptId,
+        SubmitSpeakingAnswerRequest request,
+        CancellationToken cancellationToken = default);
+
     Task<Result<AttemptResultResponse>> FinishAttemptAsync(
         int userId,
         FinishAttemptRequest request,

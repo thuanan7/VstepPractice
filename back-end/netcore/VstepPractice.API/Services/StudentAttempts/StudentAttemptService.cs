@@ -8,6 +8,7 @@ using VstepPractice.API.Models.Entities;
 using VstepPractice.API.Repositories.Interfaces;
 using VstepPractice.API.Services.AI;
 using VstepPractice.API.Services.ScoreCalculation;
+using VstepPractice.API.Services.Storage;
 
 namespace VstepPractice.API.Services.StudentAttempts;
 
@@ -15,22 +16,28 @@ public class StudentAttemptService : IStudentAttemptService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
-    private readonly IEssayScoringQueue _scoringQueue;
+    private readonly IEssayScoringQueue _essayScoringQueue;
+    private readonly ISpeakingAssessmentQueue _speakingAssessmentQueue;
     private readonly IVstepScoreCalculator _scoreCalculator;
     private readonly ILogger<StudentAttemptService> _logger;
+    private readonly IFileStorageService _storageService;
 
     public StudentAttemptService(
         IUnitOfWork unitOfWork,
         IMapper mapper,
         IEssayScoringQueue scoringQueue,
+        ISpeakingAssessmentQueue assessmentQueue,
         IVstepScoreCalculator scoreCalculator,
+        IFileStorageService storageService,
         ILogger<StudentAttemptService> logger)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
-        _scoringQueue = scoringQueue;
+        _essayScoringQueue = scoringQueue;
+        _speakingAssessmentQueue = assessmentQueue;
         _logger = logger;
         _scoreCalculator = scoreCalculator;
+        _storageService = storageService;
     }
 
     public async Task<Result<AttemptResponse>> StartAttemptAsync(
@@ -185,7 +192,7 @@ public class StudentAttemptService : IStudentAttemptService
             // Queue for assessment if has essay answer
             if (!string.IsNullOrEmpty(request.EssayAnswer))
             {
-                await _scoringQueue.QueueScoringTaskAsync(new EssayScoringTask
+                await _essayScoringQueue.QueueScoringTaskAsync(new EssayScoringTask
                 {
                     AnswerId = answer.Id,
                     PassageTitle = question.Section.Title,
@@ -199,6 +206,76 @@ public class StudentAttemptService : IStudentAttemptService
 
         return Result.Success(response);
     }
+
+    public async Task<Result<AnswerResponse>> SubmitSpeakingAnswerAsync(
+    int userId,
+    int attemptId,
+    SubmitSpeakingAnswerRequest request,
+    CancellationToken cancellationToken)
+    {
+        var attempt = await _unitOfWork.StudentAttemptRepository
+            .FindByIdAsync(attemptId, cancellationToken);
+
+        if (attempt == null || attempt.UserId != userId)
+            return Result.Failure<AnswerResponse>(Error.NotFound);
+
+        if (attempt.Status != AttemptStatus.InProgress)
+            return Result.Failure<AnswerResponse>(
+                new Error("Attempt.NotInProgress", "This attempt is not in progress."));
+
+        // Get question to verify
+        var question = await _unitOfWork.QuestionRepository
+            .FindByIdAsync(request.QuestionId, cancellationToken, q => q.Section);
+
+        if (question == null || question.Section.SectionType != SectionTypes.Speaking)
+            return Result.Failure<AnswerResponse>(
+                new Error("Question.Invalid", "Invalid speaking question."));
+
+        // Save audio to blob
+        using var stream = request.AudioFile.OpenReadStream();
+        var audioUrl = await _storageService.UploadFileAsync(
+            stream,
+            request.AudioFile.FileName,
+            request.AudioFile.ContentType);
+
+        // Create or update answer
+        var answer = await _unitOfWork.AnswerRepository
+            .FindSingleAsync(a =>
+                a.AttemptId == attemptId &&
+                a.QuestionId == request.QuestionId,
+                cancellationToken);
+
+        if (answer == null)
+        {
+            answer = new Answer
+            {
+                AttemptId = attemptId,
+                QuestionId = request.QuestionId,
+                // Store audioUrl in AiFeedback field temporarily
+                AiFeedback = audioUrl
+            };
+            _unitOfWork.AnswerRepository.Add(answer);
+        }
+        else
+        {
+            answer.AiFeedback = audioUrl;
+            _unitOfWork.AnswerRepository.Update(answer);
+        }
+
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        // Queue for assessment
+        await _speakingAssessmentQueue.QueueAssessmentTaskAsync(new SpeakingAssessmentTask
+        {
+            AnswerId = answer.Id,
+            AudioUrl = audioUrl,
+            QuestionText = question.QuestionText ?? string.Empty
+        });
+
+        var response = _mapper.Map<AnswerResponse>(answer);
+        return Result.Success(response);
+    }
+
 
     public async Task<Result<AttemptResultResponse>> FinishAttemptAsync(
         int userId,

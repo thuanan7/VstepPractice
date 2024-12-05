@@ -73,6 +73,36 @@ public class StudentAttemptController : ApiController
     }
 
     /// <summary>
+    /// Submit an answer for a speaking question
+    /// </summary>
+    [HttpPost("{attemptId}/submit-speaking-answer")]
+    [ProducesResponseType(typeof(AnswerResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Error), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(Error), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> SubmitSpeakingAnswer(
+    int attemptId,
+    [FromForm] SubmitSpeakingAnswerRequest request,
+    CancellationToken cancellationToken)
+    {
+        var userId = request.UserId;
+
+        if (request.AudioFile == null || request.AudioFile.Length == 0)
+            return BadRequest("No audio file uploaded");
+
+        var result = await _studentAttemptService.SubmitSpeakingAnswerAsync(
+            userId,
+            attemptId,
+            request,
+            cancellationToken);
+
+        if (!result.IsSuccess)
+            return result.Error == Error.NotFound ? NotFound(result.Error) : BadRequest(result.Error);
+
+        return Ok(result.Value);
+    }
+
+    /// <summary>
     /// Finish an exam attempt
     /// </summary>
     [HttpPost("{attemptId}/finish")]

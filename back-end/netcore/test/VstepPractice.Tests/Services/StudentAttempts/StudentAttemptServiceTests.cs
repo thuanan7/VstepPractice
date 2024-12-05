@@ -13,6 +13,7 @@ using VstepPractice.API.Models.Entities;
 using VstepPractice.API.Repositories.Interfaces;
 using VstepPractice.API.Services.AI;
 using VstepPractice.API.Services.ScoreCalculation;
+using VstepPractice.API.Services.Storage;
 using VstepPractice.API.Services.StudentAttempts;
 using Xunit.Abstractions;
 
@@ -23,7 +24,9 @@ public class StudentAttemptServiceTests
     private readonly Mock<IUnitOfWork> _mockUnitOfWork;
     private readonly Mock<IMapper> _mockMapper;
     private readonly Mock<IEssayScoringQueue> _mockScoringQueue;
+    private readonly Mock<ISpeakingAssessmentQueue> _speakingAssessmentQueue;
     private readonly Mock<IVstepScoreCalculator> _mockScoreCalculator;
+    private readonly Mock<IFileStorageService> _fileStorageService;
     private readonly Mock<ILogger<StudentAttemptService>> _mockLogger;
     private readonly StudentAttemptService _service;
     private readonly ITestOutputHelper _output;
@@ -34,14 +37,18 @@ public class StudentAttemptServiceTests
         _mockUnitOfWork = new Mock<IUnitOfWork>();
         _mockMapper = new Mock<IMapper>();
         _mockScoringQueue = new Mock<IEssayScoringQueue>();
+        _speakingAssessmentQueue = new Mock<ISpeakingAssessmentQueue>();
         _mockScoreCalculator = new Mock<IVstepScoreCalculator>();
         _mockLogger = new Mock<ILogger<StudentAttemptService>>();
+        _fileStorageService = new Mock<IFileStorageService>();
 
         _service = new StudentAttemptService(
             _mockUnitOfWork.Object,
             _mockMapper.Object,
             _mockScoringQueue.Object,
+            _speakingAssessmentQueue.Object,
             _mockScoreCalculator.Object,
+            _fileStorageService.Object,
             _mockLogger.Object);
     }
 
