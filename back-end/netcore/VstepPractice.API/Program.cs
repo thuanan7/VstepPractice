@@ -56,7 +56,7 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.ConfigureSwagger();
-    app.ApplyMigration();
+    // app.ApplyMigration();
     // Dont need seedData
     // await app.SeedDataAsync();
 }
