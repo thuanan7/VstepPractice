@@ -92,7 +92,7 @@ public class StudentAttemptService : IStudentAttemptService
 
         // Get question to verify it exists and get section type
         var question = await _unitOfWork.QuestionRepository
-            .FindByIdAsync(request.QuestionId, cancellationToken, q => q.Section);
+            .FindByIdAsync(request.QuestionId, cancellationToken, q => q.Passage);
 
         if (question == null)
             return Result.Failure<AnswerResponse>(
@@ -121,7 +121,7 @@ public class StudentAttemptService : IStudentAttemptService
         }
 
         // Handle different section types
-        switch (question.Section.SectionType)
+        switch (question.Passage.SectionType)
         {
             case SectionTypes.Writing:
                 answer.EssayAnswer = request.EssayAnswer;
@@ -158,9 +158,9 @@ public class StudentAttemptService : IStudentAttemptService
             default:
                 _logger.LogError(
                     "Unsupported section type {SectionType} for question {QuestionId}",
-                    question.Section.SectionType, question.Id);
+                    question.Passage.SectionType, question.Id);
                 throw new NotSupportedException(
-                    $"Section type {question.Section.SectionType} is not supported.");
+                    $"Section type {question.Passage.SectionType} is not supported.");
         }
 
         if (existingAnswer != null)
@@ -173,7 +173,7 @@ public class StudentAttemptService : IStudentAttemptService
         var response = _mapper.Map<AnswerResponse>(answer);
 
         // If it's a writing answer, get the assessment if it exists
-        if (question.Section.SectionType == SectionTypes.Writing)
+        if (question.Passage.SectionType == SectionTypes.Writing)
         {
             var assessment = await _unitOfWork.WritingAssessmentRepository
                 .GetByAnswerIdAsync(answer.Id, cancellationToken);
@@ -195,11 +195,11 @@ public class StudentAttemptService : IStudentAttemptService
                 await _essayScoringQueue.QueueScoringTaskAsync(new EssayScoringTask
                 {
                     AnswerId = answer.Id,
-                    PassageTitle = question.Section.Title,
-                    PassageContent = question.Section.Content ?? string.Empty,
+                    PassageTitle = question.Passage.Title,
+                    PassageContent = question.Passage.Content ?? string.Empty,
                     QuestionText = question.QuestionText ?? string.Empty,
                     Essay = request.EssayAnswer,
-                    SectionType = question.Section.SectionType
+                    SectionType = question.Passage.SectionType
                 });
             }
         }
@@ -225,9 +225,9 @@ public class StudentAttemptService : IStudentAttemptService
 
         // Get question to verify
         var question = await _unitOfWork.QuestionRepository
-            .FindByIdAsync(request.QuestionId, cancellationToken, q => q.Section);
+            .FindByIdAsync(request.QuestionId, cancellationToken, q => q.Passage);
 
-        if (question == null || question.Section.SectionType != SectionTypes.Speaking)
+        if (question == null || question.Passage.SectionType != SectionTypes.Speaking)
             return Result.Failure<AnswerResponse>(
                 new Error("Question.Invalid", "Invalid speaking question."));
 
@@ -325,7 +325,7 @@ public class StudentAttemptService : IStudentAttemptService
         {
             var answerResponse = _mapper.Map<AnswerResponse>(answer);
 
-            if (answer.Question.Section.SectionType == SectionTypes.Writing)
+            if (answer.Question.Passage.SectionType == SectionTypes.Writing)
             {
                 var assessment = await _unitOfWork.WritingAssessmentRepository
                     .GetByAnswerIdAsync(answer.Id, cancellationToken);

@@ -15,6 +15,6 @@ public class Question : BaseEntity
     
     // Navigation properties
     [ForeignKey(nameof(SectionId))]
-    public virtual SectionPart Section { get; set; } = default!;
+    public virtual SectionPart Passage { get; set; } = default!;
     public virtual ICollection<QuestionOption> Options { get; set; } = new List<QuestionOption>();
 }

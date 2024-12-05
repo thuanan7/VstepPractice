@@ -3,7 +3,7 @@ using Betalgo.Ranul.OpenAI.ObjectModels.RequestModels;
 
 namespace VstepPractice.API.Services.Speech;
 
-public class WhisperTranscriptionService : IAudioTranscriptionService
+public class WhisperTranscriptionService : ISpeechToTextService
 {
     private readonly IOpenAIService _openAiService;
     private readonly ILogger<WhisperTranscriptionService> _logger;

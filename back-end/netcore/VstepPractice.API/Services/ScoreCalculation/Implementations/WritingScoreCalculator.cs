@@ -46,7 +46,7 @@ public class WritingScoreCalculator : ISectionScoreCalculator
 
                 if (assessment == null) continue;
 
-                taskScores.Add((task.Section.Title, assessment));
+                taskScores.Add((task.Passage.Title, assessment));
             }
 
             if (taskScores.Count != writingTasks.Count)

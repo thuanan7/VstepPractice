@@ -54,14 +54,10 @@ public class SpeakingAssessmentBackgroundService : BackgroundService, ISpeakingA
     CancellationToken cancellationToken)
     {
         using var scope = _scopeFactory.CreateScope();
-        var speechService = scope.ServiceProvider.GetRequiredService<ISpeechToTextService>();
+        var speechToTextService = scope.ServiceProvider.GetRequiredService<ISpeechToTextService>();
         var storageService = scope.ServiceProvider.GetRequiredService<IFileStorageService>();
         var aiService = scope.ServiceProvider.GetRequiredService<IAiScoringService>();
         var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
-
-        var transcriptionService = scope.ServiceProvider
-        .GetRequiredService<IAudioTranscriptionService>();
-        
 
         try
         {
@@ -82,7 +78,7 @@ public class SpeakingAssessmentBackgroundService : BackgroundService, ISpeakingA
         .DownloadFileAsync(task.AudioUrl);
 
             // Transcribe using Whisper
-            var transcribedText = await transcriptionService
+            var transcribedText = await speechToTextService
                 .TranscribeAudioAsync(audioStream, cancellationToken);
 
             // 3. Get AI assessment
@@ -90,8 +86,8 @@ public class SpeakingAssessmentBackgroundService : BackgroundService, ISpeakingA
             {
                 AnswerId = task.AnswerId,
                 AudioUrl = task.AudioUrl,
-                PassageTitle = answer.Question.Section.Title,
-                PassageContent = answer.Question.Section.Content ?? string.Empty,
+                PassageTitle = answer.Question.Passage.Title,
+                PassageContent = answer.Question.Passage.Content ?? string.Empty,
                 QuestionText = answer.Question.QuestionText ?? string.Empty,
                 TranscribedText = transcribedText
             }, cancellationToken);

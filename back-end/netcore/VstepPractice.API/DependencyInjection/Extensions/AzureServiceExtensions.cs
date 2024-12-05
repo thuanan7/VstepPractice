@@ -23,8 +23,9 @@ public static class AzureServiceExtensions
         services.Configure<AzureSpeechOptions>(
             configuration.GetSection(AzureSpeechOptions.SectionName));
 
-        services.AddScoped<ISpeechToTextService, AzureSpeechToTextService>();
-        // Sử dụng Whisper thay vì Azure
-        services.AddScoped<IAudioTranscriptionService, WhisperTranscriptionService>();
+        //services.AddScoped<ISpeechToTextService, AzureSpeechToTextService>();
+
+        // OpenAPI is a better choice for our use case
+        services.AddScoped<ISpeechToTextService, WhisperTranscriptionService>();
     }
 }

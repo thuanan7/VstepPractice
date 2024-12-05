@@ -22,7 +22,7 @@ public class ListeningScoreCalculator : ISectionScoreCalculator
         try
         {
             var parts = questions
-                .GroupBy(q => q.Section)
+                .GroupBy(q => q.Passage)
                 .OrderBy(g => g.Key.OrderNum)
                 .ToList();
 

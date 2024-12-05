@@ -177,7 +177,7 @@ public class StudentAttemptServiceTests
         var question = new Question
         {
             Id = 1,
-            Section = section,
+            Passage = section,
             QuestionText = "Test question",
             OrderNum = 1,
             SectionId = section.Id
@@ -343,7 +343,7 @@ public class StudentAttemptServiceTests
         {
             Id = 1,
             QuestionText = "Test Question",
-            Section = section,
+            Passage = section,
             OrderNum = 1
         };
 
@@ -531,7 +531,7 @@ public class StudentAttemptServiceTests
         {
             Id = 1,
             QuestionText = "Test Question",
-            Section = section,
+            Passage = section,
             OrderNum = 1
         };
 
