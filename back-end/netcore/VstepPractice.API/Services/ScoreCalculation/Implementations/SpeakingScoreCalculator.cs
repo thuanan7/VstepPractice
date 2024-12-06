@@ -26,7 +26,6 @@ public class SpeakingScoreCalculator : ISectionScoreCalculator
     {
         try
         {
-            // Group questions by parts
             var parts = questions
                 .GroupBy(q => q.Passage)
                 .OrderBy(g => g.Key.OrderNum)
@@ -40,56 +39,73 @@ public class SpeakingScoreCalculator : ISectionScoreCalculator
 
             var partScores = new List<PartScore>();
             decimal totalScore = 0;
+            var detailScores = new Dictionary<string, decimal>();
 
             foreach (var part in parts)
             {
                 var partQuestions = part.OrderBy(q => q.OrderNum).ToList();
-                var questionScores = new List<(string QuestionText, decimal Score, string? Feedback)>();
                 decimal partTotalScore = 0;
-                var validAssessments = 0;
+                var questionScores = new List<(string QuestionText, decimal Score, string? Feedback)>();
 
-                // Calculate scores for each question in the part
                 foreach (var question in partQuestions)
                 {
                     var answer = answers.FirstOrDefault(a => a.QuestionId == question.Id);
-                    if (answer == null) continue;
+                    decimal questionScore = 0; // Default to 0 for unanswered questions
+                    string? feedback = null;
 
-                    var assessment = await _assessmentRepo.GetByAnswerIdAsync(
-                        answer.Id, cancellationToken);
+                    if (answer != null)
+                    {
+                        var assessment = await _assessmentRepo.GetByAnswerIdAsync(
+                            answer.Id, cancellationToken);
 
-                    if (assessment == null) continue;
+                        if (assessment != null)
+                        {
+                            questionScore = assessment.TotalScore;
+                            feedback = assessment.DetailedFeedback;
+                        }
+                        else
+                        {
+                            _logger.LogWarning(
+                                "Answer exists but no assessment found for Question ID: {QuestionId} in {PartTitle}",
+                                question.Id, part.Key.Title);
+                        }
+                    }
+                    else
+                    {
+                        _logger.LogInformation(
+                            "Question ID: {QuestionId} in {PartTitle} is unanswered (score: 0/10)",
+                            question.Id, part.Key.Title);
+                    }
 
-                    var questionScore = assessment.TotalScore;
-                    partTotalScore += questionScore;
-                    validAssessments++;
-
+                    // Add to question scores regardless of whether it was answered
                     questionScores.Add((
-                        question.QuestionText ?? "Question",
+                        $"Q{question.OrderNum} ({question.QuestionText ?? "Question"})",
                         questionScore,
-                        assessment.DetailedFeedback));
+                        feedback));
+
+                    partTotalScore += questionScore;
+
+                    // Add individual question score to details
+                    detailScores[$"{part.Key.Title} - Q{question.OrderNum}"] = questionScore;
                 }
 
-                // Calculate part average score
-                var partAverageScore = validAssessments > 0
-                    ? ScoreUtils.RoundToNearestHalf(partTotalScore / validAssessments)
-                    : 0;
+                // Calculate part average including zeros for unanswered questions
+                var partAverageScore = ScoreUtils.RoundToNearestHalf(
+                    partTotalScore / partQuestions.Count);
+
+                _logger.LogInformation(
+                    "{PartTitle} scores - Total: {TotalScore}, Questions: {QuestionCount}, Average: {AverageScore}",
+                    part.Key.Title, partTotalScore, partQuestions.Count, partAverageScore);
 
                 partScores.Add(new PartScore
                 {
                     PartTitle = part.Key.Title,
-                    CorrectAnswers = validAssessments,
+                    CorrectAnswers = questionScores.Count(qs => qs.Score > 0),
                     TotalQuestions = partQuestions.Count,
                     Score = partAverageScore
                 });
 
-                // Build detailed scores dictionary
-                var detailScores = new Dictionary<string, decimal>();
-                foreach (var (questionText, score, _) in questionScores)
-                {
-                    detailScores[$"{part.Key.Title} - {questionText}"] = score;
-                }
                 detailScores[$"{part.Key.Title} - Average"] = partAverageScore;
-
                 totalScore += partAverageScore;
             }
 
@@ -99,9 +115,7 @@ public class SpeakingScoreCalculator : ISectionScoreCalculator
             return new SectionScore
             {
                 Score = finalScore,
-                DetailScores = partScores.ToDictionary(
-                    p => p.PartTitle,
-                    p => p.Score),
+                DetailScores = detailScores,
                 Feedback = GenerateFeedback(partScores)
             };
         }
@@ -121,17 +135,19 @@ public class SpeakingScoreCalculator : ISectionScoreCalculator
         {
             feedback.AppendLine($"\n{part.PartTitle}:");
             feedback.AppendLine($"Score: {part.Score:F1}/10");
-            feedback.AppendLine($"Completed: {part.CorrectAnswers}/{part.TotalQuestions} questions");
+            feedback.AppendLine($"Questions answered with score > 0: {part.CorrectAnswers}");
+            feedback.AppendLine($"Total questions in part: {part.TotalQuestions}");
+
+            if (part.CorrectAnswers < part.TotalQuestions)
+            {
+                var unanswered = part.TotalQuestions - part.CorrectAnswers;
+                feedback.AppendLine($"Warning: {unanswered} question(s) received 0 points");
+            }
         }
 
         var totalScore = ScoreUtils.RoundToNearestHalf(
             partScores.Sum(p => p.Score) / partScores.Count);
         feedback.AppendLine($"\nFinal Speaking Score: {totalScore:F1}/10");
-
-        if (partScores.Any(p => p.CorrectAnswers < p.TotalQuestions))
-        {
-            feedback.AppendLine("\nNote: Some questions are not yet assessed.");
-        }
 
         return feedback.ToString();
     }
