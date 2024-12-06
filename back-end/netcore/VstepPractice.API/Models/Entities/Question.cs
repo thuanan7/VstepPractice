@@ -4,8 +4,9 @@ namespace VstepPractice.API.Models.Entities;
 
 public class Question : BaseEntity
 {
-    [Column("sectionId")]
-    public int SectionId { get; set; }
+    // for meaningfull
+    [Column("passageId")]
+    public int PassageId { get; set; }
     [Column("questionText")]
     public string? QuestionText { get; set; } = "";
     [Column("point")]
@@ -14,7 +15,7 @@ public class Question : BaseEntity
     public int OrderNum { get; set; }
     
     // Navigation properties
-    [ForeignKey(nameof(SectionId))]
+    [ForeignKey(nameof(PassageId))]
     public virtual SectionPart Passage { get; set; } = default!;
     public virtual ICollection<QuestionOption> Options { get; set; } = new List<QuestionOption>();
 }

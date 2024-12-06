@@ -180,7 +180,7 @@ public class StudentAttemptServiceTests
             Passage = section,
             QuestionText = "Test question",
             OrderNum = 1,
-            SectionId = section.Id
+            PassageId = section.Id
         };
 
         section.Questions = new List<Question> { question };
