@@ -105,6 +105,7 @@ public class AutoMapperProfile : Profile
                     src.SelectedOption != null &&
                     src.SelectedOption.IsCorrect))
             .ForMember(dest => dest.WritingScore,
-                opt => opt.Ignore()); // We'll set this separately when needed
+                opt => opt.Ignore())
+            .ForMember(dest => dest.SpeakingScore, opt => opt.Ignore()); ; // We'll set this separately when needed
     }
 }
