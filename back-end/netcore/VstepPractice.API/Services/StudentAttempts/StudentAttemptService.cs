@@ -319,25 +319,45 @@ public class StudentAttemptService : IStudentAttemptService
         // Calculate scores using VstepScoreCalculator
         var score = await _scoreCalculator.CalculateScoreAsync(attempt, cancellationToken);
 
-        // Map answers and include writing assessments
+        // Map answers and include assessments (writing and speaking)
         var answers = new List<AnswerResponse>();
         foreach (var answer in attempt.Answers)
         {
             var answerResponse = _mapper.Map<AnswerResponse>(answer);
 
+            // Handle writing assessments
             if (answer.Question.Passage.SectionType == SectionTypes.Writing)
             {
-                var assessment = await _unitOfWork.WritingAssessmentRepository
+                var writingAssessment = await _unitOfWork.WritingAssessmentRepository
                     .GetByAnswerIdAsync(answer.Id, cancellationToken);
 
-                if (assessment != null)
+                if (writingAssessment != null)
                 {
                     answerResponse.WritingScore = new WritingScoreDetails
                     {
-                        TaskAchievement = assessment.TaskAchievement,
-                        CoherenceCohesion = assessment.CoherenceCohesion,
-                        LexicalResource = assessment.LexicalResource,
-                        GrammarAccuracy = assessment.GrammarAccuracy
+                        TaskAchievement = writingAssessment.TaskAchievement,
+                        CoherenceCohesion = writingAssessment.CoherenceCohesion,
+                        LexicalResource = writingAssessment.LexicalResource,
+                        GrammarAccuracy = writingAssessment.GrammarAccuracy
+                    };
+                }
+            }
+            // Handle speaking assessments 
+            else if (answer.Question.Passage.SectionType == SectionTypes.Speaking)
+            {
+                var speakingAssessment = await _unitOfWork.SpeakingAssessmentRepository
+                    .GetByAnswerIdAsync(answer.Id, cancellationToken);
+
+                if (speakingAssessment != null)
+                {
+                    answerResponse.SpeakingScore = new SpeakingScoreDetails
+                    {
+                        Pronunciation = speakingAssessment.Pronunciation,
+                        Fluency = speakingAssessment.Fluency,
+                        Vocabulary = speakingAssessment.Vocabulary,
+                        Grammar = speakingAssessment.Grammar,
+                        AudioUrl = speakingAssessment.AudioUrl,
+                        TranscribedText = speakingAssessment.TranscribedText
                     };
                 }
             }
