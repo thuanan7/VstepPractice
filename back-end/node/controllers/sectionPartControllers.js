@@ -42,51 +42,109 @@ const createListeningSectionPart = async (req, res) => {
   }
 }
 
-/**
- * Get Section Parts by Exam ID and Type
- * @param {Object} req - Request object
- * @param {Object} res - Response object
- */
-const getSectionPartsByExamAndType = async (req, res) => {
+// Get all section parts
+exports.getSectionParts = async (req, res) => {
   try {
-    const { examId, type } = req.query
-    const sectionParts = await SectionPart.findAll({
-      attributes: [
-        'id',
-        'title',
-        'instructions',
-        'content',
-        'type',
-        'orderNum',
-        'examId',
-        'parentId',
-      ],
-      where: {
-        examId: parseInt(examId, 10),
-        type: parseInt(type, 10),
-      },
-      order: [['orderNum', 'ASC']],
-    })
-
-    if (!sectionParts || sectionParts.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: 'No section parts found for the given examId and type.',
-      })
-    }
-
-    return res.status(200).json({
-      success: true,
-      data: sectionParts,
-    })
-  } catch (error) {
-    console.error('Error fetching section parts:', error)
-    return res.status(500).json({
-      success: false,
-      message: 'Internal server error.',
-      error: error.message,
-    })
+    const sectionParts = await SectionPart.findAll({ include: [{ model: Exam, as: "exam" }] });
+    res.status(200).json(sectionParts);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch section parts" });
   }
-}
+};
 
-module.exports = { createListeningSectionPart, getSectionPartsByExamAndType }
+// Create new section part
+exports.createSectionPart = async (req, res) => {
+  try {
+    const { title, instructions, content, orderNum, type, examId, parentId } = req.body;
+    const sectionPart = await SectionPart.create({ title, instructions, content, orderNum, type, examId, parentId });
+    res.status(201).json(sectionPart);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to create section part" });
+  }
+};
+
+// Update a section part
+exports.updateSectionPart = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, instructions, content, orderNum, type, examId, parentId } = req.body;
+    const sectionPart = await SectionPart.findByPk(id);
+    if (!sectionPart) return res.status(404).json({ error: "Section part not found" });
+    await sectionPart.update({ title, instructions, content, orderNum, type, examId, parentId });
+    res.status(200).json(sectionPart);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to update section part" });
+  }
+};
+
+// Delete a section part
+exports.deleteSectionPart = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const sectionPart = await SectionPart.findByPk(id);
+    if (!sectionPart) return res.status(404).json({ error: "Section part not found" });
+    await sectionPart.destroy();
+    res.status(200).json({ message: "Section part deleted successfully" });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to delete section part" });
+  }
+};
+
+// Get child parts for a specific SectionPart
+exports.getParts = async (req, res) => {
+  try {
+    const { parentId } = req.params;
+    const parts = await SectionPart.findAll({ where: { parentId } });
+    res.status(200).json(parts);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch child parts" });
+  }
+};
+
+// Create a new child part
+exports.createPart = async (req, res) => {
+  try {
+    const { title, instructions, content, orderNum, type, examId, parentId } = req.body;
+    const childPart = await SectionPart.create({
+      title,
+      instructions,
+      content,
+      orderNum,
+      type,
+      examId,
+      parentId,
+    });
+    res.status(201).json(childPart);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to create child part" });
+  }
+};
+
+// Update a child part
+exports.updatePart = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, instructions, content, orderNum, type, examId, parentId } = req.body;
+    const childPart = await SectionPart.findByPk(id);
+    if (!childPart) return res.status(404).json({ error: "Child part not found" });
+    await childPart.update({ title, instructions, content, orderNum, type, examId, parentId });
+    res.status(200).json(childPart);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to update child part" });
+  }
+};
+
+// Delete a child part
+exports.deletePart = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const childPart = await SectionPart.findByPk(id);
+    if (!childPart) return res.status(404).json({ error: "Child part not found" });
+    await childPart.destroy();
+    res.status(200).json({ message: "Child part deleted successfully" });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to delete child part" });
+  }
+};
+
+module.exports = { createListeningSectionPart }

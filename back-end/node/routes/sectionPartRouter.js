@@ -1,12 +1,16 @@
 const express = require('express')
-const { body } = require('express-validator')
+const { body, validationResult } = require('express-validator')
 const {
   createListeningSectionPart,
-  getSectionPartsByExamAndType,
-} = require('../controllers/sectionPartControllers')
-const {
-  validateSectionPartRequest,
-} = require('../middlewares/sectionPartMiddeware')
+  getSectionParts,
+  createSectionPart,
+  updateSectionPart,
+  deleteSectionPart,
+  getParts,
+  createPart,
+  updatePart,
+  deletePart
+} = require("../controllers/sectionPartController");
 
 const sectionPartRouter = express.Router()
 
@@ -93,74 +97,14 @@ sectionPartRouter.post(
   createListeningSectionPart,
 )
 
-/**
- * @swagger
- * /section-parts:
- *   get:
- *     summary: Get Section Parts by Exam ID and Type
- *     tags: [SectionParts]
- *     parameters:
- *       - in: query
- *         name: examId
- *         required: true
- *         schema:
- *           type: integer
- *         description: ID of the exam
- *       - in: query
- *         name: type
- *         required: true
- *         schema:
- *           type: string
- *           enum: [0, 1, 2, 3]
- *         description: Type of the section part (0- listening, 1- reading, 2- writing, 3- speaking)
- *     responses:
- *       200:
- *         description: List of section parts
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 data:
- *                   type: array
- *                   items:
- *                     type: object
- *                     properties:
- *                       id:
- *                         type: integer
- *                         example: 1
- *                       title:
- *                         type: string
- *                         example: "Listening Section Part 1"
- *                       instructions:
- *                         type: string
- *                         example: "Listen carefully to the audio and answer the questions."
- *                       content:
- *                         type: string
- *                         example: null
- *                       orderNum:
- *                         type: integer
- *                         example: 1
- *                       type:
- *                         type: string
- *                         example: listening
- *                       examId:
- *                         type: integer
- *                         example: 101
- *       400:
- *         description: Missing required parameters
- *       404:
- *         description: No section parts found
- *       500:
- *         description: Internal server error
- */
-sectionPartRouter.get(
-  '/',
-  validateSectionPartRequest,
-  getSectionPartsByExamAndType,
-)
+sectionPartRouter.get("/", getSectionParts);
+sectionPartRouter.post("/", createSectionPart);
+sectionPartRouter.put("/:id", updateSectionPart);
+sectionPartRouter.delete("/:id", deleteSectionPart);
+
+router.get("/:parentId/children", getParts);
+router.post("/:parentId/children", createPart);
+router.put("/:id", updatePart);
+router.delete("/:id", deletePart);
 
 module.exports = sectionPartRouter
