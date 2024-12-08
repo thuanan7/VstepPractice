@@ -47,7 +47,7 @@ public class AutoMapperProfile : Profile
             .ForMember(dest => dest.Points,
                 opt => opt.MapFrom(src => src.Point))
             .ForMember(dest => dest.SectionType,
-                opt => opt.MapFrom(src => src.Section.SectionType))
+                opt => opt.MapFrom(src => src.Passage.SectionType))
             .ForMember(dest => dest.Options,
                 opt => opt.MapFrom(src => src.Options.OrderBy(o => o.OrderNum)));
 
@@ -86,9 +86,9 @@ public class AutoMapperProfile : Profile
             .ForMember(dest => dest.QuestionText,
                 opt => opt.MapFrom(src => src.Question.QuestionText ?? string.Empty))
             .ForMember(dest => dest.PassageTitle,
-                opt => opt.MapFrom(src => src.Question.Section.Title))
+                opt => opt.MapFrom(src => src.Question.Passage.Title))
             .ForMember(dest => dest.PassageContent,
-                opt => opt.MapFrom(src => src.Question.Section.Content))
+                opt => opt.MapFrom(src => src.Question.Passage.Content))
             .ForMember(dest => dest.QuestionOptionId,
                 opt => opt.MapFrom(src => src.QuestionOptionId))
             .ForMember(dest => dest.EssayAnswer,
@@ -98,13 +98,14 @@ public class AutoMapperProfile : Profile
             .ForMember(dest => dest.Score,
                 opt => opt.MapFrom(src => src.Score))
             .ForMember(dest => dest.SectionType,
-                opt => opt.MapFrom(src => src.Question.Section.SectionType))
+                opt => opt.MapFrom(src => src.Question.Passage.SectionType))
             .ForMember(dest => dest.IsCorrect,
                 opt => opt.MapFrom(src =>
-                    src.Question.Section.SectionType != SectionTypes.Writing &&
+                    src.Question.Passage.SectionType != SectionTypes.Writing &&
                     src.SelectedOption != null &&
                     src.SelectedOption.IsCorrect))
             .ForMember(dest => dest.WritingScore,
-                opt => opt.Ignore()); // We'll set this separately when needed
+                opt => opt.Ignore())
+            .ForMember(dest => dest.SpeakingScore, opt => opt.Ignore()); ; // We'll set this separately when needed
     }
 }

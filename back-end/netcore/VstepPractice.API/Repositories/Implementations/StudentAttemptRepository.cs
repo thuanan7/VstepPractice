@@ -36,7 +36,7 @@ public class StudentAttemptRepository : RepositoryBase<StudentAttempt, int>, ISt
                         .ThenInclude(q => q.Options) // Add this
             .Include(a => a.Answers)
                 .ThenInclude(ans => ans.Question)
-                    .ThenInclude(q => q.Section)  // Add section to get sectionType
+                    .ThenInclude(q => q.Passage)  // Add section to get sectionType
             .Include(a => a.Answers)
                 .ThenInclude(ans => ans.Question)
                     .ThenInclude(q => q.Options)

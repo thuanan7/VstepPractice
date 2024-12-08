@@ -1,6 +1,6 @@
 ﻿namespace VstepPractice.API.Models.DTOs.AI;
 
-public class WritingAssessmentResponse
+public class WritingAssessmentResponse : ISkillAssessmentResponse
 {
     public decimal TaskAchievement { get; set; }
     public decimal CoherenceCohesion { get; set; }

@@ -24,6 +24,10 @@ builder.Services.AddDependencyInjections();
 
 builder.Services.AddScoreCalculationServices();
 
+builder.Services.AddAzureStorageServices(builder.Configuration);
+
+builder.Services.AddSpeechServices(builder.Configuration);
+
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services
@@ -56,7 +60,7 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.ConfigureSwagger();
-    app.ApplyMigration();
+    // app.ApplyMigration();
     // Dont need seedData
     // await app.SeedDataAsync();
 }

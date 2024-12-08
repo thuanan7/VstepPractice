@@ -31,53 +31,101 @@ public class WritingScoreCalculator : ISectionScoreCalculator
                 .ToList();
 
             if (!writingTasks.Any())
-                return new SectionScore { Score = 0 };
-
-            var taskScores = new List<(string Title, WritingAssessment Assessment)>();
-            decimal totalScore = 0;
-
-            foreach (var task in writingTasks)
             {
-                var answer = answers.FirstOrDefault(a => a.QuestionId == task.Id);
-                if (answer == null) continue;
-
-                var assessment = await _assessmentRepo.GetByAnswerIdAsync(
-                    answer.Id, cancellationToken);
-
-                if (assessment == null) continue;
-
-                taskScores.Add((task.Section.Title, assessment));
-            }
-
-            if (taskScores.Count != writingTasks.Count)
-            {
-                _logger.LogWarning(
-                    "Not all writing tasks have been assessed. Expected: {Expected}, Found: {Found}",
-                    writingTasks.Count, taskScores.Count);
+                _logger.LogWarning("No writing tasks found");
                 return new SectionScore { Score = 0 };
             }
 
-            // Calculate score according to formula: (Task1 + (Task2 x 2))/3
-            var task1Score = taskScores[0].Assessment.TotalScore;
-            var task2Score = taskScores[1].Assessment.TotalScore;
-            totalScore = (task1Score + (task2Score * 2)) / 3;
-
+            var taskScores = new List<(string Title, decimal Score, WritingAssessment? Assessment)>();
             var detailScores = new Dictionary<string, decimal>();
 
-            foreach (var (title, assessment) in taskScores)
+            // Process each task, including unanswered ones
+            foreach (var task in writingTasks)
             {
-                detailScores[$"{title} - Task Achievement"] = assessment.TaskAchievement;
-                detailScores[$"{title} - Coherence & Cohesion"] = assessment.CoherenceCohesion;
-                detailScores[$"{title} - Lexical Resource"] = assessment.LexicalResource;
-                detailScores[$"{title} - Grammar Accuracy"] = assessment.GrammarAccuracy;
-                detailScores[$"{title} - Total"] = assessment.TotalScore;
+                decimal taskScore = 0;
+                WritingAssessment? assessment = null;
+
+                var answer = answers.FirstOrDefault(a => a.QuestionId == task.Id);
+                if (answer != null)
+                {
+                    assessment = await _assessmentRepo.GetByAnswerIdAsync(
+                        answer.Id, cancellationToken);
+
+                    if (assessment != null)
+                    {
+                        taskScore = assessment.TotalScore;
+                    }
+                    else
+                    {
+                        _logger.LogWarning(
+                            "Answer exists but no assessment found for Task ID: {TaskId} in {TaskTitle}",
+                            task.Id, task.Passage.Title);
+                    }
+                }
+                else
+                {
+                    _logger.LogInformation(
+                        "Task ID: {TaskId} ({TaskTitle}) is unanswered (score: 0/10)",
+                        task.Id, task.Passage.Title);
+                }
+
+                taskScores.Add((task.Passage.Title, taskScore, assessment));
+
+                if (assessment != null)
+                {
+                    detailScores[$"{task.Passage.Title} - Task Achievement"] = assessment.TaskAchievement;
+                    detailScores[$"{task.Passage.Title} - Coherence & Cohesion"] = assessment.CoherenceCohesion;
+                    detailScores[$"{task.Passage.Title} - Lexical Resource"] = assessment.LexicalResource;
+                    detailScores[$"{task.Passage.Title} - Grammar Accuracy"] = assessment.GrammarAccuracy;
+                }
+                else
+                {
+                    // Add zero scores for unanswered tasks
+                    detailScores[$"{task.Passage.Title} - Task Achievement"] = 0;
+                    detailScores[$"{task.Passage.Title} - Coherence & Cohesion"] = 0;
+                    detailScores[$"{task.Passage.Title} - Lexical Resource"] = 0;
+                    detailScores[$"{task.Passage.Title} - Grammar Accuracy"] = 0;
+                }
+                detailScores[$"{task.Passage.Title} - Total"] = taskScore;
             }
+
+            _logger.LogInformation(
+                "Writing tasks found: {TaskCount}. Scores: {Scores}",
+                writingTasks.Count,
+                string.Join(", ", taskScores.Select(t => $"{t.Title}: {t.Score}")));
+
+            // Calculate final score based on number of tasks
+            decimal finalScore;
+            if (writingTasks.Count == 1)
+            {
+                finalScore = taskScores[0].Score;
+                _logger.LogInformation(
+                    "Single writing task. Score: {Score}",
+                    finalScore);
+            }
+            else if (writingTasks.Count == 2)
+            {
+                // Formula: (Task1 + (Task2 x 2))/3
+                finalScore = (taskScores[0].Score + (taskScores[1].Score * 2)) / 3;
+                _logger.LogInformation(
+                    "Two writing tasks. Task1: {Task1Score}, Task2: {Task2Score}, Final: {FinalScore}",
+                    taskScores[0].Score, taskScores[1].Score, finalScore);
+            }
+            else
+            {
+                _logger.LogWarning(
+                    "Unexpected number of writing tasks: {Count}",
+                    writingTasks.Count);
+                finalScore = taskScores.Average(t => t.Score);
+            }
+
+            detailScores["Writing Section Total"] = finalScore;
 
             return new SectionScore
             {
-                Score = ScoreUtils.RoundToNearestHalf(totalScore),
+                Score = ScoreUtils.RoundToNearestHalf(finalScore),
                 DetailScores = detailScores,
-                Feedback = GenerateFeedback(taskScores)
+                Feedback = GenerateFeedback(taskScores, finalScore)
             };
         }
         catch (Exception ex)
@@ -88,21 +136,44 @@ public class WritingScoreCalculator : ISectionScoreCalculator
     }
 
     private static string GenerateFeedback(
-        List<(string Title, WritingAssessment Assessment)> taskScores)
+        List<(string Title, decimal Score, WritingAssessment? Assessment)> taskScores,
+        decimal finalScore)
     {
         var feedback = new StringBuilder();
         feedback.AppendLine("Writing Score Breakdown:");
 
-        foreach (var (title, assessment) in taskScores)
+        var answeredTasks = taskScores.Count(t => t.Assessment != null);
+        var totalTasks = taskScores.Count;
+
+        foreach (var (title, score, assessment) in taskScores)
         {
             feedback.AppendLine($"\n{title}:");
-            feedback.AppendLine($"- Task Achievement: {assessment.TaskAchievement:F2}/2.5");
-            feedback.AppendLine($"- Coherence & Cohesion: {assessment.CoherenceCohesion:F2}/2.5");
-            feedback.AppendLine($"- Lexical Resource: {assessment.LexicalResource:F2}/2.5");
-            feedback.AppendLine($"- Grammar Accuracy: {assessment.GrammarAccuracy:F2}/2.5");
-            feedback.AppendLine($"- Total: {assessment.TotalScore:F2}/10");
-            feedback.AppendLine("\nDetailed Feedback:");
-            feedback.AppendLine(assessment.DetailedFeedback);
+            if (assessment != null)
+            {
+                feedback.AppendLine($"- Task Achievement: {assessment.TaskAchievement:F1}/2.5");
+                feedback.AppendLine($"- Coherence & Cohesion: {assessment.CoherenceCohesion:F1}/2.5");
+                feedback.AppendLine($"- Lexical Resource: {assessment.LexicalResource:F1}/2.5");
+                feedback.AppendLine($"- Grammar Accuracy: {assessment.GrammarAccuracy:F1}/2.5");
+                feedback.AppendLine($"- Total: {score:F1}/10");
+                feedback.AppendLine("\nDetailed Feedback:");
+                feedback.AppendLine(assessment.DetailedFeedback);
+            }
+            else
+            {
+                feedback.AppendLine("Task not answered - Score: 0/10");
+            }
+        }
+
+        feedback.AppendLine($"\nFinal Writing Score: {finalScore:F1}/10");
+
+        if (answeredTasks < totalTasks)
+        {
+            feedback.AppendLine($"\nWarning: {totalTasks - answeredTasks} task(s) received 0 points");
+        }
+
+        if (taskScores.Count == 2)
+        {
+            feedback.AppendLine("\nNote: Final score calculated using formula (Task1 + (Task2 x 2))/3");
         }
 
         return feedback.ToString();

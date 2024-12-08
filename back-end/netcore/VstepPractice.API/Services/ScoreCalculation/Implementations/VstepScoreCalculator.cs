@@ -14,6 +14,7 @@ public class VstepScoreCalculator : IVstepScoreCalculator
         ISectionScoreCalculator listeningCalculator,
         ISectionScoreCalculator readingCalculator,
         ISectionScoreCalculator writingCalculator,
+        ISectionScoreCalculator speakingCalculator,
         ILogger<VstepScoreCalculator> logger)
     {
         _logger = logger;
@@ -21,7 +22,8 @@ public class VstepScoreCalculator : IVstepScoreCalculator
         {
             [SectionTypes.Listening] = listeningCalculator,
             [SectionTypes.Reading] = readingCalculator,
-            [SectionTypes.Writing] = writingCalculator
+            [SectionTypes.Writing] = writingCalculator,
+            [SectionTypes.Speaking] = speakingCalculator
         };
     }
 
@@ -41,7 +43,9 @@ public class VstepScoreCalculator : IVstepScoreCalculator
             {
                 if (!_calculators.TryGetValue(sectionType, out var calculator))
                 {
-                    _logger.LogWarning("No calculator found for section type: {SectionType}", sectionType);
+                    _logger.LogWarning(
+                        "No calculator found for section type: {SectionType}",
+                        sectionType);
                     continue;
                 }
 

@@ -87,12 +87,12 @@ public class EssayScoringBackgroundService : BackgroundService, IEssayScoringQue
                 }
 
                 // Verify this is a writing question
-                if (answer.Question.Section.SectionType != SectionTypes.Writing)
+                if (answer.Question.Passage.SectionType != SectionTypes.Writing)
                 {
                     _logger.LogError(
                         "Invalid section type for writing assessment. AnswerId: {AnswerId}, SectionType: {SectionType}",
                         task.AnswerId,
-                        answer.Question.Section.SectionType);
+                        answer.Question.Passage.SectionType);
                     return;
                 }
 
