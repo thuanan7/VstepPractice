@@ -20,7 +20,7 @@ module.exports = (sequelize, DataTypes) => {
         as: 'parent',
       })
       SectionPart.hasMany(models.Question, {
-        foreignKey: 'sectionId',
+        foreignKey: 'passageId',
       })
     }
   }
@@ -36,6 +36,7 @@ module.exports = (sequelize, DataTypes) => {
       instructions: { type: DataTypes.TEXT, allowNull: true },
       content: { type: DataTypes.TEXT, allowNull: true },
       orderNum: DataTypes.INTEGER,
+      sectionType: DataTypes.INTEGER,
       type: DataTypes.INTEGER,
       examId: {
         type: DataTypes.INTEGER,

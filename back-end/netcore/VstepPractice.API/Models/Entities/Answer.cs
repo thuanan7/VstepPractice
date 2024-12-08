@@ -16,7 +16,6 @@ public class Answer : BaseEntity
     public string? AiFeedback { get; set; }
     [Column("score")]
     public decimal? Score { get; set; }         // Điểm số (cho cả trắc nghiệm và tự luận)
-
     // Navigation properties
     [ForeignKey(nameof(AttemptId))]
     public virtual StudentAttempt Attempt { get; set; } = default!;
