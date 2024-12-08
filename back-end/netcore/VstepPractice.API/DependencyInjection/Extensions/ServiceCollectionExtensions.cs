@@ -19,11 +19,12 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IQuestionRepository, QuestionRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<IWritingAssessmentRepository, WritingAssessmentRepository>();
-
+        services.AddScoped<ISpeakingAssessmentRepository, SpeakingAssessmentRepository>();
     }
 
     public static void AddAiBackGroundServices(this IServiceCollection services)
     {
+        // Essay Scoring Background Service
         // 1. Register the background service as Singleton first
         services.AddSingleton<EssayScoringBackgroundService>();
 
@@ -34,5 +35,12 @@ public static class ServiceCollectionExtensions
         // 3. Register it as a hosted service
         services.AddHostedService(sp =>
             sp.GetRequiredService<EssayScoringBackgroundService>());
+
+        // Speaking Assessment Background Service
+        services.AddSingleton<SpeakingAssessmentBackgroundService>();
+        services.AddSingleton<ISpeakingAssessmentQueue>(sp =>
+            sp.GetRequiredService<SpeakingAssessmentBackgroundService>());
+        services.AddHostedService(sp =>
+            sp.GetRequiredService<SpeakingAssessmentBackgroundService>());
     }
 }

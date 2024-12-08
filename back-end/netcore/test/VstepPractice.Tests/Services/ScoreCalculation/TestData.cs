@@ -27,7 +27,7 @@ public static class TestData
                 questions.Add(new Question
                 {
                     Id = questionId++,
-                    Section = section,
+                    Passage = section,
                     OrderNum = i,
                     Options = new List<QuestionOption>
                     {

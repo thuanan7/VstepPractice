@@ -20,7 +20,7 @@ public class AnswerRepository : RepositoryBase<Answer, int>, IAnswerRepository
             .Include(a => a.Question)
                 .ThenInclude(q => q.Options)
             .Include(a => a.Question)
-                .ThenInclude(q => q.Section) // Add section to get sectionType
+                .ThenInclude(q => q.Passage) // Add section to get sectionType
             .Include(a => a.SelectedOption)
             .FirstOrDefaultAsync(a => a.Id == answerId, cancellationToken);
     }
@@ -34,7 +34,7 @@ public class AnswerRepository : RepositoryBase<Answer, int>, IAnswerRepository
     {
         a => a.Question,
         a => a.Question.Options,
-        a => a.Question.Section, // Add section to get sectionType
+        a => a.Question.Passage, // Add section to get sectionType
         a => a.SelectedOption
     };
 
