@@ -9,8 +9,8 @@ const {
   getParts,
   createPart,
   updatePart,
-  deletePart
-} = require("../controllers/sectionPartController");
+  deletePart,
+} = require('../controllers/sectionPartControllers')
 
 const sectionPartRouter = express.Router()
 
@@ -97,14 +97,14 @@ sectionPartRouter.post(
   createListeningSectionPart,
 )
 
-sectionPartRouter.get("/", getSectionParts);
-sectionPartRouter.post("/", createSectionPart);
-sectionPartRouter.put("/:id", updateSectionPart);
-sectionPartRouter.delete("/:id", deleteSectionPart);
+sectionPartRouter.get('/', getSectionParts)
+sectionPartRouter.post('/', createSectionPart)
+sectionPartRouter.put('/:id', updateSectionPart)
+sectionPartRouter.delete('/:id', deleteSectionPart)
 
-router.get("/:parentId/children", getParts);
-router.post("/:parentId/children", createPart);
-router.put("/:id", updatePart);
-router.delete("/:id", deletePart);
+router.get('/:parentId/children', getParts)
+router.post('/:parentId/children', createPart)
+router.put('/:id', updatePart)
+router.delete('/:id', deletePart)
 
 module.exports = sectionPartRouter
