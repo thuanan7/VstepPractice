@@ -6,6 +6,9 @@ interface AttemptTabsProps {
 }
 const AttemptTabs = (props: AttemptTabsProps) => {
   const { tabs, active, onChoose } = props
+  //console.log("AttemptTabs active: ", active);
+  //console.log("AttemptTabs tabs: ", tabs);
+
   return (
     <Grid item xs={2}>
       <Typography variant="h6" sx={{ mb: 2 }}>
