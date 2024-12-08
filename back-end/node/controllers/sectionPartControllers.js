@@ -132,11 +132,17 @@ const deleteSectionPart = async (req, res) => {
     const { id } = req.params
     const sectionPart = await SectionPart.findByPk(id)
     if (!sectionPart)
-      return res.status(404).json({ error: 'Section part not found' })
+      return res
+        .status(404)
+        .json({ success: false, message: 'Section part not found' })
     await sectionPart.destroy()
-    res.status(200).json({ message: 'Section part deleted successfully' })
+    res
+      .status(200)
+      .json({ success: true, message: 'Section part deleted successfully' })
   } catch (err) {
-    res.status(500).json({ error: 'Failed to delete section part' })
+    res
+      .status(500)
+      .json({ success: true, message: 'Failed to delete section part' })
   }
 }
 

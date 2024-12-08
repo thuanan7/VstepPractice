@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Dialog, DialogContent, DialogTitle, Button } from '@mui/material'
 import AddCircleIcon from '@mui/icons-material/AddCircle'
 import EditIcon from '@mui/icons-material/Edit'
-import SessionPartParentForm, { FormDataSession } from './SessionPartParentForm'
+import SessionForm, { FormDataSession } from './SessionForm.tsx'
 import { sectionPartRequest } from '@/app/api'
 import { SectionPartTypes } from '@/features/exam/configs'
 
@@ -12,9 +12,7 @@ interface CreateOrUpdateParentSectionProps {
   examId: string
   onRefresh: () => void
 }
-const CreateOrUpdateParentSection = (
-  props: CreateOrUpdateParentSectionProps,
-) => {
+const CreateOrUpdateSection = (props: CreateOrUpdateParentSectionProps) => {
   const { id = undefined, examId, onRefresh } = props
   const [open, setOpen] = useState(false)
   const handleClickOpen = () => {
@@ -49,7 +47,7 @@ const CreateOrUpdateParentSection = (
   return (
     <div>
       <Button
-        variant="contained"
+        variant="outlined"
         color={!id ? 'primary' : 'warning'}
         startIcon={!id ? <AddCircleIcon /> : <EditIcon />}
         onClick={handleClickOpen}
@@ -68,14 +66,11 @@ const CreateOrUpdateParentSection = (
       <Dialog open={open} fullWidth maxWidth="md">
         <DialogTitle> {!id ? 'Tạo mới' : 'Cập nhật'} Session</DialogTitle>
         <DialogContent>
-          <SessionPartParentForm
-            onClose={handleClose}
-            onSubmit={handleSubmit}
-          />
+          <SessionForm onClose={handleClose} onSubmit={handleSubmit} />
         </DialogContent>
       </Dialog>
     </div>
   )
 }
 
-export default CreateOrUpdateParentSection
+export default CreateOrUpdateSection

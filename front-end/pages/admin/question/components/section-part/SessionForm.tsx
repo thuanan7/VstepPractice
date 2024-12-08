@@ -24,7 +24,7 @@ export type FormDataSession = {
   type: SectionPartTypes
   sessionType: number
 }
-const SessionPartParentForm = ({
+const SessionForm = ({
   onClose,
   onSubmit,
 }: {
@@ -129,4 +129,4 @@ const SessionPartParentForm = ({
   )
 }
 
-export default SessionPartParentForm
+export default SessionForm

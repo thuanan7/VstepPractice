@@ -44,4 +44,15 @@ export default class SectionPartClient extends APIClient {
         return r?.success
       })
   }
+  deleteSessionPart(id: number, cancelToken?: any) {
+    return super
+      .delete(
+        `${sectionPartsPathConfigs.listByType}/${id}`,
+        undefined,
+        cancelToken,
+      )
+      .then((r) => {
+        return r?.success
+      })
+  }
 }

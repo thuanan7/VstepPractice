@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react'
-import { Box, Tabs, Tab, IconButton } from '@mui/material'
+import { Box, Tabs, Tab, IconButton, Typography } from '@mui/material'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { sectionPartRequest } from '@/app/api'
 import { ISessionPart } from '@/features/exam/type'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
-import CreateOrUpdateParentSection from './components/section-part/CreateOrUpdateParentSection'
+import CreateOrUpdateSection from './components/section-part/CreateOrUpdateSection'
+import RemoveSession from './components/section-part/RemoveSession'
 const ExamQuestionManagement: React.FC = () => {
   const navigate = useNavigate()
   const { id } = useParams<{ id: string }>()
@@ -56,7 +57,7 @@ const ExamQuestionManagement: React.FC = () => {
     navigate('/admin/exams', { replace: true })
   }
   const handleRefresh = () => {
-    navigate(0)
+    navigate(0, { replace: true })
   }
   if (!id) return <div>Error</div>
   if (!sectionParts || !sTab) return <div>Waiting</div>
@@ -94,16 +95,23 @@ const ExamQuestionManagement: React.FC = () => {
             ))}
           </Tabs>
         </Box>
-        {/*<CreateOrUpdateParentSection*/}
-        {/*  examId={id}*/}
-        {/*  id={section?.id}*/}
-        {/*  onRefresh={handleRefresh}*/}
-        {/*/>*/}
-        <CreateOrUpdateParentSection examId={id} onRefresh={handleRefresh} />
+        <CreateOrUpdateSection examId={id} onRefresh={handleRefresh} />
       </Box>
 
       <Box sx={{ mt: 2 }}>
-        <div>{section?.instructions}</div>
+        <Box sx={{ display: 'flex', flexDirection: 'row' }} gap={2}>
+          <Box flex={1}>
+            <Typography>{section?.content}</Typography>
+            <Typography>{section?.instructions}</Typography>
+          </Box>
+          <RemoveSession id={section?.id || 0} onRefresh={handleRefresh} />
+          <CreateOrUpdateSection
+            examId={id}
+            id={section?.id}
+            onRefresh={handleRefresh}
+          />
+        </Box>
+
         {/*<PartsManagement parentId={section?.id} />*/}
         {/*<SectionPartsManagement />*/}
         {/*{activeTab === 'section-parts' && <SectionPartsManagement />}*/}
