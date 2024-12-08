@@ -28,6 +28,8 @@ public class OpenAiScoringService : IAiScoringService
         _options = options.Value;
         _logger = logger;
 
+        AssessmentScoreValidator.SetLogger(logger);
+
         _retryPolicy = Policy<Result<WritingAssessmentResponse>>
             .Handle<HttpRequestException>()
             .Or<TimeoutException>()
@@ -333,5 +335,65 @@ Suggestions:
         return newText.ToString();
     }
 
+    private static class AssessmentScoreValidator
+    {
+        private const decimal MAX_CRITERION_SCORE = 2.5m;
+        private const decimal MAX_TOTAL_SCORE = 10m;
 
+        private static ILogger? _logger;
+
+        public static void SetLogger(ILogger logger)
+        {
+            _logger = logger;
+        }
+
+        public static T ValidateAndNormalizeScores<T>(params (string name, decimal score)[] scores)
+            where T : ISkillAssessmentResponse, new()
+        {
+            var totalScore = scores.Sum(s => s.score);
+            _logger?.LogInformation("Original total score: {TotalScore}", totalScore);
+
+            // Only normalize if total score exceeds MAX_TOTAL_SCORE
+            if (totalScore > MAX_TOTAL_SCORE)
+            {
+                var ratio = MAX_TOTAL_SCORE / totalScore;
+                scores = scores.Select(s => (s.name, Math.Round(s.score * ratio, 1))).ToArray();
+                _logger?.LogInformation(
+                    "Scores normalized with ratio {Ratio}. New scores: {Scores}",
+                    ratio,
+                    string.Join(", ", scores.Select(s => $"{s.name}: {s.score}")));
+            }
+
+            // Ensure each score is between 0 and MAX_CRITERION_SCORE
+            var normalizedScores = scores.ToDictionary(
+                s => s.name.ToLower(),  // Convert to lowercase for case-insensitive matching
+                s => Math.Min(Math.Max(s.score, 0), MAX_CRITERION_SCORE)
+            );
+
+            var response = new T();
+            var properties = typeof(T).GetProperties()
+                .Where(p => p.PropertyType == typeof(decimal) &&
+                           p.Name != nameof(ISkillAssessmentResponse.TotalScore) &&
+                           p.CanWrite);
+
+            foreach (var prop in properties)
+            {
+                if (normalizedScores.TryGetValue(prop.Name.ToLower(), out var score))
+                {
+                    prop.SetValue(response, score);
+                }
+            }
+
+            // Log final scores for debugging
+            if (_logger?.IsEnabled(LogLevel.Debug) == true)
+            {
+                var finalScores = properties
+                    .Select(p => $"{p.Name}: {p.GetValue(response)}")
+                    .ToList();
+                _logger.LogDebug("Final normalized scores: {Scores}", string.Join(", ", finalScores));
+            }
+
+            return response;
+        }
+    }
 }
