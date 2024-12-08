@@ -22,56 +22,85 @@ public class ListeningScoreCalculator : ISectionScoreCalculator
         try
         {
             var parts = questions
-                .GroupBy(q => q.Section)
+                .GroupBy(q => q.Passage)
                 .OrderBy(g => g.Key.OrderNum)
                 .ToList();
+
+            if (!parts.Any())
+            {
+                _logger.LogWarning("No listening parts found");
+                return new SectionScore { Score = 0 };
+            }
 
             var partScores = new List<PartScore>();
             var totalCorrect = 0;
             var totalQuestions = 0;
-            var hasMissingAnswers = false;
+            var detailScores = new Dictionary<string, decimal>();
 
             foreach (var part in parts)
             {
                 var partQuestions = part.OrderBy(q => q.OrderNum).ToList();
-                var partAnswers = answers
-                    .Where(a => partQuestions.Select(q => q.Id).Contains(a.QuestionId))
-                    .ToList();
+                var questionScores = new List<(string QuestionText, bool IsCorrect)>();
 
-                // Check for missing answers
-                if (partAnswers.Count < partQuestions.Count)
+                foreach (var question in partQuestions)
                 {
-                    hasMissingAnswers = true;
-                    _logger.LogWarning(
-                        "Missing answers for part {PartTitle}. Expected: {Expected}, Found: {Found}",
-                        part.Key.Title, partQuestions.Count, partAnswers.Count);
+                    bool isCorrect = false;
+                    var answer = answers.FirstOrDefault(a => a.QuestionId == question.Id);
+
+                    if (answer?.SelectedOption != null)
+                    {
+                        isCorrect = answer.SelectedOption.IsCorrect;
+                    }
+                    else
+                    {
+                        _logger.LogInformation(
+                            "Question ID: {QuestionId} in {PartTitle} is unanswered (score: 0)",
+                            question.Id, part.Key.Title);
+                    }
+
+                    questionScores.Add((
+                        $"Q{question.OrderNum} ({question.QuestionText ?? "Question"})",
+                        isCorrect));
+
+                    if (isCorrect) totalCorrect++;
+
+                    // Add individual question score to details
+                    detailScores[$"{part.Key.Title} - Q{question.OrderNum}"] = isCorrect ? 1 : 0;
                 }
 
-                var correctCount = partAnswers.Count(a =>
-                    a.SelectedOption != null && a.SelectedOption.IsCorrect);
+                totalQuestions += partQuestions.Count;
 
-                partScores.Add(new PartScore
+                var partScore = new PartScore
                 {
                     PartTitle = part.Key.Title,
-                    CorrectAnswers = correctCount,
+                    CorrectAnswers = questionScores.Count(q => q.IsCorrect),
                     TotalQuestions = partQuestions.Count,
-                    Score = correctCount // Each correct answer = 1 point
-                });
+                    Score = questionScores.Count(q => q.IsCorrect) // Score = number of correct answers
+                };
 
-                totalCorrect += correctCount;
-                totalQuestions += partQuestions.Count;
+                _logger.LogInformation(
+                    "{PartTitle} scores - Correct: {CorrectCount}/{TotalQuestions}",
+                    part.Key.Title,
+                    partScore.CorrectAnswers,
+                    partScore.TotalQuestions);
+
+                partScores.Add(partScore);
+                detailScores[$"{part.Key.Title} - Score"] =
+                    ScoreUtils.ConvertToScale10(partScore.CorrectAnswers, partScore.TotalQuestions);
             }
 
             // Convert to scale of 10
             var finalScore = ScoreUtils.ConvertToScale10(totalCorrect, totalQuestions);
 
+            _logger.LogInformation(
+                "Total Listening Score: {Score}/10 ({Correct}/{Total} correct)",
+                finalScore, totalCorrect, totalQuestions);
+
             return new SectionScore
             {
                 Score = finalScore,
-                DetailScores = partScores.ToDictionary(
-                    p => p.PartTitle,
-                    p => p.Score),
-                Feedback = GenerateFeedback(partScores, hasMissingAnswers)
+                DetailScores = detailScores,
+                Feedback = GenerateFeedback(partScores, finalScore)
             };
         }
         catch (Exception ex)
@@ -81,24 +110,28 @@ public class ListeningScoreCalculator : ISectionScoreCalculator
         }
     }
 
-    private static string GenerateFeedback(List<PartScore> partScores, bool hasMissingAnswers)
+    private static string GenerateFeedback(List<PartScore> partScores, decimal finalScore)
     {
         var feedback = new StringBuilder();
         feedback.AppendLine("Listening Score Breakdown:");
 
         foreach (var part in partScores)
         {
-            feedback.AppendLine($"- {part.PartTitle}: {part.CorrectAnswers}/{part.TotalQuestions} correct");
+            feedback.AppendLine($"\n{part.PartTitle}:");
+            feedback.AppendLine($"Correct answers: {part.CorrectAnswers}/{part.TotalQuestions}");
+
+            var partScore = ScoreUtils.ConvertToScale10(part.CorrectAnswers, part.TotalQuestions);
+            feedback.AppendLine($"Part score: {partScore:F1}/10");
+
+            var unanswered = part.TotalQuestions -
+                (part.CorrectAnswers + part.TotalQuestions - part.CorrectAnswers);
+            if (unanswered > 0)
+            {
+                feedback.AppendLine($"Warning: {unanswered} question(s) were not answered (counted as incorrect)");
+            }
         }
 
-        var totalCorrect = partScores.Sum(p => p.CorrectAnswers);
-        var totalQuestions = partScores.Sum(p => p.TotalQuestions);
-        feedback.AppendLine($"Total: {totalCorrect}/{totalQuestions} correct");
-
-        if (hasMissingAnswers)
-        {
-            feedback.AppendLine("\nWarning: Missing answers detected. This may affect your final score.");
-        }
+        feedback.AppendLine($"\nFinal Listening Score: {finalScore:F1}/10");
 
         return feedback.ToString();
     }

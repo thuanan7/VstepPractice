@@ -1,4 +1,6 @@
-﻿namespace VstepPractice.API.Common.Utils;
+﻿using VstepPractice.API.Models.DTOs.AI;
+
+namespace VstepPractice.API.Common.Utils;
 
 public static class ScoreUtils
 {

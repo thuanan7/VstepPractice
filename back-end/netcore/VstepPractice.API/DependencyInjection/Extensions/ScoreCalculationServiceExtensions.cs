@@ -31,6 +31,14 @@ public static class ScoreCalculationServiceExtensions
             return new WritingScoreCalculator(assessmentRepo, logger);
         });
 
+        // Add Speaking Calculator
+        services.AddScoped<ISectionScoreCalculator, SpeakingScoreCalculator>(sp =>
+        {
+            var logger = sp.GetRequiredService<ILogger<SpeakingScoreCalculator>>();
+            var assessmentRepo = sp.GetRequiredService<ISpeakingAssessmentRepository>();
+            return new SpeakingScoreCalculator(assessmentRepo, logger);
+        });
+
         // Main VstepScoreCalculator
         services.AddScoped<IVstepScoreCalculator>(sp =>
         {
@@ -40,8 +48,9 @@ public static class ScoreCalculationServiceExtensions
             var listening = calculators.First(c => c is ListeningScoreCalculator);
             var reading = calculators.First(c => c is AlternativeReadingScoreCalculator);
             var writing = calculators.First(c => c is WritingScoreCalculator);
+            var speaking = calculators.First(c => c is SpeakingScoreCalculator);
 
-            return new VstepScoreCalculator(listening, reading, writing, logger);
+            return new VstepScoreCalculator(listening, reading, writing, speaking, logger);
         });
 
         return services;

@@ -3,17 +3,17 @@ using Betalgo.Ranul.OpenAI.ObjectModels.RequestModels;
 using Microsoft.Extensions.Options;
 using Polly;
 using Polly.Retry;
+using System.Text;
 using System.Text.Json;
 using VstepPractice.API.Common.Enums;
 using VstepPractice.API.Common.Utils;
 using VstepPractice.API.Models.DTOs.AI;
+using static VstepPractice.API.Common.Utils.ScoreUtils;
 
 namespace VstepPractice.API.Services.AI;
 
 public class OpenAiScoringService : IAiScoringService
 {
-    private const decimal MAX_CRITERION_SCORE = 2.5m;
-
     private readonly IOpenAIService _openAiService;
     private readonly ILogger<OpenAiScoringService> _logger;
     private readonly OpenAiOptions _options;
@@ -27,6 +27,8 @@ public class OpenAiScoringService : IAiScoringService
         _openAiService = openAiService;
         _options = options.Value;
         _logger = logger;
+
+        AssessmentScoreValidator.SetLogger(logger);
 
         _retryPolicy = Policy<Result<WritingAssessmentResponse>>
             .Handle<HttpRequestException>()
@@ -141,11 +143,12 @@ Student's Essay:
                         root.GetProperty("grammarAccuracy").GetDecimal());
 
                     // Get scores and validate/normalize them
-                    var scores = ValidateAndNormalizeScores(
-                        root.GetProperty("taskAchievement").GetDecimal(),
-                        root.GetProperty("coherenceCohesion").GetDecimal(),
-                        root.GetProperty("lexicalResource").GetDecimal(),
-                        root.GetProperty("grammarAccuracy").GetDecimal());
+                    var scores = AssessmentScoreValidator.ValidateAndNormalizeScores<WritingAssessmentResponse>(
+    ("taskAchievement", root.GetProperty("taskAchievement").GetDecimal()),
+    ("coherenceCohesion", root.GetProperty("coherenceCohesion").GetDecimal()),
+    ("lexicalResource", root.GetProperty("lexicalResource").GetDecimal()),
+    ("grammarAccuracy", root.GetProperty("grammarAccuracy").GetDecimal())
+);
 
                     // Get feedback
                     var feedbackObj = root.GetProperty("detailedFeedback");
@@ -186,6 +189,89 @@ Student's Essay:
             }
         });
     }
+
+    public async Task<Result<SpeakingAssessmentResponse>> AssessSpeakingAsync(
+        SpeakingAssessmentTask task,
+        CancellationToken cancellationToken = default)
+    {
+        var systemMessage = @"You are a VSTEP B2 speaking examiner. Score the response based on these criteria:
+1. Pronunciation (0-2.5 points): How well the response addresses all points in the task
+2. Fluency (0-2.5 points): Text organization and use of linking devices
+3. Vocabulary (0-2.5 points): Range and accuracy of vocabulary
+4. Grammar (0-2.5 points): Range and accuracy of grammar structures
+
+IMPORTANT: Each criterion MUST be scored between 0 and 2.5 points.
+Maximum total score possible is 10 points (2.5 x 4).
+
+Return response as a JSON object with these exact properties:
+pronunciation: decimal (0-2.5)
+fluency: decimal (0-2.5)
+vocabulary: decimal (0-2.5)
+grammar: decimal (0-2.5)
+detailedFeedback: { strengths: [], weaknesses: [], suggestions: [] }";
+
+        var userMessage = $@"Please assess the following VSTEP B2 speaking task.
+
+Task Title: {task.PassageTitle}
+
+Task Description:
+{task.PassageContent}
+
+Question:
+{task.QuestionText}
+
+Student's Response (Transcribed):
+{task.TranscribedText}";
+
+        try
+        {
+            var completionResult = await _openAiService.ChatCompletion.CreateCompletion(
+                new ChatCompletionCreateRequest
+                {
+                    Messages = new List<ChatMessage>
+                    {
+                        ChatMessage.FromSystem(systemMessage),
+                        ChatMessage.FromUser(userMessage)
+                    },
+                    Model = _options.ModelName,
+                    Temperature = 0.7f
+                },
+                cancellationToken: cancellationToken);
+
+            if (!completionResult.Successful)
+            {
+                throw new Exception(completionResult.Error?.Message);
+            }
+
+            var responseContent = completionResult.Choices.First().Message.Content;
+            responseContent = CleanJsonResponse(responseContent);
+
+            var assessmentData = JsonSerializer.Deserialize<JsonDocument>(responseContent);
+            var root = assessmentData.RootElement;
+
+            // Validate and normalize scores
+            var scores = AssessmentScoreValidator.ValidateAndNormalizeScores<SpeakingAssessmentResponse>(
+    ("pronunciation", root.GetProperty("pronunciation").GetDecimal()),
+    ("fluency", root.GetProperty("fluency").GetDecimal()),
+    ("vocabulary", root.GetProperty("vocabulary").GetDecimal()),
+    ("grammar", root.GetProperty("grammar").GetDecimal())
+);
+
+            // Get feedback
+            var feedbackObj = root.GetProperty("detailedFeedback");
+            var feedback = FormatFeedback(feedbackObj, scores);
+            scores.DetailedFeedback = feedback;
+
+            return Result.Success(scores);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error assessing speaking response");
+            return Result.Failure<SpeakingAssessmentResponse>(
+                new Error("AiScoring.Failed", "Failed to assess speaking response."));
+        }
+    }
+
     private static string CleanJsonResponse(string response)
     {
         // Remove markdown code block if present
@@ -200,30 +286,9 @@ Student's Essay:
         return response;
     }
 
-    private static WritingAssessmentResponse ValidateAndNormalizeScores(
-        decimal taskAchievement,
-        decimal coherenceCohesion,
-        decimal lexicalResource,
-        decimal grammarAccuracy)
-    {
-        // Ensure each score is between 0 and 2.5
-        decimal NormalizeScore(decimal score) =>
-            Math.Min(Math.Max(score, 0), MAX_CRITERION_SCORE);
-
-        var normalizedScores = new WritingAssessmentResponse
-        {
-            TaskAchievement = NormalizeScore(taskAchievement),
-            CoherenceCohesion = NormalizeScore(coherenceCohesion),
-            LexicalResource = NormalizeScore(lexicalResource),
-            GrammarAccuracy = NormalizeScore(grammarAccuracy)
-        };
-
-        return normalizedScores;
-    }
-
-    private static string FormatFeedback(
-        JsonElement feedbackObj,
-        WritingAssessmentResponse scores)
+    private static string FormatFeedback<T>(
+    JsonElement feedbackObj,
+    T scores) where T : ISkillAssessmentResponse
     {
         var strengths = string.Join("\n", feedbackObj.GetProperty("strengths")
             .EnumerateArray()
@@ -231,18 +296,16 @@ Student's Essay:
         var weaknesses = string.Join("\n", feedbackObj.GetProperty("weaknesses")
             .EnumerateArray()
             .Select(x => $"- {x.GetString()}"));
-        var grammarErrors = string.Join("\n", feedbackObj.GetProperty("grammarErrors")
-            .EnumerateArray()
-            .Select(x => $"- {x.GetString()}"));
         var suggestions = string.Join("\n", feedbackObj.GetProperty("suggestions")
             .EnumerateArray()
             .Select(x => $"- {x.GetString()}"));
 
-        return $@"Writing Assessment Scores:
-Task Achievement: {scores.TaskAchievement:F1}/2.5
-Coherence & Cohesion: {scores.CoherenceCohesion:F1}/2.5
-Lexical Resource: {scores.LexicalResource:F1}/2.5
-Grammar Accuracy: {scores.GrammarAccuracy:F1}/2.5
+        var scoreDetails = typeof(T).GetProperties()
+            .Where(p => p.PropertyType == typeof(decimal) && p.Name != nameof(ISkillAssessmentResponse.TotalScore))
+            .Select(p => $"{AddSpacesToPascalCase(p.Name)}: {p.GetValue(scores):F1}/2.5");
+
+        return $@"Assessment Scores:
+{string.Join("\n", scoreDetails)}
 Total Score: {scores.TotalScore:F1}/10
 
 Strengths:
@@ -251,10 +314,86 @@ Strengths:
 Areas for Improvement:
 {weaknesses}
 
-Grammar Errors:
-{grammarErrors}
-
 Suggestions:
 {suggestions}";
+    }
+
+    private static string AddSpacesToPascalCase(string text)
+    {
+        if (string.IsNullOrEmpty(text)) return string.Empty;
+
+        var newText = new StringBuilder(text.Length * 2);
+        newText.Append(text[0]);
+
+        for (int i = 1; i < text.Length; i++)
+        {
+            if (char.IsUpper(text[i]))
+                newText.Append(' ');
+            newText.Append(text[i]);
+        }
+
+        return newText.ToString();
+    }
+
+    private static class AssessmentScoreValidator
+    {
+        private const decimal MAX_CRITERION_SCORE = 2.5m;
+        private const decimal MAX_TOTAL_SCORE = 10m;
+
+        private static ILogger? _logger;
+
+        public static void SetLogger(ILogger logger)
+        {
+            _logger = logger;
+        }
+
+        public static T ValidateAndNormalizeScores<T>(params (string name, decimal score)[] scores)
+            where T : ISkillAssessmentResponse, new()
+        {
+            var totalScore = scores.Sum(s => s.score);
+            _logger?.LogInformation("Original total score: {TotalScore}", totalScore);
+
+            // Only normalize if total score exceeds MAX_TOTAL_SCORE
+            if (totalScore > MAX_TOTAL_SCORE)
+            {
+                var ratio = MAX_TOTAL_SCORE / totalScore;
+                scores = scores.Select(s => (s.name, Math.Round(s.score * ratio, 1))).ToArray();
+                _logger?.LogInformation(
+                    "Scores normalized with ratio {Ratio}. New scores: {Scores}",
+                    ratio,
+                    string.Join(", ", scores.Select(s => $"{s.name}: {s.score}")));
+            }
+
+            // Ensure each score is between 0 and MAX_CRITERION_SCORE
+            var normalizedScores = scores.ToDictionary(
+                s => s.name.ToLower(),  // Convert to lowercase for case-insensitive matching
+                s => Math.Min(Math.Max(s.score, 0), MAX_CRITERION_SCORE)
+            );
+
+            var response = new T();
+            var properties = typeof(T).GetProperties()
+                .Where(p => p.PropertyType == typeof(decimal) &&
+                           p.Name != nameof(ISkillAssessmentResponse.TotalScore) &&
+                           p.CanWrite);
+
+            foreach (var prop in properties)
+            {
+                if (normalizedScores.TryGetValue(prop.Name.ToLower(), out var score))
+                {
+                    prop.SetValue(response, score);
+                }
+            }
+
+            // Log final scores for debugging
+            if (_logger?.IsEnabled(LogLevel.Debug) == true)
+            {
+                var finalScores = properties
+                    .Select(p => $"{p.Name}: {p.GetValue(response)}")
+                    .ToList();
+                _logger.LogDebug("Final normalized scores: {Scores}", string.Join(", ", finalScores));
+            }
+
+            return response;
+        }
     }
 }

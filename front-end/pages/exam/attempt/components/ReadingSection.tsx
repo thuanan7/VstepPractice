@@ -18,7 +18,7 @@ const ReadingSection: React.FC<ReadingSectionProps> = ({
   return (
     <>
       <Typography variant="body1" gutterBottom>
-        {currentSection.essayText}
+        {currentSection.content}
       </Typography>
       {currentPart.questions.map((question) => (
         <Box key={question.id} sx={{ mt: 2 }}>

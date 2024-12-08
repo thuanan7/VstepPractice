@@ -19,6 +19,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<StudentAttempt> StudentAttempts { get; set; } = null!;
     public DbSet<Answer> Answers { get; set; } = null!;
     public DbSet<WritingAssessment> WritingAssessments { get; set; } = null!;
+    public DbSet<SpeakingAssessment> SpeakingAssessments { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -151,6 +152,29 @@ public class ApplicationDbContext : DbContext
             entity.Property(e => e.GrammarAccuracy)
                 .HasColumnType("decimal(4,2)");
             entity.Property(e => e.DetailedFeedback);
+        });
+
+        builder.Entity<SpeakingAssessment>(entity =>
+        {
+            entity.ToTable("SpeakingAssessments");
+
+            entity.Property(e => e.Pronunciation)
+                .HasColumnType("decimal(4,2)");
+            entity.Property(e => e.Fluency)
+                .HasColumnType("decimal(4,2)");
+            entity.Property(e => e.Vocabulary)
+                .HasColumnType("decimal(4,2)");
+            entity.Property(e => e.Grammar)
+                .HasColumnType("decimal(4,2)");
+            entity.Property(e => e.DetailedFeedback);
+            entity.Property(e => e.TranscribedText);
+            entity.Property(e => e.AudioUrl)
+                .HasMaxLength(255);
+
+            entity.HasOne(w => w.Answer)
+                .WithMany()
+                .HasForeignKey(w => w.AnswerId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

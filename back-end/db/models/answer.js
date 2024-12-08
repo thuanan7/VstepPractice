@@ -22,10 +22,6 @@ module.exports = (sequelize, DataTypes) => {
 
   Answer.init(
     {
-      selectedOptionId: {
-        type: DataTypes.INTEGER,
-        allowNull: true, // Chỉ áp dụng cho câu hỏi MCQ hoặc True/False
-      },
       essayAnswer: {
         type: DataTypes.TEXT,
         allowNull: true, // Chỉ áp dụng cho câu hỏi dạng viết
