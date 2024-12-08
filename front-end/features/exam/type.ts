@@ -17,7 +17,6 @@ export interface Question {
   speakingPrompt?: string
 }
 export interface QuestionOption {
-
   content: string
   isCorrect: any
   orderNum: string
@@ -70,7 +69,7 @@ export enum SectionType {
   Listening = 1,
   Reading = 2,
   Writing = 3,
-  Speaking = 4
+  Speaking = 4,
 }
 export interface ListeningQuestion {
   id: string
@@ -96,12 +95,34 @@ export interface Section {
   exam?: IExam
   orderNum?: number
   questions: Question[] | ListeningQuestion[]
-
-  sectionPart: Question[] | ListeningQuestion[] | ReadingQuestion[] | SpeakingQuestion
-
+  sectionPart:
+    | Question[]
+    | ListeningQuestion[]
+    | ReadingQuestion[]
+    | SpeakingQuestion
 }
 export interface VSTEPExam {
   sections: Section[]
 }
 
-export interface SectionListening extends Section { }
+export interface SectionListening extends Section {}
+
+//ROMIO
+// 'id',
+//     'title',
+//     'instructions',
+//     'content',
+//     'orderNum',
+//     'sectionType',
+//     'type',
+interface ISessionPartBase {
+  title: string
+  instructions: string
+  content: string
+  orderNum: number
+  sectionType: number
+  type: number
+}
+export interface ISessionPart extends ISessionPartBase {
+  id: number
+}

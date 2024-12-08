@@ -16,7 +16,6 @@ import {
 } from '@mui/material'
 import DashboardIcon from '@mui/icons-material/Dashboard'
 import AssignmentIcon from '@mui/icons-material/Assignment'
-import QuizIcon from '@mui/icons-material/Quiz'
 import BarChartIcon from '@mui/icons-material/BarChart'
 import SettingsIcon from '@mui/icons-material/Settings'
 import ExitToAppIcon from '@mui/icons-material/ExitToApp'
@@ -79,12 +78,6 @@ const AdminLeftMenu = (props: AdminLayoutProps) => {
             <AssignmentIcon />
           </ListItemIcon>
           <ListItemText primary="Exam Management" />
-        </ListItemButton>
-        <ListItemButton onClick={() => handleAccessToPage('/admin/questions')}>
-          <ListItemIcon>
-            <QuizIcon />
-          </ListItemIcon>
-          <ListItemText primary="Quản lý Câu hỏi" />
         </ListItemButton>
       </List>
     </Box>

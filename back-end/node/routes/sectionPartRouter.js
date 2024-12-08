@@ -97,7 +97,7 @@ sectionPartRouter.post(
   createListeningSectionPart,
 )
 
-sectionPartRouter.get('/', getSectionParts)
+sectionPartRouter.get('/:id', getSectionParts)
 sectionPartRouter.post('/', createSectionPart)
 sectionPartRouter.put('/:id', updateSectionPart)
 sectionPartRouter.delete('/:id', deleteSectionPart)

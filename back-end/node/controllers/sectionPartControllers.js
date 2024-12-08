@@ -42,15 +42,27 @@ const createListeningSectionPart = async (req, res) => {
   }
 }
 
-// Get all section parts
+// Get all section parts by id
 const getSectionParts = async (req, res) => {
   try {
     const sectionParts = await SectionPart.findAll({
-      include: [{ model: Exam, as: 'exam' }],
+      attributes: [
+        'id',
+        'title',
+        'instructions',
+        'content',
+        'orderNum',
+        'sectionType',
+        'type',
+        'examId',
+      ],
+      where: { examId: req.params.id, parentId: null },
     })
-    res.status(200).json(sectionParts)
+    res.status(200).json({ success: true, data: sectionParts })
   } catch (err) {
-    res.status(500).json({ error: 'Failed to fetch section parts' })
+    res
+      .status(500)
+      .json({ success: false, msg: 'Failed to fetch section parts' })
   }
 }
 
