@@ -32,6 +32,7 @@ const SessionPartParentForm = ({
   onSubmit: (data: FormDataSession) => void
 }) => {
   const {
+    setValue,
     register,
     handleSubmit,
     control,
@@ -52,7 +53,18 @@ const SessionPartParentForm = ({
               control={control}
               rules={{ required: 'Section Type is required' }}
               render={({ field }) => (
-                <Select {...field} label="Type" error={!!errors.type}>
+                <Select
+                  {...field}
+                  label="Section Type"
+                  error={!!errors.sectionType}
+                  onChange={(e) => {
+                    field.onChange(e)
+                    setValue(
+                      'sessionType',
+                      parseInt(`${e.target.value}`) as SessionType,
+                    )
+                  }}
+                >
                   {sessionTypeOptions.map((option) => (
                     <MenuItem key={option.value} value={option.value}>
                       {option.label}

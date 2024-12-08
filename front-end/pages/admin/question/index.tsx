@@ -4,7 +4,7 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { sectionPartRequest } from '@/app/api'
 import { ISessionPart } from '@/features/exam/type'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
-import CreateOrUpdateParentSection from './components/CreateOrUpdateParentSection'
+import CreateOrUpdateParentSection from './components/section-part/CreateOrUpdateParentSection'
 const ExamQuestionManagement: React.FC = () => {
   const navigate = useNavigate()
   const { id } = useParams<{ id: string }>()
@@ -55,6 +55,9 @@ const ExamQuestionManagement: React.FC = () => {
   const handleBack = () => {
     navigate('/admin/exams', { replace: true })
   }
+  const handleRefresh = () => {
+    navigate(0)
+  }
   if (!id) return <div>Error</div>
   if (!sectionParts || !sTab) return <div>Waiting</div>
   return (
@@ -70,22 +73,33 @@ const ExamQuestionManagement: React.FC = () => {
         <IconButton onClick={handleBack} sx={{ color: 'primary.main' }}>
           <ArrowBackIcon />
         </IconButton>
-        <Tabs
-          value={section?.id}
-          onChange={handleTabChange}
-          aria-label="Exam Sections"
-          sx={{ flexGrow: 1 }}
-        >
-          {sectionParts.map((tab, index: number) => (
-            <Tab
-              key={`${tab.id}_${index}`}
-              label={`${tab.title}`}
-              value={tab.id}
-            />
-          ))}
-        </Tabs>
-        <CreateOrUpdateParentSection />
-        <CreateOrUpdateParentSection id={section?.id} />
+        <Box sx={{ flex: 1, overflowX: 'auto' }}>
+          <Tabs
+            value={section?.id}
+            onChange={handleTabChange}
+            aria-label="Exam Sections"
+            sx={{
+              width: 500,
+              flexGrow: 1,
+              minWidth: 'fit-content',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {sectionParts.map((tab, index: number) => (
+              <Tab
+                key={`${tab.id}_${index}`}
+                label={`${tab.title}`}
+                value={tab.id}
+              />
+            ))}
+          </Tabs>
+        </Box>
+        {/*<CreateOrUpdateParentSection*/}
+        {/*  examId={id}*/}
+        {/*  id={section?.id}*/}
+        {/*  onRefresh={handleRefresh}*/}
+        {/*/>*/}
+        <CreateOrUpdateParentSection examId={id} onRefresh={handleRefresh} />
       </Box>
 
       <Box sx={{ mt: 2 }}>

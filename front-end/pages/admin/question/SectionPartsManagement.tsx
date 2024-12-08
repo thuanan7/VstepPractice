@@ -44,7 +44,6 @@ const SectionPartsManagement = () => {
       setSectionParts(response)
     } else {
     }
-    console.log('dsasdas', response)
     // setSectionParts(response.data)
   }
 

@@ -108,21 +108,16 @@ export interface VSTEPExam {
 export interface SectionListening extends Section {}
 
 //ROMIO
-// 'id',
-//     'title',
-//     'instructions',
-//     'content',
-//     'orderNum',
-//     'sectionType',
-//     'type',
 interface ISessionPartBase {
   title: string
   instructions: string
   content: string
   orderNum: number
   sectionType: number
+  examId: number
   type: number
 }
 export interface ISessionPart extends ISessionPartBase {
   id: number
 }
+export interface IReqPostSessionPart extends ISessionPartBase {}

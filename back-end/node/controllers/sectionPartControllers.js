@@ -1,5 +1,5 @@
 const { SectionPart, Exam } = require('../../db/models')
-const { typeSections } = require('../configs/enums')
+const { typeSections, typeSectionPart } = require('../configs/enums')
 const controller = {}
 /**
  * Create a new section part for the listening section
@@ -62,27 +62,43 @@ const getSectionParts = async (req, res) => {
   } catch (err) {
     res
       .status(500)
-      .json({ success: false, msg: 'Failed to fetch section parts' })
+      .json({ success: false, message: 'Failed to fetch section parts' })
   }
 }
 
 // Create new section part
 const createSectionPart = async (req, res) => {
+  const { title, instructions, content, type, examId, parentId, sectionType } =
+    req.body
+  if (!examId) {
+    return res
+      .status(400)
+      .json({ success: false, message: 'Missing required parameter: examId' })
+  }
+  const finalType = parentId ? type : typeSectionPart.section
   try {
-    const { title, instructions, content, orderNum, type, examId, parentId } =
-      req.body
+    const lastSectionPart = await SectionPart.findOne({
+      where: { examId, sectionType },
+      order: [['orderNum', 'DESC']],
+    })
+    const orderNum = lastSectionPart ? lastSectionPart.orderNum + 1 : 1
     const sectionPart = await SectionPart.create({
       title,
       instructions,
       content,
       orderNum,
-      type,
+      type: finalType,
+      sectionType,
       examId,
       parentId,
     })
-    res.status(201).json(sectionPart)
+    res
+      .status(201)
+      .json({ success: true, message: 'Create Session Part SuccessFully' })
   } catch (err) {
-    res.status(500).json({ error: 'Failed to create section part' })
+    res
+      .status(500)
+      .json({ success: false, message: 'Failed to create section part' })
   }
 }
 

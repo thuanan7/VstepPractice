@@ -1,6 +1,10 @@
 import APIClient, { paramsToUrl } from '@/app/api/axios/AxiosClient'
 import { sectionPartsPathConfigs } from './configs'
-import { IRespSessionPart, ISessionPart, Section } from '@/features/exam/type'
+import {
+  IReqPostSessionPart,
+  ISessionPart,
+  Section,
+} from '@/features/exam/type'
 
 export default class SectionPartClient extends APIClient {
   sectionPartsByType(examId: string, type: number, cancelToken?: any) {
@@ -30,6 +34,14 @@ export default class SectionPartClient extends APIClient {
           return r?.data as ISessionPart[]
         }
         return undefined
+      })
+  }
+
+  createSessionPart(data: IReqPostSessionPart, cancelToken?: any) {
+    return super
+      .post(`${sectionPartsPathConfigs.listByType}`, data, cancelToken)
+      .then((r) => {
+        return r?.success
       })
   }
 }

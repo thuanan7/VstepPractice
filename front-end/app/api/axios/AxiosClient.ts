@@ -106,7 +106,8 @@ export default class AxiosClient {
           }
         }
 
-        if (status === 200) return ApiOutputModel.fromJS(response)
+        if (status === 200 || status === 201)
+          return ApiOutputModel.fromJS(response)
         else if (status !== 200 && status !== 204) {
           const _responseText =
             response?.data?.error?.message ||
