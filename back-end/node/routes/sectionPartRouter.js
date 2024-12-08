@@ -101,10 +101,9 @@ sectionPartRouter.get('/', getSectionParts)
 sectionPartRouter.post('/', createSectionPart)
 sectionPartRouter.put('/:id', updateSectionPart)
 sectionPartRouter.delete('/:id', deleteSectionPart)
-
-router.get('/:parentId/children', getParts)
-router.post('/:parentId/children', createPart)
-router.put('/:id', updatePart)
-router.delete('/:id', deletePart)
+sectionPartRouter.get('/:parentId/children', getParts)
+sectionPartRouter.post('/:parentId/children', createPart)
+sectionPartRouter.put('/:id', updatePart)
+sectionPartRouter.delete('/:id', deletePart)
 
 module.exports = sectionPartRouter
