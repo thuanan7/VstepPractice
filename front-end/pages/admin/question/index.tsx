@@ -14,10 +14,10 @@ const ExamQuestionManagement: React.FC = () => {
   )
   const [section, setSession] = useState<ISessionPart | undefined>(undefined)
   const [searchParams, setSearchParams] = useSearchParams()
-  const sTab = searchParams.get('tab')
+  const sTab = searchParams.get('session')
   const handleTabChange = (_: React.SyntheticEvent, newValue: string) => {
     const currentParams = new URLSearchParams(searchParams)
-    currentParams.set('tab', newValue)
+    currentParams.set('session', newValue)
     setSearchParams(currentParams)
   }
   useEffect(() => {

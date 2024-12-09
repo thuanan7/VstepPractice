@@ -61,7 +61,7 @@ const CreateOrUpdateSection = (props: CreateOrUpdateParentSectionProps) => {
           },
         }}
       >
-        {!id ? 'Tạo mới' : 'Cập nhật'}
+        {!id ? 'Tạo mới session' : 'Cập nhật'}
       </Button>
       <Dialog open={open} fullWidth maxWidth="md">
         <DialogTitle> {!id ? 'Tạo mới' : 'Cập nhật'} Session</DialogTitle>

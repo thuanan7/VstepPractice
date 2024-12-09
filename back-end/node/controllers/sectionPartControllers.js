@@ -1,6 +1,5 @@
 const { SectionPart, Exam } = require('../../db/models')
 const { typeSections, typeSectionPart } = require('../configs/enums')
-const controller = {}
 /**
  * Create a new section part for the listening section
  * @param {Object} req - Request object
