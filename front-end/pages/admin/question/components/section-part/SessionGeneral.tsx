@@ -85,7 +85,7 @@ const SessionGeneral = (props: SessionGeneralProps) => {
           startIcon={<EditIcon />}
           onClick={handleClickUpdate}
         >
-          Cập nhật section
+          Cập nhật
         </Button>
         <RemoveSession id={session.id} onRefresh={handleRefresh} />
       </Box>

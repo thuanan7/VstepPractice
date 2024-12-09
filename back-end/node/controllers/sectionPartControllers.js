@@ -76,6 +76,31 @@ const getSectionParts = async (req, res) => {
   }
 }
 
+const getPartsBySection = async (req, res) => {
+  try {
+    const sectionId = req.params.id
+    const sectionParts = await SectionPart.findAll({
+      attributes: [
+        'id',
+        'title',
+        'instructions',
+        'content',
+        'orderNum',
+        'sectionType',
+        'type',
+        'examId',
+      ],
+      where: { parentId: sectionId, type: typeSectionPart.part },
+      order: [['orderNum', 'ASC']],
+    })
+    res.status(200).json({ success: true, data: { parts: sectionParts } })
+  } catch (err) {
+    res
+      .status(500)
+      .json({ success: false, message: 'Failed to fetch section parts' })
+  }
+}
+
 // Create new section part
 const createSectionPart = async (req, res) => {
   const { title, instructions, content, type, examId, parentId, sectionType } =
@@ -237,4 +262,5 @@ module.exports = {
   updateSectionPart,
   createSectionPart,
   getSectionParts,
+  getPartsBySection,
 }

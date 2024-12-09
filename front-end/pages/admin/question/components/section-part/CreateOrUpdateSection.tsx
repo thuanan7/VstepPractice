@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Dialog, DialogContent, DialogTitle, Button } from '@mui/material'
+import { Dialog, DialogContent, DialogTitle, Button, Box } from '@mui/material'
 import AddCircleIcon from '@mui/icons-material/AddCircle'
 import EditIcon from '@mui/icons-material/Edit'
 import SessionForm, { FormDataSession } from './SessionForm.tsx'
@@ -44,25 +44,53 @@ const CreateOrUpdateSection = (props: CreateOrUpdateParentSectionProps) => {
       }
     }
   }
-  return (
-    <div>
+  let ButtonCRUD = (
+    <Button
+      variant="outlined"
+      color="primary"
+      startIcon={<AddCircleIcon />}
+      onClick={handleClickOpen}
+      sx={{
+        border: '2px dashed',
+        color: 'text.secondary',
+        borderColor: 'text.secondary',
+        borderRadius: '4px',
+        padding: '8px',
+        transition: 'background-color 0.3s',
+        width: '100%',
+      }}
+    >
+      Tạo mới section
+    </Button>
+  )
+  if (id) {
+    ButtonCRUD = (
       <Button
-        color={!id ? 'inherit' : 'warning'}
-        startIcon={!id ? <AddCircleIcon /> : <EditIcon />}
+        color={'warning'}
+        startIcon={<EditIcon />}
         onClick={handleClickOpen}
         sx={{
           fontSize: '16px',
         }}
       >
-        {!id ? 'Tạo mới section' : 'Cập nhật'}
+        Cập nhật
       </Button>
+    )
+  }
+  return (
+    <Box
+      sx={{
+        width: id ? '' : '100%',
+      }}
+    >
+      {ButtonCRUD}
       <Dialog open={open} fullWidth maxWidth="md">
         <DialogTitle> {!id ? 'Tạo mới' : 'Cập nhật'} Section</DialogTitle>
         <DialogContent>
           <SessionForm onClose={handleClose} onSubmit={handleSubmit} />
         </DialogContent>
       </Dialog>
-    </div>
+    </Box>
   )
 }
 

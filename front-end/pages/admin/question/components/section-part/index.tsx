@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react'
-import { Box, Tab, Tabs } from '@mui/material'
+import { Box, Divider, Tab, Tabs } from '@mui/material'
 import { useSearchParams } from 'react-router-dom'
 import PartsManagement from '../part'
 import SessionGeneral from './SessionGeneral'
 import { ISessionPart } from '@/features/exam/type.ts'
+import PartContent from '../part/PartContent'
 interface SessionManagementProps {
   session: ISessionPart
   examId: number
@@ -42,7 +43,7 @@ const SessionManagement = (props: SessionManagementProps) => {
         sx={{
           borderRight: 1,
           borderColor: 'divider',
-          width: 100,
+          width: 150,
         }}
       >
         <Tabs
@@ -69,16 +70,20 @@ const SessionManagement = (props: SessionManagementProps) => {
           }}
         >
           <Tab
-            label="Câu hỏi"
+            label="Chung"
             id="vertical-tab-0"
             aria-controls="vertical-tabpanel-0"
           />
           <Tab
-            label="Chung"
+            label="Câu hỏi"
             id="vertical-tab-1"
             aria-controls="vertical-tabpanel-1"
           />
         </Tabs>
+        <Divider />
+        {value === 1 && (
+          <PartsManagement sectionId={session.id} examId={examId} />
+        )}
       </Box>
 
       <Box
@@ -87,10 +92,10 @@ const SessionManagement = (props: SessionManagementProps) => {
           overflowY: 'auto',
         }}
       >
-        {value === 1 ? (
+        {value === 0 ? (
           <SessionGeneral session={session} examId={examId} />
         ) : (
-          <PartsManagement />
+          <PartContent />
         )}
       </Box>
     </Box>

@@ -59,7 +59,7 @@ const RemoveSession: React.FC<RemoveSessionProps> = (
         onClick={handleClickOpen}
         disabled={loading}
       >
-        Xoá section
+        Xoá
       </Button>
       <Dialog open={open} onClose={handleClose}>
         <DialogTitle>Xoá session</DialogTitle>

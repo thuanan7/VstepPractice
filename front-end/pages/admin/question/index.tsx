@@ -102,19 +102,6 @@ const ExamQuestionManagement: React.FC = () => {
           <SessionManagement session={section} examId={parseInt(id)} />
         )}
 
-        {/*<Box sx={{ display: 'flex', flexDirection: 'row' }} gap={2}>*/}
-        {/*  <Box flex={1}>*/}
-        {/*    <Typography>{section?.content}</Typography>*/}
-        {/*    <Typography>{section?.instructions}</Typography>*/}
-        {/*  </Box>*/}
-        {/*  <RemoveSession id={section?.id || 0} onRefresh={handleRefresh} />*/}
-        {/*  <CreateOrUpdateSection*/}
-        {/*    examId={id}*/}
-        {/*    id={section?.id}*/}
-        {/*    onRefresh={handleRefresh}*/}
-        {/*  />*/}
-        {/*</Box>*/}
-
         {/*<PartsManagement parentId={section?.id} />*/}
         {/*<SectionPartsManagement />*/}
         {/*{activeTab === 'section-parts' && <SectionPartsManagement />}*/}

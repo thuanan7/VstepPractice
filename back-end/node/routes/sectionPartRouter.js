@@ -10,6 +10,7 @@ const {
   createPart,
   updatePart,
   deletePart,
+  getPartsBySection,
 } = require('../controllers/sectionPartControllers')
 
 const sectionPartRouter = express.Router()
@@ -98,6 +99,7 @@ sectionPartRouter.post(
 )
 
 sectionPartRouter.get('/:id', getSectionParts)
+sectionPartRouter.get('/section/:id/parts', getPartsBySection)
 sectionPartRouter.post('/', createSectionPart)
 sectionPartRouter.put('/:id', updateSectionPart)
 sectionPartRouter.delete('/:id', deleteSectionPart)
