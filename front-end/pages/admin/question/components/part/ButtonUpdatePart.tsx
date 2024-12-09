@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { Box, Button, Dialog, DialogContent, DialogTitle } from '@mui/material'
 import { sectionPartRequest } from '@/app/api'
 import { toast } from 'react-hot-toast'
@@ -7,14 +7,14 @@ import PartForm, {
   FormDataPart,
 } from '@/pages/admin/question/components/part/PartForm.tsx'
 import EditIcon from '@mui/icons-material/Edit'
+import { useNavigate } from 'react-router-dom'
 interface UpdatePartProps {
   part: ISessionPart
 }
 const ButtonUpdatePart = (props: UpdatePartProps) => {
   const { part } = props
+  const navigate = useNavigate()
   const formRef = useRef<any>(null)
-  const [newContent, setNewContent] = useState<string>('') // Nội dung chỉnh sửa
-  const [loading, setLoading] = useState(false)
   const [openModal, setOpenModal] = useState(false) // Quản lý modal
 
   const handleOpenModal = () => {
@@ -25,29 +25,23 @@ const ButtonUpdatePart = (props: UpdatePartProps) => {
     setOpenModal(false)
   }
 
-  const handleUpdateContent = async (data: FormDataPart) => {
-    if (!newContent.trim()) {
-      toast.error('Nội dung không được để trống!')
-      return
-    }
-    setLoading(true)
-    try {
-      // const res = await sectionPartRequest.updatePartContent(
-      //   part!.id,
-      //   newContent,
-      // )
-      // if (res) {
-      //   toast.success('Cập nhật đoạn văn thành công!')
-      //   setOpenModal(false) // Đóng modal sau khi cập nhật thành công
-      //   // Có thể gọi lại API để cập nhật lại part trong state hoặc reload page
-      // } else {
-      //   toast.error('Cập nhật thất bại, vui lòng thử lại!')
-      // }
-    } catch (error) {
-      toast.error('Có lỗi xảy ra khi cập nhật nội dung')
-      console.error(error)
-    } finally {
-      setLoading(false)
+  const handleUpdateContent = async (_data: FormDataPart) => {
+    const updated = await sectionPartRequest.updateSessionPart(part.id, {
+      title: _data.title,
+      instructions: _data.instructions,
+      content: part.content,
+      orderNum: 0,
+      sectionType: part.sectionType,
+      type: part.type,
+      examId: parseInt(`${part.examId}`),
+    })
+    if (updated) {
+      toast.success('Cập nhật part thành công')
+      setTimeout(() => {
+        navigate(0)
+      }, 200)
+    } else {
+      toast.error('Lỗi, hãy cập nhật lại')
     }
   }
   const handleClickUpdate = () => {
@@ -76,7 +70,7 @@ const ButtonUpdatePart = (props: UpdatePartProps) => {
         <DialogContent>
           <PartForm
             ref={formRef}
-            data={part}
+            data={{ title: part.title, instructions: part.instructions }}
             onClose={handleCloseModal}
             onSubmit={handleUpdateContent}
           />

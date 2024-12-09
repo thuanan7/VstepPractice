@@ -60,6 +60,7 @@ const PartForm = forwardRef((props: PartFormProps, ref: any) => {
             variant="outlined"
             multiline
             rows={4}
+            {...register('instructions')}
             error={!!errors.instructions}
             helperText={errors.instructions ? errors.instructions.message : ''}
           />
