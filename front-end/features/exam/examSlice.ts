@@ -8,12 +8,13 @@ export const ExamAdminSlice = createSlice({
   name: 'examAdmin',
   initialState,
   reducers: {
-    manage: (state, action: PayloadAction<IExam>) => {
-      if (state.exam && state.exam.id === action.payload.id) {
-        state.exam = action.payload
-      }
+    manageExam: (state, action: PayloadAction<IExam>) => {
+      state.exam = action.payload
+    },
+    resetExam: (state) => {
+      state.exam = undefined
     },
   },
 })
-export const { manage } = ExamAdminSlice.actions
+export const { manageExam, resetExam } = ExamAdminSlice.actions
 export const examAdminReducer = ExamAdminSlice.reducer

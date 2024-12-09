@@ -1,13 +1,12 @@
 import CloseIcon from '@mui/icons-material/Close'
 import { AdminLayoutProps } from './AdminLayout'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import {
   IconButton,
   Drawer,
   Box,
   Divider,
   List,
-  ListItem,
   ListItemButton,
   ListItemText,
   ListItemIcon,
@@ -16,15 +15,19 @@ import {
 } from '@mui/material'
 import DashboardIcon from '@mui/icons-material/Dashboard'
 import AssignmentIcon from '@mui/icons-material/Assignment'
-import BarChartIcon from '@mui/icons-material/BarChart'
-import SettingsIcon from '@mui/icons-material/Settings'
 import ExitToAppIcon from '@mui/icons-material/ExitToApp'
 import logoUrl from '@/assets/logo.webp'
-import { useDispatch } from 'react-redux'
 import { clearCredentials } from '@/features/auth/authSlice'
+import { useSelector, useDispatch } from 'react-redux'
+import { RootState } from '@/app/store'
+import { resetExam } from '@/features/exam/examSlice'
+import { IExam } from '@/features/exam/type.ts'
+import CreateOrUpdateSection from '@/pages/admin/question/components/section-part/CreateOrUpdateSection'
 
 const AdminLeftMenu = (props: AdminLayoutProps) => {
   const navigate = useNavigate()
+  const exam = useSelector((state: RootState) => state.examAdmin.exam)
+
   const dispatch = useDispatch()
   const { window, width, isOpen, onDrawerToggle } = props
   const container =
@@ -66,20 +69,7 @@ const AdminLeftMenu = (props: AdminLayoutProps) => {
         </IconButton>
       </Box>
       <Divider />
-      <List>
-        <ListItemButton onClick={() => handleAccessToPage('/admin')}>
-          <ListItemIcon>
-            <DashboardIcon />
-          </ListItemIcon>
-          <ListItemText primary="Trang chủ" />
-        </ListItemButton>
-        <ListItemButton onClick={() => handleAccessToPage('/admin/exams')}>
-          <ListItemIcon>
-            <AssignmentIcon />
-          </ListItemIcon>
-          <ListItemText primary="Quản lý bài thi" />
-        </ListItemButton>
-      </List>
+      {exam ? <ExamManagement exam={exam} /> : <HomeLeftMenu />}
     </Box>
   )
 
@@ -112,3 +102,112 @@ const AdminLeftMenu = (props: AdminLayoutProps) => {
   )
 }
 export default AdminLeftMenu
+
+const HomeLeftMenu = () => {
+  const navigate = useNavigate()
+  const handleAccessToPage = (path: string) => {
+    navigate(path)
+  }
+  return (
+    <List>
+      <ListItemButton onClick={() => handleAccessToPage('/admin')}>
+        <ListItemIcon>
+          <DashboardIcon />
+        </ListItemIcon>
+        <ListItemText primary="Trang chủ" />
+      </ListItemButton>
+
+      <ListItemButton onClick={() => handleAccessToPage('/admin/exams')}>
+        <ListItemIcon>
+          <AssignmentIcon />
+        </ListItemIcon>
+        <ListItemText primary="Quản lý đề thi" />
+      </ListItemButton>
+    </List>
+  )
+}
+
+const ExamManagement = ({ exam }: { exam: IExam }) => {
+  const firstLetter = exam.title.charAt(0).toUpperCase()
+  const [searchParams, setSearchParams] = useSearchParams()
+
+  const dispatch = useDispatch()
+  const navigate = useNavigate()
+  const handleBackExam = () => {
+    dispatch(resetExam())
+    navigate('/admin/exams')
+  }
+  return (
+    <List>
+      <ListItemButton onClick={handleBackExam}>
+        <ListItemIcon>
+          <AssignmentIcon
+            sx={{ color: (theme) => theme.palette.primary.main }}
+          />
+        </ListItemIcon>
+        <ListItemText>
+          <Typography
+            sx={{
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+            }}
+          >
+            Quản lý đề thi
+          </Typography>
+        </ListItemText>
+      </ListItemButton>
+      <ListItemButton sx={{ bgcolor: 'rgba(216,191,216, 0.5)' }}>
+        <ListItemIcon>
+          <Avatar
+            sx={{
+              bgcolor: 'primary.main',
+              width: 24,
+              height: 24,
+              display: 'flex',
+              justifyContent: 'center',
+              borderRadius: 0,
+              alignItems: 'center',
+            }}
+          >
+            <Typography variant="h6" sx={{ color: 'white' }}>
+              {firstLetter}
+            </Typography>
+          </Avatar>
+        </ListItemIcon>
+        <ListItemText>
+          <Typography
+            sx={{
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+            }}
+          >
+            {exam.title}
+          </Typography>
+        </ListItemText>
+      </ListItemButton>
+      <Divider />
+
+      <ListItemButton>
+        <ListItemIcon></ListItemIcon>
+
+        <CreateOrUpdateSection
+          examId={`${exam.id}`}
+          onRefresh={(newValue: string) => {
+            const currentParams = new URLSearchParams(searchParams)
+            currentParams.set('session', newValue)
+            navigate(
+              {
+                pathname: window.location.pathname, // Giữ nguyên đường dẫn hiện tại
+                search: currentParams.toString(), // Thêm các query params mới vào URL
+              },
+              { replace: true },
+            )
+            window.location.reload()
+          }}
+        />
+      </ListItemButton>
+    </List>
+  )
+}

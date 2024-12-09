@@ -10,7 +10,7 @@ import { toast } from 'react-hot-toast'
 interface CreateOrUpdateParentSectionProps {
   id?: number
   examId: string
-  onRefresh: () => void
+  onRefresh: (newValue: string) => void
 }
 const CreateOrUpdateSection = (props: CreateOrUpdateParentSectionProps) => {
   const { id = undefined, examId, onRefresh } = props
@@ -37,7 +37,7 @@ const CreateOrUpdateSection = (props: CreateOrUpdateParentSectionProps) => {
         handleClose()
         toast.success('Tạo session thành công')
         setTimeout(() => {
-          onRefresh()
+          onRefresh(created)
         }, 1000)
       } else {
         toast.error('Lỗi, hãy tạo lại')
@@ -47,18 +47,11 @@ const CreateOrUpdateSection = (props: CreateOrUpdateParentSectionProps) => {
   return (
     <div>
       <Button
-        variant="outlined"
-        color={!id ? 'primary' : 'warning'}
+        color={!id ? 'inherit' : 'warning'}
         startIcon={!id ? <AddCircleIcon /> : <EditIcon />}
         onClick={handleClickOpen}
         sx={{
           fontSize: '16px',
-          fontWeight: 'bold',
-          '&:hover': {
-            backgroundColor: !id
-              ? 'rgba(0, 0, 255, 0.7)'
-              : 'rgba(255, 165, 0, 0.7)',
-          },
         }}
       >
         {!id ? 'Tạo mới session' : 'Cập nhật'}

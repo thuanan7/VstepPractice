@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from 'react'
-import { Box, Tabs, Tab, IconButton, Typography } from '@mui/material'
+import { Box, Tabs, Tab } from '@mui/material'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { sectionPartRequest } from '@/app/api'
 import { ISessionPart } from '@/features/exam/type'
-import ArrowBackIcon from '@mui/icons-material/ArrowBack'
-import CreateOrUpdateSection from './components/section-part/CreateOrUpdateSection'
-import RemoveSession from './components/section-part/RemoveSession'
+import { manageExam } from '@/features/exam/examSlice'
+
+import { useDispatch } from 'react-redux'
+import SessionManagement from './components/section-part'
 const ExamQuestionManagement: React.FC = () => {
+  const dispatch = useDispatch()
   const navigate = useNavigate()
   const { id } = useParams<{ id: string }>()
   const [sectionParts, setSectionParts] = useState<ISessionPart[] | undefined>(
@@ -33,7 +35,7 @@ const ExamQuestionManagement: React.FC = () => {
         ? sectionParts.findIndex((x) => `${x.id}` === sTab)
         : -1
       if (findIndex === -1) {
-        setSearchParams({ tab: `${sectionParts[0].id}` })
+        setSearchParams({ session: `${sectionParts[0].id}` })
       } else {
         setSession(sectionParts[findIndex])
       }
@@ -44,26 +46,27 @@ const ExamQuestionManagement: React.FC = () => {
       parseInt(`${id}`),
     )
     if (response && response.exam && response.sessions.length > 0) {
-      setSectionParts(response.sessions)
+      const { exam, sessions } = response
+      dispatch(manageExam(exam))
+      setSectionParts(sessions)
       if (!sTab) {
         // @ts-ignore
-        handleTabChange({}, `${response.sessions[0].id}`)
+        handleTabChange({}, `${sessions[0].id}`)
       }
     } else {
       navigate('/404')
     }
   }
-  const handleBack = () => {
-    navigate('/admin/exams', { replace: true })
-  }
-  const handleRefresh = () => {
-    navigate(0, { replace: true })
-  }
   if (!id) return <div>Error</div>
   if (!sectionParts || !sTab) return <div>Waiting</div>
   return (
     <Box
-      sx={{ p: 3, display: 'flex', flexDirection: 'column', height: '100vh' }}
+      sx={{
+        p: 3,
+        display: 'flex',
+        flexDirection: 'column',
+        height: 'calc(100vh - 170px)',
+      }}
     >
       <Box
         display="flex"
@@ -71,9 +74,6 @@ const ExamQuestionManagement: React.FC = () => {
         justifyContent="space-between"
         gap={2}
       >
-        <IconButton onClick={handleBack} sx={{ color: 'primary.main' }}>
-          <ArrowBackIcon />
-        </IconButton>
         <Box sx={{ flex: 1, overflowX: 'auto' }}>
           <Tabs
             value={section?.id}
@@ -95,22 +95,23 @@ const ExamQuestionManagement: React.FC = () => {
             ))}
           </Tabs>
         </Box>
-        <CreateOrUpdateSection examId={id} onRefresh={handleRefresh} />
       </Box>
 
-      <Box sx={{ mt: 2 }}>
-        <Box sx={{ display: 'flex', flexDirection: 'row' }} gap={2}>
-          <Box flex={1}>
-            <Typography>{section?.content}</Typography>
-            <Typography>{section?.instructions}</Typography>
-          </Box>
-          <RemoveSession id={section?.id || 0} onRefresh={handleRefresh} />
-          <CreateOrUpdateSection
-            examId={id}
-            id={section?.id}
-            onRefresh={handleRefresh}
-          />
-        </Box>
+      <Box sx={{ mt: 2, height: '100%' }}>
+        {section && <SessionManagement sessionId={section?.id} />}
+
+        {/*<Box sx={{ display: 'flex', flexDirection: 'row' }} gap={2}>*/}
+        {/*  <Box flex={1}>*/}
+        {/*    <Typography>{section?.content}</Typography>*/}
+        {/*    <Typography>{section?.instructions}</Typography>*/}
+        {/*  </Box>*/}
+        {/*  <RemoveSession id={section?.id || 0} onRefresh={handleRefresh} />*/}
+        {/*  <CreateOrUpdateSection*/}
+        {/*    examId={id}*/}
+        {/*    id={section?.id}*/}
+        {/*    onRefresh={handleRefresh}*/}
+        {/*  />*/}
+        {/*</Box>*/}
 
         {/*<PartsManagement parentId={section?.id} />*/}
         {/*<SectionPartsManagement />*/}
@@ -119,11 +120,6 @@ const ExamQuestionManagement: React.FC = () => {
         {/*{activeTab === '/questions/:sectionId' && (*/}
         {/*  <QuestionsManagement sectionId={0} />*/}
         {/*)}*/}
-
-        {/*{activeTab === 'listening' && <ListeningSection />}*/}
-        {/*{activeTab === 'reading' && <div>Reading Content</div>}*/}
-        {/*{activeTab === 'writing' && <div>Writing Content</div>}*/}
-        {/*{activeTab === 'speaking' && <div>Speaking Content</div>}*/}
       </Box>
     </Box>
   )

@@ -104,7 +104,11 @@ const createSectionPart = async (req, res) => {
     })
     res
       .status(201)
-      .json({ success: true, message: 'Create Session Part SuccessFully' })
+      .json({
+        success: true,
+        data: sectionPart.id,
+        message: 'Create Session Part SuccessFully',
+      })
   } catch (err) {
     res
       .status(500)
