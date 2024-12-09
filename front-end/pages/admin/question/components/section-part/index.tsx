@@ -106,7 +106,7 @@ const SessionManagement = (props: SessionManagementProps) => {
         {value === 0 ? (
           <SessionGeneral session={session} examId={examId} />
         ) : (
-          <PartContent />
+          <PartContent type={session.sectionType} />
         )}
       </Box>
     </Box>

@@ -110,7 +110,7 @@
 //
 // export default SectionPartsManager
 
-const ListeningSection = () => {
-  return <div>This is listening</div>
+const ReadingSection = () => {
+  return <div>This is reading</div>
 }
-export default ListeningSection
+export default ReadingSection

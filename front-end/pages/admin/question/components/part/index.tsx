@@ -39,8 +39,28 @@ const PartManagement = (props: PartManagementProps) => {
     const response = await sectionPartRequest.partsBySectionId(section.id)
     if (response && response.length > 0) {
       void setParts(response)
+
+      checkAndSelectPart(response)
     } else {
       setParts([])
+    }
+  }
+  const checkAndSelectPart = (response: ISessionPart[]) => {
+    const searchParams = new URLSearchParams(location.search)
+    const partId = searchParams.get('part')
+    if (partId) {
+      const partExists = response.some((part) => part.id === parseInt(partId))
+      if (partExists) {
+        const selectedPart = response.find(
+          (part) => part.id === parseInt(partId),
+        )
+        if (selectedPart) {
+          setSelectedPart(selectedPart.id)
+          onChoose(selectedPart.id)
+        }
+      } else {
+        navigate('/404')
+      }
     }
   }
 
