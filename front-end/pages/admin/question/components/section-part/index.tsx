@@ -49,7 +49,7 @@ const SessionManagement = (props: SessionManagementProps) => {
         sx={{
           borderRight: 1,
           borderColor: 'divider',
-          width: 150,
+          width: 200,
         }}
       >
         <Tabs

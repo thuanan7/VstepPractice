@@ -4,6 +4,8 @@ import { ISessionPart } from '@/features/exam/type.ts'
 import { sectionPartRequest } from '@/app/api'
 import { toast } from 'react-hot-toast'
 import { Box, Button, TextField } from '@mui/material'
+import ButtonUpdatePart from '@/pages/admin/question/components/part/ButtonUpdatePart.tsx'
+import ButtonRemovePart from '@/pages/admin/question/components/part/ButtonRemovePart.tsx'
 interface WithPartProps {
   part: ISessionPart | null
 }
@@ -11,13 +13,14 @@ interface WithPartProps {
 function withBasePartContent<P extends object>(
   WrappedComponent: React.ComponentType<P & WithPartProps>,
   title: string | undefined = 'đoạn văn',
+  countRow: number | undefined = 4,
 ) {
   return (props: P) => {
     const navigate = useNavigate()
     const [part, setPart] = useState<ISessionPart | null>(null)
     const [newContent, setNewContent] = useState<string>('') // Dùng để lưu nội dung người dùng nhập
     const [loading, setLoading] = useState(false)
-    const [searchParams] = useSearchParams()
+    const [searchParams, setSearchParams] = useSearchParams()
     const partId = searchParams.get('part')
     useEffect(() => {
       if (!partId) {
@@ -79,21 +82,44 @@ function withBasePartContent<P extends object>(
       }
     }
 
-    if (loading) {
+    if (loading || !part) {
       return <div>Loading...</div>
     }
     return (
-      <Box p={2}>
+      <Box p={2} position={'relative'}>
         <TextField
           fullWidth
-          label={title}
+          label={title.charAt(0).toUpperCase() + title.slice(1)}
           variant="outlined"
           multiline
           value={newContent}
-          onChange={handleContentChange} // Cập nhật nội dung khi người dùng thay đổi
-          rows={4}
+          onChange={handleContentChange}
+          rows={countRow}
         />
         <Box
+          display={'flex'}
+          justifyContent={'flex-end'}
+          top={0}
+          gap={2}
+          right={0}
+          width={'100%'}
+          position={'absolute'}
+        >
+          <ButtonUpdatePart part={part} />
+          <ButtonRemovePart
+            id={part.id}
+            onRefresh={() => {
+              const currentParams = new URLSearchParams(searchParams)
+              currentParams.delete('part')
+              setSearchParams(currentParams)
+              setTimeout(() => {
+                window.location.reload()
+              }, 200)
+            }}
+          />
+        </Box>
+        <Box
+          gap={2}
           mt={2}
           sx={{
             display: 'flex',

@@ -78,6 +78,7 @@ const PartManagement = (props: PartManagementProps) => {
       type: SectionPartTypes.Part,
       sectionType: section.sectionType,
       examId: examId,
+      content: '',
       orderNum: 0,
       parentId: section.id,
     })
@@ -111,6 +112,7 @@ const PartManagement = (props: PartManagementProps) => {
             padding: '8px',
             transition: 'background-color 0.3s',
             width: '100%',
+            marginBottom: '8px',
           }}
         >
           Tạo mới part

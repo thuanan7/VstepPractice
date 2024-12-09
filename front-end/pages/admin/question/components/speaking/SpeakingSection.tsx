@@ -1,6 +1,6 @@
 import withBasePartContent from '../../hoc/withBasePartContent'
 
 const SpeakingSection = () => {
-  return <div>This is speaking</div>
+  return <div></div>
 }
-export default withBasePartContent(SpeakingSection)
+export default withBasePartContent(SpeakingSection, 'yêu cầu', 10)

@@ -21,7 +21,7 @@ const ListeningSection = () => {
   const navigate = useNavigate()
   const [loading, setLoading] = useState(false)
   const [part, setPart] = useState<ISessionPart | null>(null)
-  const [searchParams, setSearchParams] = useSearchParams()
+  const [searchParams] = useSearchParams()
   const [audioFile, setAudioFile] = useState<File | null>(null) // State để lưu file audio mới nếu người dùng tải lên
   const [openConfirmModal, setOpenConfirmModal] = useState(false) // Modal xác nhận thay đổi file
   const [isLoading, setIsLoading] = useState(false)

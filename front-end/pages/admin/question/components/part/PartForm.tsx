@@ -5,7 +5,6 @@ import { forwardRef, useEffect, useImperativeHandle } from 'react'
 export type FormDataPart = {
   title: string
   instructions: string
-  content: string
 }
 interface PartFormProps {
   onClose: () => void
@@ -25,7 +24,6 @@ const PartForm = forwardRef((props: PartFormProps, ref: any) => {
     if (data) {
       setValue('title', data.title)
       setValue('instructions', data.instructions)
-      setValue('content', data.content)
     }
   }, [data, setValue])
   const onSubmitForm = (data: FormDataPart) => {
@@ -62,23 +60,8 @@ const PartForm = forwardRef((props: PartFormProps, ref: any) => {
             variant="outlined"
             multiline
             rows={4}
-            {...register('instructions', {
-              required: 'Instructions are required',
-            })}
             error={!!errors.instructions}
             helperText={errors.instructions ? errors.instructions.message : ''}
-          />
-        </Grid>
-
-        <Grid item xs={12}>
-          <TextField
-            fullWidth
-            label="Nội dung"
-            variant="outlined"
-            multiline
-            rows={4}
-            error={!!errors.content}
-            helperText={errors.content ? errors.content.message : ''}
           />
         </Grid>
       </Grid>

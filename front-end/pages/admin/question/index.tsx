@@ -102,14 +102,6 @@ const ExamQuestionManagement: React.FC = () => {
         {section && id && (
           <SessionManagement session={section} examId={parseInt(id)} />
         )}
-
-        {/*<PartsManagement parentId={section?.id} />*/}
-        {/*<SectionPartsManagement />*/}
-        {/*{activeTab === 'section-parts' && <SectionPartsManagement />}*/}
-        {/*{activeTab === 'parts/:parentId' && <PartsManagement parentId={0} />}*/}
-        {/*{activeTab === '/questions/:sectionId' && (*/}
-        {/*  <QuestionsManagement sectionId={0} />*/}
-        {/*)}*/}
       </Box>
     </Box>
   )
