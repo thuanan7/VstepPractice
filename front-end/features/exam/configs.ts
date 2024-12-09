@@ -5,6 +5,7 @@ export const storePathConfigs = {
 export const sectionPartsPathConfigs = {
   listByType: 'section-parts',
   parts: 'section-parts/section',
+  partById: 'section-parts/part',
 }
 export enum SectionPartType {
   listening = 0,

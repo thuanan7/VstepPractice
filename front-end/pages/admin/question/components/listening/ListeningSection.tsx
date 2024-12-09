@@ -1,116 +1,154 @@
-// import { useState, useEffect } from 'react'
-// import {
-//   Box,
-//   Button,
-//   Typography,
-//   Accordion,
-//   AccordionSummary,
-//   AccordionDetails,
-//   IconButton,
-//   CircularProgress,
-// } from '@mui/material'
-// import { Edit, Delete, ExpandMore } from '@mui/icons-material'
-// import { sectionPartRequest } from '@/app/api'
-// import { SectionPartType } from '@/features/exam/configs'
-// import { Section } from '@/features/exam/type'
-// import CreateOrUpdateSectionPart from './CreateOrUpdateSectionPart'
-//
-// interface SectionPartsManagerProps {
-//   examId: string
-// }
-// const SectionPartsManager = (props: SectionPartsManagerProps) => {
-//   const { examId } = props
-//   const [sectionParts, setSectionParts] = useState<Section[]>([])
-//   const [loading, setLoading] = useState(true)
-//
-//   const fetchSectionParts = async () => {
-//     try {
-//       setLoading(true)
-//       const res = await sectionPartRequest.sectionPartsByType(
-//         examId,
-//         SectionPartType.listening,
-//       )
-//       setSectionParts(res || [])
-//     } catch (error) {
-//       console.error('Error fetching section parts:', error)
-//     } finally {
-//       setLoading(false)
-//     }
-//   }
-//
-//   useEffect(() => {
-//     fetchSectionParts()
-//   }, [])
-//
-//   const handleDelete = (id: number) => {
-//     setSectionParts((prev) => prev.filter((part) => part.id !== id))
-//   }
-//
-//   return (
-//     <Box sx={{ padding: 3 }}>
-//       {loading ? (
-//         <Box
-//           sx={{
-//             display: 'flex',
-//             justifyContent: 'center',
-//             alignItems: 'center',
-//             height: '50vh',
-//           }}
-//         >
-//           <CircularProgress />
-//         </Box>
-//       ) : (
-//         sectionParts.map((part) => (
-//           <Accordion key={part.id}>
-//             <AccordionSummary
-//               expandIcon={<ExpandMore />}
-//               aria-controls={`panel${part.id}-content`}
-//               id={`panel${part.id}-header`}
-//             >
-//               <Typography>{`${part.orderNum}. ${part.instructions}`}</Typography>
-//             </AccordionSummary>
-//             <AccordionDetails>
-//               <Box display="flex" justifyContent="space-between">
-//                 <Box>
-//                   <Button
-//                     variant="outlined"
-//                     size="small"
-//                     onClick={() =>
-//                       alert(`Managing Questions for ${part.title}`)
-//                     }
-//                     sx={{ marginRight: 1 }}
-//                   >
-//                     Manage Questions
-//                   </Button>
-//                 </Box>
-//                 <Box>
-//                   <IconButton
-//                     color="primary"
-//                     // onClick={() => handleOpenDialog(part)}
-//                     sx={{ marginRight: 1 }}
-//                   >
-//                     <Edit />
-//                   </IconButton>
-//                   <IconButton
-//                     color="error"
-//                     onClick={() => handleDelete(part.id)}
-//                   >
-//                     <Delete />
-//                   </IconButton>
-//                 </Box>
-//               </Box>
-//             </AccordionDetails>
-//           </Accordion>
-//         ))
-//       )}
-//       <CreateOrUpdateSectionPart />
-//     </Box>
-//   )
-// }
-//
-// export default SectionPartsManager
+import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useEffect, useRef, useState } from 'react'
+import {
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Button,
+  Box,
+  CircularProgress,
+  Typography,
+} from '@mui/material'
+
+import { sectionPartRequest } from '@/app/api'
+import { ISessionPart } from '@/features/exam/type'
+import { toast } from 'react-hot-toast'
+
+const baseApiUrl = `${import.meta.env.VITE_BASE_URL || ''}/api`
 
 const ListeningSection = () => {
-  return <div>This is listening</div>
+  const navigate = useNavigate()
+  const [loading, setLoading] = useState(false)
+  const [part, setPart] = useState<ISessionPart | null>(null)
+  const [searchParams, setSearchParams] = useSearchParams()
+  const [audioFile, setAudioFile] = useState<File | null>(null) // State để lưu file audio mới nếu người dùng tải lên
+  const [openConfirmModal, setOpenConfirmModal] = useState(false) // Modal xác nhận thay đổi file
+
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const partId = searchParams.get('part')
+  useEffect(() => {
+    if (!partId) {
+      navigate('/404', { replace: true })
+    } else {
+      void fetchPart()
+    }
+  }, [partId, navigate])
+  const handleAudioUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (file) {
+      setAudioFile(file)
+      setOpenConfirmModal(true)
+    }
+  }
+  const handleConfirmUpload = async () => {
+    if (!audioFile) return
+    const formData = new FormData()
+    formData.append('audio', audioFile)
+    console.log('aaaaa', formData)
+    try {
+      // const response = await sectionPartRequest.uploadAudio(formData)
+      // if (response && response.url) {
+      //   // Cập nhật lại URL của file audio mới cho part
+      //   const updatedPart = { ...part, content: response.url }
+      //   setPart(updatedPart)
+      //   toast.success('Tải lên thành công!')
+      // } else {
+      //   toast.error('Lỗi khi tải lên audio')
+      // }
+    } catch (error) {
+      toast.error('Có lỗi xảy ra khi tải lên')
+      console.error(error)
+    } finally {
+      setOpenConfirmModal(false) // Đóng modal xác nhận
+    }
+  }
+  const handleCancelUpload = () => {
+    setOpenConfirmModal(false) // Đóng modal nếu người dùng hủy
+  }
+
+  // Trigger input file khi người dùng nhấn vào nút Upload
+  const handleUploadClick = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click()
+    }
+  }
+
+  const fetchPart = async () => {
+    setLoading(true)
+    try {
+      const res = await sectionPartRequest.getPartById(parseInt(partId!))
+      if (res) {
+        setPart(res)
+      } else {
+        navigate('/404', { replace: true })
+      }
+    } catch (error) {
+      console.error(error)
+      toast.error('Không thể tải thông tin part')
+      navigate('/404', { replace: true })
+    } finally {
+      setLoading(false)
+    }
+  }
+  if (loading) {
+    return <div>Loading...</div>
+  }
+  return (
+    <Box p={2}>
+      {part ? (
+        <>
+          <Box mb={1}>
+            <Typography fontWeight={'bold'} color={'text.secondary'}>
+              Audio
+            </Typography>
+          </Box>
+          <Box
+            display={'flex'}
+            flexDirection={'row'}
+            gap={2}
+            alignItems={'center'}
+          >
+            <audio controls>
+              <source src={`${baseApiUrl}/${part.content}`} type="audio/mp3" />
+              Your browser does not support the audio element.
+            </audio>
+            <div>
+              <Button variant="contained" onClick={handleUploadClick}>
+                Tải lên
+              </Button>
+              <input
+                type="file"
+                accept="audio/*"
+                onChange={handleAudioUpload}
+                ref={fileInputRef}
+                style={{ display: 'none' }}
+              />
+            </div>
+          </Box>
+          <Dialog open={openConfirmModal} onClose={handleCancelUpload}>
+            <DialogTitle>Xác nhận thay đổi file audio</DialogTitle>
+            <DialogContent>
+              <p>Bạn có chắc chắn muốn thay đổi file audio?</p>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleCancelUpload} color="primary">
+                Hủy
+              </Button>
+              <Button
+                onClick={handleConfirmUpload}
+                color="primary"
+                variant="contained"
+              >
+                Đồng ý
+              </Button>
+            </DialogActions>
+          </Dialog>
+        </>
+      ) : (
+        <div>Không tìm thấy thông tin phần này.</div>
+      )}
+    </Box>
+  )
 }
 export default ListeningSection

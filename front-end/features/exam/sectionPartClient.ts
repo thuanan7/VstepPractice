@@ -58,6 +58,17 @@ export default class SectionPartClient extends APIClient {
         return undefined
       })
   }
+  getPartById(id: number, cancelToken?: any) {
+    return super
+      .get(`${sectionPartsPathConfigs.partById}/${id}`, undefined, cancelToken)
+      .then((r) => {
+        if (r?.success && r?.data) {
+          const part = r.data as ISessionPart
+          return part
+        }
+        return undefined
+      })
+  }
 
   createSessionPart(data: IReqPostSessionPart, cancelToken?: any) {
     return super

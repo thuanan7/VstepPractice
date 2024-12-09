@@ -1,10 +1,25 @@
 const { SectionPart, Exam } = require('../../db/models')
+
+const multer = require('multer')
+const fs = require('fs')
+const path = require('path')
 const { typeSections, typeSectionPart } = require('../configs/enums')
-/**
- * Create a new section part for the listening section
- * @param {Object} req - Request object
- * @param {Object} res - Response object
- */
+
+const uploadPath = 'uploads'
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const pathDestination = path.resolve(__dirname, '../uploads/audio')
+    cb(null, pathDestination)
+  },
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname)
+    const filename = `audio_${Date.now()}${ext}`
+    cb(null, filename)
+  },
+})
+
+const upload = multer({ storage })
+
 const createListeningSectionPart = async (req, res) => {
   try {
     const { examId, instructions, audioUrl } = req.body
@@ -252,6 +267,52 @@ const deletePart = async (req, res) => {
   }
 }
 
+const getPartsById = async (req, res) => {
+  try {
+    const { id } = req.params
+    const part = await SectionPart.findByPk(id)
+    if (!part)
+      return res
+        .status(404)
+        .json({ success: false, message: 'Section part không tìm thấy' })
+    res.status(200).json({
+      data: part,
+      success: true,
+      message: 'Lấy thông tin section part thành công',
+    })
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to get part' })
+  }
+}
+
+const updateAudioSectionPart = async (req, res) => {
+  try {
+    const { id } = req.params
+    const { audio } = req.body
+
+    const sectionPart = await SectionPart.findByPk(id)
+    if (!sectionPart)
+      return res
+        .status(404)
+        .json({ success: false, message: 'Section part not found' })
+
+    const newAudioUrl = req.file
+      ? path.join(uploadPath, 'audio', req.file.filename)
+      : audio
+
+    await sectionPart.update({ content: newAudioUrl })
+
+    res.status(200).json({
+      success: true,
+      message: 'Audio updated successfully',
+      data: sectionPart,
+    })
+  } catch (err) {
+    console.error('Error updating audio section part:', err)
+    res.status(500).json({ success: false, message: 'Internal server error' })
+  }
+}
+
 module.exports = {
   createListeningSectionPart,
   deletePart,
@@ -263,4 +324,7 @@ module.exports = {
   createSectionPart,
   getSectionParts,
   getPartsBySection,
+  getPartsById,
+  updateAudioSectionPart,
+  upload,
 }
