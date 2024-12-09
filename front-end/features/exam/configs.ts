@@ -18,10 +18,10 @@ export enum SessionType {
   Speaking = 4,
 }
 export const sessionTypeOptions = [
-  { label: 'Listening', value: SessionType.Listening },
-  { label: 'Reading', value: SessionType.Reading },
-  { label: 'Writing', value: SessionType.Writing },
-  { label: 'Speaking', value: SessionType.Speaking },
+  { label: 'Nghe', value: SessionType.Listening },
+  { label: 'Đọc', value: SessionType.Reading },
+  { label: 'Viết', value: SessionType.Writing },
+  { label: 'Nói', value: SessionType.Speaking },
 ]
 
 export enum SectionPartTypes {

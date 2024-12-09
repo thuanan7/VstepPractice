@@ -8,12 +8,15 @@ import {
   MenuItem,
   Button,
   DialogActions,
+  Typography,
+  Box,
 } from '@mui/material'
 import {
   SessionType,
   SectionPartTypes,
   sessionTypeOptions,
 } from '@/features/exam/configs'
+import { useEffect, forwardRef, useImperativeHandle, useState } from 'react'
 
 export type FormDataSession = {
   title: string
@@ -22,77 +25,112 @@ export type FormDataSession = {
   orderNum: number
   sectionType: SessionType
   type: SectionPartTypes
-  sessionType: number
 }
-const SessionForm = ({
-  onClose,
-  onSubmit,
-}: {
+interface SessionFormProps {
   onClose: () => void
   onSubmit: (data: FormDataSession) => void
-}) => {
+  data?: FormDataSession
+}
+const SessionForm = forwardRef((props: SessionFormProps, ref: any) => {
+  const { onClose, onSubmit, data } = props
   const {
     setValue,
     register,
     handleSubmit,
     control,
     formState: { errors },
+    trigger,
   } = useForm<FormDataSession>()
-
+  const [sectionTypeLabel, setSectionTypeLabel] = useState('')
+  useEffect(() => {
+    if (data) {
+      setValue('title', data.title)
+      setValue('instructions', data.instructions)
+      setValue('content', data.content)
+      setValue('sectionType', data.sectionType as SessionType)
+      setValue('orderNum', data.orderNum)
+      const indexSectionType = sessionTypeOptions.findIndex(
+        (x) => x.value === (data.sectionType as SessionType),
+      )
+      if (indexSectionType !== -1) {
+        setSectionTypeLabel(sessionTypeOptions[indexSectionType].label)
+      }
+    }
+  }, [data, setValue])
   const onSubmitForm = (data: FormDataSession) => {
     onSubmit(data)
   }
+  const triggerSubmit = async () => {
+    const valid = await trigger()
+    if (valid) {
+      void handleSubmit(onSubmitForm)()
+    }
+  }
+
+  useImperativeHandle(ref, () => ({
+    triggerSubmit,
+  }))
+
   return (
     <form onSubmit={handleSubmit(onSubmitForm)} noValidate>
       <Grid container spacing={3}>
         <Grid item xs={12} sm={6}>
           <FormControl fullWidth variant="outlined">
-            <InputLabel>Section Type</InputLabel>
-            <Controller
-              name="sectionType"
-              control={control}
-              rules={{ required: 'Section Type is required' }}
-              render={({ field }) => (
-                <Select
-                  {...field}
-                  label="Section Type"
-                  error={!!errors.sectionType}
-                  onChange={(e) => {
-                    field.onChange(e)
-                    setValue(
-                      'sessionType',
-                      parseInt(`${e.target.value}`) as SessionType,
-                    )
-                  }}
-                >
-                  {sessionTypeOptions.map((option) => (
-                    <MenuItem key={option.value} value={option.value}>
-                      {option.label}
-                    </MenuItem>
-                  ))}
-                </Select>
-              )}
-            />
-            {errors.type && (
-              <p style={{ color: 'red' }}>{errors.type.message}</p>
+            {data ? (
+              <Box>
+                <Typography fontWeight={'bold'} color={'text.secondary'}>
+                  Loai section: {sectionTypeLabel}
+                </Typography>
+              </Box>
+            ) : (
+              <>
+                <InputLabel>Loại session</InputLabel>
+                <Controller
+                  name="sectionType"
+                  control={control}
+                  rules={{ required: 'Section Type is required' }}
+                  render={({ field }) => (
+                    <Select
+                      {...field}
+                      label="Section Type"
+                      error={!!errors.sectionType}
+                      onChange={(e) => {
+                        field.onChange(e)
+                        setValue(
+                          'sectionType',
+                          parseInt(`${e.target.value}`) as SessionType,
+                        )
+                      }}
+                    >
+                      {sessionTypeOptions.map((option) => (
+                        <MenuItem key={option.value} value={option.value}>
+                          {option.label}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  )}
+                />
+                {errors.type && (
+                  <p style={{ color: 'red' }}>{errors.type.message}</p>
+                )}
+              </>
             )}
           </FormControl>
         </Grid>
         <Grid item xs={12}>
           <TextField
             fullWidth
-            label="Title"
+            label="Tiêu đề"
             variant="outlined"
             {...register('title', { required: 'Title is required' })}
             error={!!errors.title}
             helperText={errors.title ? errors.title.message : ''}
           />
         </Grid>
-        {/* Instructions Field */}
         <Grid item xs={12}>
           <TextField
             fullWidth
-            label="Instructions"
+            label="Hướng dẫn"
             variant="outlined"
             multiline
             rows={4}
@@ -107,26 +145,27 @@ const SessionForm = ({
         <Grid item xs={12}>
           <TextField
             fullWidth
-            label="Content"
+            label="Nội dung"
             variant="outlined"
             multiline
             rows={4}
-            {...register('content', { required: 'Content is required' })}
             error={!!errors.content}
             helperText={errors.content ? errors.content.message : ''}
           />
         </Grid>
       </Grid>
-      <DialogActions>
-        <Button onClick={onClose} color="primary">
-          Cancel
-        </Button>
-        <Button type="submit" variant="contained" color="primary">
-          Submit
-        </Button>
-      </DialogActions>
+      {!data && (
+        <DialogActions>
+          <Button onClick={onClose} color="primary">
+            Cancel
+          </Button>
+          <Button type="submit" variant="contained" color="primary">
+            Submit
+          </Button>
+        </DialogActions>
+      )}
     </form>
   )
-}
+})
 
 export default SessionForm

@@ -29,7 +29,7 @@ const CreateOrUpdateSection = (props: CreateOrUpdateParentSectionProps) => {
         instructions: _data.instructions,
         content: _data.content,
         orderNum: 0,
-        sectionType: _data.sessionType,
+        sectionType: _data.sectionType,
         type: SectionPartTypes.Section,
         examId: parseInt(`${examId}`),
       })
@@ -54,10 +54,10 @@ const CreateOrUpdateSection = (props: CreateOrUpdateParentSectionProps) => {
           fontSize: '16px',
         }}
       >
-        {!id ? 'Tạo mới session' : 'Cập nhật'}
+        {!id ? 'Tạo mới section' : 'Cập nhật'}
       </Button>
       <Dialog open={open} fullWidth maxWidth="md">
-        <DialogTitle> {!id ? 'Tạo mới' : 'Cập nhật'} Session</DialogTitle>
+        <DialogTitle> {!id ? 'Tạo mới' : 'Cập nhật'} Section</DialogTitle>
         <DialogContent>
           <SessionForm onClose={handleClose} onSubmit={handleSubmit} />
         </DialogContent>

@@ -196,7 +196,7 @@ const ExamManagement = ({ exam }: { exam: IExam }) => {
           examId={`${exam.id}`}
           onRefresh={(newValue: string) => {
             const currentParams = new URLSearchParams(searchParams)
-            currentParams.set('session', newValue)
+            currentParams.set('section', newValue)
             navigate(
               {
                 pathname: window.location.pathname,

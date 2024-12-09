@@ -16,10 +16,10 @@ const ExamQuestionManagement: React.FC = () => {
   )
   const [section, setSession] = useState<ISessionPart | undefined>(undefined)
   const [searchParams, setSearchParams] = useSearchParams()
-  const sTab = searchParams.get('session')
+  const sTab = searchParams.get('section')
   const handleTabChange = (_: React.SyntheticEvent, newValue: string) => {
     const currentParams = new URLSearchParams(searchParams)
-    currentParams.set('session', newValue)
+    currentParams.set('section', newValue)
     setSearchParams(currentParams)
   }
   useEffect(() => {
@@ -35,7 +35,7 @@ const ExamQuestionManagement: React.FC = () => {
         ? sectionParts.findIndex((x) => `${x.id}` === sTab)
         : -1
       if (findIndex === -1) {
-        setSearchParams({ session: `${sectionParts[0].id}` })
+        setSearchParams({ section: `${sectionParts[0].id}` })
       } else {
         setSession(sectionParts[findIndex])
       }
@@ -99,7 +99,7 @@ const ExamQuestionManagement: React.FC = () => {
 
       <Box sx={{ mt: 2, height: '100%' }}>
         {section && id && (
-          <SessionManagement sessionId={section?.id} examId={parseInt(id)} />
+          <SessionManagement session={section} examId={parseInt(id)} />
         )}
 
         {/*<Box sx={{ display: 'flex', flexDirection: 'row' }} gap={2}>*/}

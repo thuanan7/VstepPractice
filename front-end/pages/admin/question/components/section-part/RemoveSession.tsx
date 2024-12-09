@@ -58,12 +58,8 @@ const RemoveSession: React.FC<RemoveSessionProps> = (
         startIcon={<DeleteIcon />}
         onClick={handleClickOpen}
         disabled={loading}
-        sx={{
-          fontSize: '16px',
-          fontWeight: 'bold',
-        }}
       >
-        Xoá
+        Xoá section
       </Button>
       <Dialog open={open} onClose={handleClose}>
         <DialogTitle>Xoá session</DialogTitle>

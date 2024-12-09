@@ -3,12 +3,13 @@ import { Box, Tab, Tabs } from '@mui/material'
 import { useSearchParams } from 'react-router-dom'
 import PartsManagement from '../part'
 import SessionGeneral from './SessionGeneral'
+import { ISessionPart } from '@/features/exam/type.ts'
 interface SessionManagementProps {
-  sessionId: number
+  session: ISessionPart
   examId: number
 }
 const SessionManagement = (props: SessionManagementProps) => {
-  const { sessionId, examId } = props
+  const { session, examId } = props
   const [value, setValue] = useState<number>(0)
   const [searchParams, setSearchParams] = useSearchParams()
   const tabParam = searchParams.get('tab')
@@ -60,7 +61,7 @@ const SessionManagement = (props: SessionManagementProps) => {
               transition: 'background-color 0.3s ease, color 0.3s ease',
             },
             '& .Mui-selected': {
-              color: 'primary.main',
+              color: 'text.secondary',
             },
             '& .MuiTabs-flexContainer': {
               alignItems: 'flex-start',
@@ -87,7 +88,7 @@ const SessionManagement = (props: SessionManagementProps) => {
         }}
       >
         {value === 1 ? (
-          <SessionGeneral sessionId={sessionId} examId={examId} />
+          <SessionGeneral session={session} examId={examId} />
         ) : (
           <PartsManagement />
         )}
