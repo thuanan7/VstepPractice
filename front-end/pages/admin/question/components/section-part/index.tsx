@@ -27,7 +27,6 @@ const SessionManagement = (props: SessionManagementProps) => {
   const handleChange = (_: React.SyntheticEvent, newValue: number) => {
     const newSearchParams = new URLSearchParams(searchParams)
     newSearchParams.set('tab', String(newValue))
-
     newSearchParams.delete('part')
     setSearchParams(newSearchParams)
     setValue(newValue)
@@ -82,7 +81,7 @@ const SessionManagement = (props: SessionManagementProps) => {
             aria-controls="vertical-tabpanel-0"
           />
           <Tab
-            label="Câu hỏi"
+            label="Quản lý"
             id="vertical-tab-1"
             aria-controls="vertical-tabpanel-1"
           />
