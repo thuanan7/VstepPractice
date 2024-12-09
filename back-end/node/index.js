@@ -32,6 +32,7 @@ app.use(express.json())
 app.use(passport.initialize())
 
 app.use('/swagger', swaggerUi.serve, swaggerUi.setup(swaggerDocs))
+app.use('/api/upload', express.static(path.join(__dirname, 'uploads')))
 app.use('/', require('./routes/rootRouter'))
 app.use('/api/users', require('./routes/authRouter'))
 app.use('/api/exams', require('./routes/examRouter'))
