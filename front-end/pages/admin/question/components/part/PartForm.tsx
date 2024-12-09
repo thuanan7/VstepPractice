@@ -2,16 +2,15 @@ import { useForm } from 'react-hook-form'
 import { Button, DialogActions, Grid, TextField } from '@mui/material'
 import { forwardRef, useEffect, useImperativeHandle } from 'react'
 
-export type FormDataSession = {
+export type FormDataPart = {
   title: string
   instructions: string
   content: string
-  orderNum: number
 }
 interface PartFormProps {
   onClose: () => void
-  onSubmit: (data: FormDataSession) => void
-  data?: FormDataSession
+  onSubmit: (data: FormDataPart) => void
+  data?: FormDataPart
 }
 const PartForm = forwardRef((props: PartFormProps, ref: any) => {
   const { onClose, onSubmit, data } = props
@@ -21,16 +20,15 @@ const PartForm = forwardRef((props: PartFormProps, ref: any) => {
     handleSubmit,
     formState: { errors },
     trigger,
-  } = useForm<FormDataSession>()
+  } = useForm<FormDataPart>()
   useEffect(() => {
     if (data) {
       setValue('title', data.title)
       setValue('instructions', data.instructions)
       setValue('content', data.content)
-      setValue('orderNum', data.orderNum)
     }
   }, [data, setValue])
-  const onSubmitForm = (data: FormDataSession) => {
+  const onSubmitForm = (data: FormDataPart) => {
     onSubmit(data)
   }
   const triggerSubmit = async () => {

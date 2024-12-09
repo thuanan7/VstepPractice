@@ -20,6 +20,7 @@ const ExamQuestionManagement: React.FC = () => {
   const handleTabChange = (_: React.SyntheticEvent, newValue: string) => {
     const currentParams = new URLSearchParams(searchParams)
     currentParams.set('section', newValue)
+    currentParams.delete('part')
     setSearchParams(currentParams)
   }
   useEffect(() => {

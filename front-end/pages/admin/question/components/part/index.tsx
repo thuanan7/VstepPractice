@@ -12,24 +12,31 @@ import {
 import { sectionPartRequest } from '@/app/api'
 import { ISessionPart } from '@/features/exam/type'
 import AddCircleIcon from '@mui/icons-material/AddCircle'
-import PartForm from '@/pages/admin/question/components/part/PartForm.tsx'
-
+import PartForm, {
+  FormDataPart,
+} from '@/pages/admin/question/components/part/PartForm.tsx'
+import { SectionPartTypes } from '@/features/exam/configs.ts'
+import { toast } from 'react-hot-toast'
+import { useNavigate } from 'react-router-dom'
 interface PartManagementProps {
   examId: number
-  sectionId: number
+  onChoose: (id: number) => void
+  section: ISessionPart
 }
 
 const PartManagement = (props: PartManagementProps) => {
-  const { sectionId } = props
+  const { section, examId, onChoose } = props
+  const navigate = useNavigate()
   const [open, setOpen] = useState(false)
   const [selectedPart, setSelectedPart] = useState<number | null>(null) // Store which part is selected
   const [parts, setParts] = useState<ISessionPart[]>([])
   useEffect(() => {
+    setSelectedPart(null)
     void fetchParts()
-  }, [sectionId])
+  }, [section.id])
 
   const fetchParts = async () => {
-    const response = await sectionPartRequest.partsBySectionId(sectionId)
+    const response = await sectionPartRequest.partsBySectionId(section.id)
     if (response && response.length > 0) {
       void setParts(response)
     } else {
@@ -39,9 +46,33 @@ const PartManagement = (props: PartManagementProps) => {
 
   const handlePartSelect = (id: number) => {
     setSelectedPart(id)
+    onChoose(id)
   }
 
-  const handleCreatePart = () => {
+  const handleClose = () => {
+    setOpen(false)
+  }
+  const handleCreatePart = async (data: FormDataPart) => {
+    const created = await sectionPartRequest.createSessionPart({
+      ...data,
+      type: SectionPartTypes.Part,
+      sectionType: section.sectionType,
+      examId: examId,
+      orderNum: 0,
+      parentId: section.id,
+    })
+    if (created) {
+      handleClose()
+      toast.success('Tạo part thành công')
+      setTimeout(() => {
+        navigate(0)
+      }, 500)
+    } else {
+      toast.error('Lỗi, hãy tạo lại')
+    }
+  }
+
+  const handleOpenCreatePart = () => {
     setOpen(true)
   }
   return (
@@ -51,7 +82,7 @@ const PartManagement = (props: PartManagementProps) => {
           variant="outlined"
           color="primary"
           startIcon={<AddCircleIcon />}
-          onClick={handleCreatePart}
+          onClick={handleOpenCreatePart}
           sx={{
             border: '2px dashed',
             color: 'text.secondary',
@@ -67,7 +98,7 @@ const PartManagement = (props: PartManagementProps) => {
         <Dialog open={open} fullWidth maxWidth="md">
           <DialogTitle> Tạo mới Part</DialogTitle>
           <DialogContent>
-            <PartForm onClose={() => setOpen(false)} onSubmit={() => {}} />
+            <PartForm onClose={handleClose} onSubmit={handleCreatePart} />
           </DialogContent>
         </Dialog>
         {parts.map((part) => (

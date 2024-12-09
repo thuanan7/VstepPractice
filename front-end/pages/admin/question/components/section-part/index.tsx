@@ -27,8 +27,15 @@ const SessionManagement = (props: SessionManagementProps) => {
   const handleChange = (_: React.SyntheticEvent, newValue: number) => {
     const newSearchParams = new URLSearchParams(searchParams)
     newSearchParams.set('tab', String(newValue))
+
+    newSearchParams.delete('part')
     setSearchParams(newSearchParams)
     setValue(newValue)
+  }
+  const handleChoosePart = (idPart: number) => {
+    const newSearchParams = new URLSearchParams(searchParams)
+    newSearchParams.set('part', String(idPart))
+    setSearchParams(newSearchParams)
   }
 
   return (
@@ -82,7 +89,11 @@ const SessionManagement = (props: SessionManagementProps) => {
         </Tabs>
         <Divider />
         {value === 1 && (
-          <PartsManagement sectionId={session.id} examId={examId} />
+          <PartsManagement
+            section={session}
+            examId={examId}
+            onChoose={handleChoosePart}
+          />
         )}
       </Box>
 

@@ -120,4 +120,6 @@ interface ISessionPartBase {
 export interface ISessionPart extends ISessionPartBase {
   id: number
 }
-export interface IReqPostSessionPart extends ISessionPartBase {}
+export interface IReqPostSessionPart extends ISessionPartBase {
+  parentId?: number
+}
