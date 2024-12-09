@@ -44,20 +44,31 @@ const createListeningSectionPart = async (req, res) => {
 // Get all section parts by id
 const getSectionParts = async (req, res) => {
   try {
-    const sectionParts = await SectionPart.findAll({
-      attributes: [
-        'id',
-        'title',
-        'instructions',
-        'content',
-        'orderNum',
-        'sectionType',
-        'type',
-        'examId',
-      ],
-      where: { examId: req.params.id, parentId: null },
+    const examId = req.params.id
+    const exam = await Exam.findByPk(examId, {
+      attributes: ['id', 'title', 'createdAt', 'description'],
     })
-    res.status(200).json({ success: true, data: sectionParts })
+    if (!exam) {
+      res.status(200).json({ success: false, message: 'Not found your exam' })
+    } else {
+      const sectionParts = await SectionPart.findAll({
+        attributes: [
+          'id',
+          'title',
+          'instructions',
+          'content',
+          'orderNum',
+          'sectionType',
+          'type',
+          'examId',
+        ],
+        where: { examId: req.params.id, parentId: null },
+        order: [['orderNum', 'ASC']],
+      })
+      res
+        .status(200)
+        .json({ success: true, data: { exam, sessions: sectionParts } })
+    }
   } catch (err) {
     res
       .status(500)

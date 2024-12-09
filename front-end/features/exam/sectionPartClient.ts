@@ -1,6 +1,7 @@
 import APIClient, { paramsToUrl } from '@/app/api/axios/AxiosClient'
 import { sectionPartsPathConfigs } from './configs'
 import {
+  IExam,
   IReqPostSessionPart,
   ISessionPart,
   Section,
@@ -30,8 +31,12 @@ export default class SectionPartClient extends APIClient {
         cancelToken,
       )
       .then((r) => {
-        if (r?.success) {
-          return r?.data as ISessionPart[]
+        if (r?.success && r?.data) {
+          const { exam, sessions } = r.data as {
+            exam: IExam
+            sessions: ISessionPart[]
+          }
+          return { exam, sessions }
         }
         return undefined
       })

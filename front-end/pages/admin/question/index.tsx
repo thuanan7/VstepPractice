@@ -25,7 +25,6 @@ const ExamQuestionManagement: React.FC = () => {
       void fetchSectionParts()
     } else {
       navigate('admin/exams')
-      //
     }
   }, [id])
   useEffect(() => {
@@ -44,13 +43,14 @@ const ExamQuestionManagement: React.FC = () => {
     const response = await sectionPartRequest.sectionPartsById(
       parseInt(`${id}`),
     )
-    if (response && response.length > 0) {
-      setSectionParts(response)
+    if (response && response.exam && response.sessions.length > 0) {
+      setSectionParts(response.sessions)
       if (!sTab) {
         // @ts-ignore
-        handleTabChange({}, `${response[0].id}`)
+        handleTabChange({}, `${response.sessions[0].id}`)
       }
     } else {
+      navigate('/404')
     }
   }
   const handleBack = () => {

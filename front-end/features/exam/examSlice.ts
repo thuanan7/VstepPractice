@@ -1,17 +1,19 @@
-import { createSlice } from '@reduxjs/toolkit';
-import { RootState } from '@/app/store';
-export interface IAuth {
-    isLoading: boolean;
-    errorMsg?: string;
-    accessToken?: string;
+import { createSlice, PayloadAction } from '@reduxjs/toolkit'
+import { IExam } from './type'
+export interface IAdminExam {
+  exam?: IExam
 }
-const initialState: IAuth = { isLoading: false };
-export const examSlice = createSlice({
-    name: 'auth',
-    initialState,
-    reducers: {
+const initialState: IAdminExam = { exam: undefined }
+export const ExamAdminSlice = createSlice({
+  name: 'examAdmin',
+  initialState,
+  reducers: {
+    manage: (state, action: PayloadAction<IExam>) => {
+      if (state.exam && state.exam.id === action.payload.id) {
+        state.exam = action.payload
+      }
     },
-});
-export const selectAuth = (state: RootState) => state.auth || { isLoading: false };
-export const selectIsAuthenticated = (state: RootState) => state?.auth?.accessToken && state?.auth?.accessToken !== '';
-export const authReducer = examSlice.reducer;
+  },
+})
+export const { manage } = ExamAdminSlice.actions
+export const examAdminReducer = ExamAdminSlice.reducer
