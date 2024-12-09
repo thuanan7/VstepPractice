@@ -98,7 +98,9 @@ const ExamQuestionManagement: React.FC = () => {
       </Box>
 
       <Box sx={{ mt: 2, height: '100%' }}>
-        {section && <SessionManagement sessionId={section?.id} />}
+        {section && id && (
+          <SessionManagement sessionId={section?.id} examId={parseInt(id)} />
+        )}
 
         {/*<Box sx={{ display: 'flex', flexDirection: 'row' }} gap={2}>*/}
         {/*  <Box flex={1}>*/}

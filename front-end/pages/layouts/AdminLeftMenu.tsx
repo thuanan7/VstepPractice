@@ -199,8 +199,8 @@ const ExamManagement = ({ exam }: { exam: IExam }) => {
             currentParams.set('session', newValue)
             navigate(
               {
-                pathname: window.location.pathname, // Giữ nguyên đường dẫn hiện tại
-                search: currentParams.toString(), // Thêm các query params mới vào URL
+                pathname: window.location.pathname,
+                search: currentParams.toString(),
               },
               { replace: true },
             )

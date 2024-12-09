@@ -1,11 +1,19 @@
 import { Box } from '@mui/material'
 import RemoveSession from './RemoveSession'
+import { useNavigate } from 'react-router-dom'
 
 interface SessionGeneralProps {
   sessionId: number
+  examId: number
 }
 const SessionGeneral = (props: SessionGeneralProps) => {
-  const { sessionId } = props
+  const { sessionId, examId } = props
+
+  const navigate = useNavigate()
+  const handleRefreshAfterRemove = () => {
+    navigate(`/admin/questions/${examId}`)
+    window.location.reload()
+  }
   return (
     <Box
       flex={1}
@@ -17,7 +25,7 @@ const SessionGeneral = (props: SessionGeneralProps) => {
     >
       <Box flex={1}>aaaa</Box>
       <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-        <RemoveSession id={sessionId} onRefresh={() => {}} />
+        <RemoveSession id={sessionId} onRefresh={handleRefreshAfterRemove} />
       </Box>
     </Box>
   )

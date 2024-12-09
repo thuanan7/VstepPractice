@@ -5,9 +5,10 @@ import PartsManagement from '../part'
 import SessionGeneral from './SessionGeneral'
 interface SessionManagementProps {
   sessionId: number
+  examId: number
 }
 const SessionManagement = (props: SessionManagementProps) => {
-  const { sessionId } = props
+  const { sessionId, examId } = props
   const [value, setValue] = useState<number>(0)
   const [searchParams, setSearchParams] = useSearchParams()
   const tabParam = searchParams.get('tab')
@@ -86,7 +87,7 @@ const SessionManagement = (props: SessionManagementProps) => {
         }}
       >
         {value === 1 ? (
-          <SessionGeneral sessionId={sessionId} />
+          <SessionGeneral sessionId={sessionId} examId={examId} />
         ) : (
           <PartsManagement />
         )}
