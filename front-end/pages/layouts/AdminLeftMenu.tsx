@@ -129,7 +129,7 @@ const HomeLeftMenu = () => {
 
 const ExamManagement = ({ exam }: { exam: IExam }) => {
   const firstLetter = exam.title.charAt(0).toUpperCase()
-  const [searchParams, setSearchParams] = useSearchParams()
+  const [searchParams] = useSearchParams()
 
   const dispatch = useDispatch()
   const navigate = useNavigate()
