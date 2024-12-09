@@ -230,6 +230,59 @@ export default class AxiosClient {
       })
   }
 
+  putFormData(url: string, data: any, cancelToken?: CancelToken | undefined) {
+    const options_ = {
+      method: 'PUT',
+      url: `${this.baseUrl}/${url}`,
+      headers: {
+        Accept: 'application/json',
+      },
+      cancelToken: cancelToken,
+    } as AxiosRequestConfig
+
+    if (data instanceof FormData) {
+      options_.headers['Content-Type'] = 'multipart/form-data'
+      options_.data = data
+    } else if (data !== null) {
+      options_.data = JSON.stringify(data)
+      options_.headers['Content-Type'] = 'application/json'
+    }
+
+    return this.instance
+      .request(options_)
+      .catch((_error: any) => {
+        return _error
+      })
+      .then((response: AxiosResponse) => {
+        const status = response.status
+        const _headers: { [key: string]: any } = {}
+        if (response.headers && typeof response.headers === 'object') {
+          for (const k in response.headers) {
+            if (Object.prototype.hasOwnProperty.call(response.headers, k)) {
+              _headers[k] = response.headers[k]
+            }
+          }
+        }
+
+        if (status === 200) return ApiOutputModel.fromJS(response)
+        else if (status !== 200 && status !== 204) {
+          const _responseText =
+            response?.data?.error?.message ||
+            (response as any)?.response?.data?.message
+          const errorResponse: ApiOutputModel = {
+            success: false,
+            message: _responseText,
+            init: function (): void {
+              throw new Error('Function not implemented.')
+            },
+          }
+          return ApiOutputModel.fromJS({ data: errorResponse })
+        }
+
+        return Promise.resolve(null)
+      })
+  }
+
   delete(url: string, data: any, cancelToken?: CancelToken | undefined) {
     const date = new Date()
     const timezoneOffset = date.getTimezoneOffset()

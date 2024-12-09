@@ -7,7 +7,6 @@ import {
   DialogTitle,
   Button,
   Box,
-  CircularProgress,
   Typography,
 } from '@mui/material'
 
@@ -45,9 +44,8 @@ const ListeningSection = () => {
     if (!audioFile) return
     const formData = new FormData()
     formData.append('audio', audioFile)
-    console.log('aaaaa', formData)
     try {
-      // const response = await sectionPartRequest.uploadAudio(formData)
+      const response = await sectionPartRequest.uploadAudio(partId, formData)
       // if (response && response.url) {
       //   // Cập nhật lại URL của file audio mới cho part
       //   const updatedPart = { ...part, content: response.url }

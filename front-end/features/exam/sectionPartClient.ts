@@ -93,6 +93,21 @@ export default class SectionPartClient extends APIClient {
         }
       })
   }
+  uploadAudio(id: string, data: any, cancelToken?: any) {
+    return super
+      .putFormData(
+        `${sectionPartsPathConfigs.partById}/${id}/audio`,
+        data,
+        cancelToken,
+      )
+      .then((r) => {
+        if (r?.success) {
+          return `${r.data}`
+        } else {
+          return undefined
+        }
+      })
+  }
   deleteSessionPart(id: number, cancelToken?: any) {
     return super
       .delete(
