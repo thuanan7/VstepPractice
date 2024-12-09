@@ -58,7 +58,7 @@ const ExamQuestionManagement: React.FC = () => {
     }
   }
   if (!id) return <div>Error</div>
-  if (!sectionParts || !sTab) return <div>Waiting</div>
+  if (!sectionParts || !sTab) return <div>Loading ...</div>
   return (
     <Box
       sx={{

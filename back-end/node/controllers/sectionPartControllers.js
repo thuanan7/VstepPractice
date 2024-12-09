@@ -102,13 +102,11 @@ const createSectionPart = async (req, res) => {
       examId,
       parentId,
     })
-    res
-      .status(201)
-      .json({
-        success: true,
-        data: sectionPart.id,
-        message: 'Create Session Part SuccessFully',
-      })
+    res.status(201).json({
+      success: true,
+      data: sectionPart.id,
+      message: 'Create Session Part SuccessFully',
+    })
   } catch (err) {
     res
       .status(500)
@@ -120,8 +118,7 @@ const createSectionPart = async (req, res) => {
 const updateSectionPart = async (req, res) => {
   try {
     const { id } = req.params
-    const { title, instructions, content, orderNum, type, examId, parentId } =
-      req.body
+    const { title, instructions, content, type, examId, parentId } = req.body
     const sectionPart = await SectionPart.findByPk(id)
     if (!sectionPart)
       return res.status(404).json({ error: 'Section part not found' })
@@ -129,14 +126,15 @@ const updateSectionPart = async (req, res) => {
       title,
       instructions,
       content,
-      orderNum,
       type,
       examId,
       parentId,
     })
-    res.status(200).json(sectionPart)
+    res.status(200).json({ success: true, data: sectionPart })
   } catch (err) {
-    res.status(500).json({ error: 'Failed to update section part' })
+    res
+      .status(500)
+      .json({ success: false, message: 'Failed to update section part' })
   }
 }
 
