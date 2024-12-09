@@ -13,6 +13,7 @@ import {
 import { sectionPartRequest } from '@/app/api'
 import { ISessionPart } from '@/features/exam/type'
 import { toast } from 'react-hot-toast'
+import LoadingSpinner from './LoadingSpinner'
 
 const baseApiUrl = `${import.meta.env.VITE_BASE_URL || ''}/api`
 
@@ -23,7 +24,7 @@ const ListeningSection = () => {
   const [searchParams, setSearchParams] = useSearchParams()
   const [audioFile, setAudioFile] = useState<File | null>(null) // State để lưu file audio mới nếu người dùng tải lên
   const [openConfirmModal, setOpenConfirmModal] = useState(false) // Modal xác nhận thay đổi file
-
+  const [isLoading, setIsLoading] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const partId = searchParams.get('part')
   useEffect(() => {
@@ -44,28 +45,31 @@ const ListeningSection = () => {
     if (!audioFile) return
     const formData = new FormData()
     formData.append('audio', audioFile)
+    setIsLoading(true)
     try {
-      const response = await sectionPartRequest.uploadAudio(partId, formData)
-      // if (response && response.url) {
-      //   // Cập nhật lại URL của file audio mới cho part
-      //   const updatedPart = { ...part, content: response.url }
-      //   setPart(updatedPart)
-      //   toast.success('Tải lên thành công!')
-      // } else {
-      //   toast.error('Lỗi khi tải lên audio')
-      // }
+      const response = await sectionPartRequest.uploadAudio(
+        `${partId}`,
+        formData,
+      )
+      if (response) {
+        toast.success('Tải lên thành công!')
+        setTimeout(() => {
+          window.location.reload()
+        }, 500)
+      } else {
+        toast.error('Lỗi khi tải lên audio')
+      }
     } catch (error) {
       toast.error('Có lỗi xảy ra khi tải lên')
       console.error(error)
     } finally {
-      setOpenConfirmModal(false) // Đóng modal xác nhận
+      setIsLoading(false)
+      setOpenConfirmModal(false)
     }
   }
   const handleCancelUpload = () => {
-    setOpenConfirmModal(false) // Đóng modal nếu người dùng hủy
+    setOpenConfirmModal(false)
   }
-
-  // Trigger input file khi người dùng nhấn vào nút Upload
   const handleUploadClick = () => {
     if (fileInputRef.current) {
       fileInputRef.current.click()
@@ -94,6 +98,8 @@ const ListeningSection = () => {
   }
   return (
     <Box p={2}>
+      {isLoading && <LoadingSpinner />}
+
       {part ? (
         <>
           <Box mb={1}>
