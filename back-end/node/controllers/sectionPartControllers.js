@@ -312,7 +312,35 @@ const updateAudioSectionPart = async (req, res) => {
     res.status(500).json({ success: false, message: 'Internal server error' })
   }
 }
+const updateContentSectionPart = async (req, res) => {
+  const { id } = req.params
+  const { content } = req.body
+  if (!content || typeof content !== 'string') {
+    return res
+      .status(400)
+      .json({ success: false, message: 'Content không hợp lệ' })
+  }
 
+  try {
+    const sectionPart = await SectionPart.findByPk(id)
+    if (!sectionPart) {
+      return res
+        .status(404)
+        .json({ success: false, message: 'Không tìm thấy phần này' })
+    }
+
+    sectionPart.content = content
+    await sectionPart.save()
+    return res.status(200).json({
+      success: true,
+      message: 'Cập nhật nội dung phần thành công',
+      data: sectionPart,
+    })
+  } catch (error) {
+    console.error(error)
+    return res.status(500).json({ message: 'Có lỗi xảy ra khi cập nhật' })
+  }
+}
 module.exports = {
   createListeningSectionPart,
   deletePart,
@@ -326,5 +354,6 @@ module.exports = {
   getPartsBySection,
   getPartsById,
   updateAudioSectionPart,
+  updateContentSectionPart,
   upload,
 }

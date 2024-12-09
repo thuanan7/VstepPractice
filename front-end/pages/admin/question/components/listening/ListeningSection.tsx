@@ -86,7 +86,6 @@ const ListeningSection = () => {
         navigate('/404', { replace: true })
       }
     } catch (error) {
-      console.error(error)
       toast.error('Không thể tải thông tin part')
       navigate('/404', { replace: true })
     } finally {

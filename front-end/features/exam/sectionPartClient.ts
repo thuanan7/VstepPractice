@@ -108,6 +108,21 @@ export default class SectionPartClient extends APIClient {
         }
       })
   }
+  updatePartContent(id: string, data: any, cancelToken?: any) {
+    return super
+      .put(
+        `${sectionPartsPathConfigs.partById}/${id}/content`,
+        { content: data },
+        cancelToken,
+      )
+      .then((r) => {
+        if (r?.success) {
+          return `${r.data}`
+        } else {
+          return undefined
+        }
+      })
+  }
   deleteSessionPart(id: number, cancelToken?: any) {
     return super
       .delete(

@@ -1,116 +1,108 @@
-// import { useState, useEffect } from 'react'
-// import {
-//   Box,
-//   Button,
-//   Typography,
-//   Accordion,
-//   AccordionSummary,
-//   AccordionDetails,
-//   IconButton,
-//   CircularProgress,
-// } from '@mui/material'
-// import { Edit, Delete, ExpandMore } from '@mui/icons-material'
-// import { sectionPartRequest } from '@/app/api'
-// import { SectionPartType } from '@/features/exam/configs'
-// import { Section } from '@/features/exam/type'
-// import CreateOrUpdateSectionPart from './CreateOrUpdateSectionPart'
-//
-// interface SectionPartsManagerProps {
-//   examId: string
-// }
-// const SectionPartsManager = (props: SectionPartsManagerProps) => {
-//   const { examId } = props
-//   const [sectionParts, setSectionParts] = useState<Section[]>([])
-//   const [loading, setLoading] = useState(true)
-//
-//   const fetchSectionParts = async () => {
-//     try {
-//       setLoading(true)
-//       const res = await sectionPartRequest.sectionPartsByType(
-//         examId,
-//         SectionPartType.listening,
-//       )
-//       setSectionParts(res || [])
-//     } catch (error) {
-//       console.error('Error fetching section parts:', error)
-//     } finally {
-//       setLoading(false)
-//     }
-//   }
-//
-//   useEffect(() => {
-//     fetchSectionParts()
-//   }, [])
-//
-//   const handleDelete = (id: number) => {
-//     setSectionParts((prev) => prev.filter((part) => part.id !== id))
-//   }
-//
-//   return (
-//     <Box sx={{ padding: 3 }}>
-//       {loading ? (
-//         <Box
-//           sx={{
-//             display: 'flex',
-//             justifyContent: 'center',
-//             alignItems: 'center',
-//             height: '50vh',
-//           }}
-//         >
-//           <CircularProgress />
-//         </Box>
-//       ) : (
-//         sectionParts.map((part) => (
-//           <Accordion key={part.id}>
-//             <AccordionSummary
-//               expandIcon={<ExpandMore />}
-//               aria-controls={`panel${part.id}-content`}
-//               id={`panel${part.id}-header`}
-//             >
-//               <Typography>{`${part.orderNum}. ${part.instructions}`}</Typography>
-//             </AccordionSummary>
-//             <AccordionDetails>
-//               <Box display="flex" justifyContent="space-between">
-//                 <Box>
-//                   <Button
-//                     variant="outlined"
-//                     size="small"
-//                     onClick={() =>
-//                       alert(`Managing Questions for ${part.title}`)
-//                     }
-//                     sx={{ marginRight: 1 }}
-//                   >
-//                     Manage Questions
-//                   </Button>
-//                 </Box>
-//                 <Box>
-//                   <IconButton
-//                     color="primary"
-//                     // onClick={() => handleOpenDialog(part)}
-//                     sx={{ marginRight: 1 }}
-//                   >
-//                     <Edit />
-//                   </IconButton>
-//                   <IconButton
-//                     color="error"
-//                     onClick={() => handleDelete(part.id)}
-//                   >
-//                     <Delete />
-//                   </IconButton>
-//                 </Box>
-//               </Box>
-//             </AccordionDetails>
-//           </Accordion>
-//         ))
-//       )}
-//       <CreateOrUpdateSectionPart />
-//     </Box>
-//   )
-// }
-//
-// export default SectionPartsManager
+import { Box, Button, TextField } from '@mui/material'
+import { useEffect, useState } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
+import { sectionPartRequest } from '@/app/api'
+import { toast } from 'react-hot-toast'
+import { ISessionPart } from '@/features/exam/type'
 
 const ReadingSection = () => {
-  return <div>This is reading</div>
+  const navigate = useNavigate()
+  const [part, setPart] = useState<ISessionPart | null>(null)
+  const [newContent, setNewContent] = useState<string>('') // Dùng để lưu nội dung người dùng nhập
+  const [loading, setLoading] = useState(false)
+  const [searchParams] = useSearchParams()
+  const partId = searchParams.get('part')
+
+  useEffect(() => {
+    if (!partId) {
+      navigate('/404', { replace: true })
+    } else {
+      void fetchPart()
+    }
+  }, [partId, navigate])
+
+  const fetchPart = async () => {
+    setLoading(true)
+    try {
+      const res = await sectionPartRequest.getPartById(parseInt(partId!))
+      if (res) {
+        setPart(res)
+        setNewContent(res.content || '') // Đặt nội dung mặc định từ backend
+      } else {
+        navigate('/404', { replace: true })
+      }
+    } catch (error) {
+      console.error(error)
+      toast.error('Không thể tải thông tin part')
+      navigate('/404', { replace: true })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleContentChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setNewContent(event.target.value)
+  }
+
+  const handleUpdateContent = async () => {
+    if (!newContent.trim()) {
+      toast.error('Nội dung không được để trống!')
+      return
+    }
+    setLoading(true)
+    try {
+      const res = await sectionPartRequest.updatePartContent(
+        partId!,
+        newContent,
+      )
+      if (res) {
+        toast.success('Cập nhật đoạn văn thành công!')
+        setTimeout(() => {
+          window.location.reload()
+        }, 500)
+      } else {
+        toast.error('Cập nhật thất bại, vui lòng thử lại!')
+      }
+    } catch (error) {
+      console.error(error)
+      toast.error('Có lỗi xảy ra khi cập nhật nội dung')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (loading) {
+    return <div>Loading...</div>
+  }
+
+  return (
+    <Box p={2}>
+      <TextField
+        fullWidth
+        label="Nội dung"
+        variant="outlined"
+        multiline
+        value={newContent}
+        onChange={handleContentChange} // Cập nhật nội dung khi người dùng thay đổi
+        rows={4}
+      />
+      <Box
+        mt={2}
+        sx={{
+          display: 'flex',
+          flexDirection: 'row',
+          justifyContent: 'flex-end',
+        }}
+      >
+        <Button
+          variant="contained"
+          onClick={handleUpdateContent} // Gửi yêu cầu cập nhật
+        >
+          Cập nhật đoạn văn
+        </Button>
+      </Box>
+    </Box>
+  )
 }
+
 export default ReadingSection
