@@ -1,15 +1,18 @@
 import { Box } from '@mui/material'
 import { ISessionPart } from '@/features/exam/type'
 import withBasePartContent from '../../hoc/withBasePartContent'
-import QuestionManager from '../question/QuestionManager'
+import QuestionManager from '../question'
+import ManagementWithTitle from '../ManagementWithTitle'
 
 interface IReadingSectionProps {
   part: ISessionPart | null
 }
 const ReadingSection = (props: IReadingSectionProps) => {
   return (
-    <Box p={2}>
-      <QuestionManager />
+    <Box mt={2}>
+      <ManagementWithTitle title={'Câu hỏi'}>
+        <QuestionManager />
+      </ManagementWithTitle>
     </Box>
   )
 }

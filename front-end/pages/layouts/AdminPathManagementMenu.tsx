@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import { RootState } from '@/app/store'
-import { Divider, Tab, Tabs } from '@mui/material'
+import { Box, Divider, Tab, Tabs } from '@mui/material'
 import PartsList from '@/pages/admin/question/components/part'
 import AdminItemActive from './AdminItemActive'
 
@@ -42,7 +42,7 @@ const AdminPathManagementMenu = (props: PathManagementMenuProps) => {
     setSearchParams(newSearchParams)
   }
   return (
-    <>
+    <Box pl={4} pt={1}>
       <AdminItemActive
         level={2}
         firstLetter={firstLetter}
@@ -99,7 +99,7 @@ const AdminPathManagementMenu = (props: PathManagementMenuProps) => {
           />
         )}
       </Tabs>
-    </>
+    </Box>
   )
 }
 export default AdminPathManagementMenu

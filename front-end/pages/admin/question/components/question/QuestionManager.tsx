@@ -12,7 +12,6 @@ import {
   Checkbox,
 } from '@mui/material'
 
-// Định nghĩa kiểu dữ liệu câu hỏi và option
 interface Option {
   id: number
   content: string
@@ -27,7 +26,6 @@ interface Question {
 }
 
 const QuestionManager: React.FC = () => {
-  // Danh sách câu hỏi giả
   const [questions, setQuestions] = useState<Question[]>([
     {
       id: 1,
@@ -184,6 +182,23 @@ const QuestionManager: React.FC = () => {
                 unmountOnExit
               >
                 <Box sx={{ pl: 2, pr: 2 }}>
+                  {/* Field chỉnh sửa điểm */}
+                  <TextField
+                    label="Điểm số"
+                    type="number"
+                    value={question.point}
+                    onChange={(e) =>
+                      setQuestions((prevQuestions) =>
+                        prevQuestions.map((q) =>
+                          q.id === question.id
+                            ? { ...q, point: Number(e.target.value) }
+                            : q,
+                        ),
+                      )
+                    }
+                    fullWidth
+                    margin="normal"
+                  />
                   <TextField
                     label="Câu hỏi"
                     value={question.questionText}
