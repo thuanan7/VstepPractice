@@ -1,7 +1,7 @@
 import { useEffect, useState, forwardRef, useImperativeHandle } from 'react'
 import { List, Box } from '@mui/material'
 import QuestionItem from './QuestionItem'
-import { IQuestion, ISessionPart } from '@/features/exam/type'
+import { IOption, IQuestion, ISessionPart } from '@/features/exam/type'
 import { questionRequest } from '@/app/api'
 import { toast } from 'react-hot-toast'
 
@@ -31,11 +31,25 @@ const QuestionManager = forwardRef<QuestionManagerHandle, QuestionManagerProps>(
         setQuestions([])
       }
     }
+    useImperativeHandle(ref, () => ({
+      addQuestion: async () => {
+        try {
+          const response = await questionRequest.createEmptyQuestion(part.id)
+          if (response) {
+            toast.success('Tạo câu hỏi mới thành công')
+            setQuestions((prevQuestions) => [...prevQuestions, response])
+          } else {
+            toast.error('Tạo câu hỏi mới thất bại')
+          }
+        } catch (e) {
+          console.error('Error adding new question:', e)
+        }
+      },
+    }))
 
     const handleClickQuestion = (questionId: number) => {
       setOpenQuestionId(openQuestionId === questionId ? null : questionId)
     }
-
     const handleRemoveQuestion = async (questionId: number) => {
       try {
         const response = await questionRequest.deleteQuestion(questionId)
@@ -52,12 +66,11 @@ const QuestionManager = forwardRef<QuestionManagerHandle, QuestionManagerProps>(
         toast.error('Đã xảy ra lỗi khi xóa câu hỏi')
       }
     }
-
     const handleAddEmptyOption = async (idQuestion: number) => {
       try {
         const response = await questionRequest.createEmptyOption(idQuestion)
         if (response) {
-          toast.success('Tạo option thành công')
+          toast.success('Tạo câu trả lời thành công')
           setQuestions((prevQuestions) =>
             prevQuestions.map((question) => {
               if (question.id === idQuestion) {
@@ -102,22 +115,31 @@ const QuestionManager = forwardRef<QuestionManagerHandle, QuestionManagerProps>(
         toast.error('Đã xảy ra lỗi khi xóa option')
       }
     }
-    useImperativeHandle(ref, () => ({
-      addQuestion: async () => {
-        try {
-          const response = await questionRequest.createEmptyQuestion(part.id)
-          if (response) {
-            toast.success('Tạo câu hỏi mới thành công')
-            setQuestions((prevQuestions) => [...prevQuestions, response])
-          } else {
-            toast.error('Tạo câu hỏi mới thất bại')
-          }
-        } catch (e) {
-          console.error('Error adding new question:', e)
+    const handleUpdateQuestion = async (newQuestion: IQuestion) => {
+      try {
+        const response = await questionRequest.updateQuestion(newQuestion)
+        if (response) {
+          toast.success('Cập nhật câu hỏi thành công')
+          setQuestions((prevQuestions) =>
+            prevQuestions.map((question) =>
+              question.id === newQuestion.id
+                ? { ...question, ...newQuestion }
+                : question,
+            ),
+          )
+        } else {
+          toast.error('Cập nhật câu hỏi thất bại')
         }
-      },
-    }))
+      } catch (error) {
+        console.error('Error updating question:', error)
+        toast.error('Đã xảy ra lỗi khi cập nhật câu hỏi')
+      }
+    }
 
+    const handleUpdateOptions = async (
+      question: number,
+      options: IOption[],
+    ) => {}
     const renderItem = (question: IQuestion, index: number) => {
       const opening = openQuestionId === question.id
       return (
@@ -129,6 +151,8 @@ const QuestionManager = forwardRef<QuestionManagerHandle, QuestionManagerProps>(
             onRemoveQuestion={handleRemoveQuestion}
             onRemoveOption={handleRemoveOption}
             onAddOption={handleAddEmptyOption}
+            onUpdateQuestion={handleUpdateQuestion}
+            onUpdateOptions={handleUpdateOptions}
           />
         </div>
       )

@@ -54,9 +54,23 @@ export default class QuestionClient extends APIClient {
     })
   }
 
+  updateQuestion(question: IQuestion, cancelToken?: any) {
+    const subParams = getUrlGet(questionPathConfigs.updateQuestion, {
+      questionId: question.id,
+    })
+    return super
+      .put(
+        subParams,
+        { point: question.point, questionText: question.questionText },
+        cancelToken,
+      )
+      .then((r) => {
+        return r?.success || false
+      })
+  }
+
   getQuestions() {}
   createQuestion() {}
-  updateQuestion() {}
 
   getOptions() {}
 

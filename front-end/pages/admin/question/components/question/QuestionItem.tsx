@@ -8,14 +8,18 @@ import {
   TextField,
 } from '@mui/material'
 import OptionList from './OptionList'
-import { IQuestion } from '@/features/exam/type'
+import { IOption, IQuestion } from '@/features/exam/type'
 import AddCircleIcon from '@mui/icons-material/AddCircle'
-import ButtonRemoveQuestion from '@/pages/admin/question/components/question/ButtonRemoveQuestion.tsx'
+import ButtonRemoveQuestion from './ButtonRemoveQuestion'
+import { useEffect, useMemo, useState } from 'react'
+import SaveIcon from '@mui/icons-material/Save'
+import RestoreIcon from '@mui/icons-material/Restore'
 
 interface QuestionItemProps {
   opening: boolean
   onOpen: (id: number) => void
-  onUpdateQuestion: () => void
+  onUpdateQuestion: (question: IQuestion) => void
+  onUpdateOptions: (questionId: number, options: IOption[]) => void
   onRemoveQuestion: (id: number) => void
   onAddOption: (id: number) => void
   onRemoveOption: (questionId: number, id: number) => void
@@ -27,10 +31,43 @@ const QuestionItem = (props: QuestionItemProps) => {
     onOpen,
     onRemoveQuestion,
     onRemoveOption,
+    onUpdateQuestion,
+    onUpdateOptions,
     question,
     onAddOption,
   } = props
+  const [currentPoint, setCurrentPoint] = useState<number>(question.point)
+  const [currentQuestionText, setCurrentQuestionText] = useState<string>(
+    question.questionText,
+  )
+  useEffect(() => {
+    if (
+      !opening &&
+      (question.point !== currentPoint ||
+        question.questionText !== currentQuestionText)
+    ) {
+      setCurrentPoint(question.point)
+      setCurrentQuestionText(question.questionText)
+    }
+  }, [opening])
+  const hasChanges = useMemo(() => {
+    return (
+      currentPoint !== question.point ||
+      currentQuestionText !== question.questionText
+    )
+  }, [currentPoint, currentQuestionText])
 
+  const handleReset = () => {
+    setCurrentPoint(question.point)
+    setCurrentQuestionText(question.questionText)
+  }
+  const handleUpdateQuestion = () => {
+    onUpdateQuestion({
+      ...question,
+      point: currentPoint,
+      questionText: currentQuestionText,
+    })
+  }
   return (
     <Box
       sx={{
@@ -42,7 +79,34 @@ const QuestionItem = (props: QuestionItemProps) => {
       }}
     >
       {opening && (
-        <Box position={'absolute'} zIndex={1} right={5} top={5}>
+        <Box
+          position={'absolute'}
+          zIndex={1}
+          right={5}
+          top={5}
+          display={'flex'}
+          gap={2}
+        >
+          {hasChanges && (
+            <>
+              <Button
+                variant="outlined"
+                color="secondary"
+                startIcon={<RestoreIcon />}
+                onClick={handleReset}
+              >
+                Reset
+              </Button>
+              <Button
+                variant="outlined"
+                color="warning"
+                startIcon={<SaveIcon />}
+                onClick={handleUpdateQuestion}
+              >
+                Cập nhật câu hỏi
+              </Button>
+            </>
+          )}
           <ButtonRemoveQuestion
             onRemove={() => onRemoveQuestion(question.id)}
           />
@@ -63,29 +127,31 @@ const QuestionItem = (props: QuestionItemProps) => {
           <TextField
             label="Điểm số"
             type="number"
-            value={question.point}
-            // onChange={(e) =>
-            //   setQuestions((prevQuestions) =>
-            //     prevQuestions.map((q) =>
-            //       q.id === question.id
-            //         ? { ...q, point: Number(e.target.value) }
-            //         : q,
-            //     ),
-            //   )
-            // }
+            value={currentPoint}
+            onChange={(e) => {
+              const value = Math.max(0.25, Number(e.target.value))
+              setCurrentPoint(value)
+            }}
             fullWidth
             margin="normal"
+            inputProps={{
+              step: 0.25,
+              min: 0.25,
+            }}
           />
           <TextField
             label="Câu hỏi"
-            value={question.questionText}
-            // onChange={(e) => handleUpdateQuestion(question.id, e.target.value)}
+            value={currentQuestionText}
+            onChange={(e) => setCurrentQuestionText(e.target.value)}
             fullWidth
             margin="normal"
           />
           <OptionList
             questionId={question.id}
             options={question.options}
+            onUpdateOptions={(options: IOption[]) =>
+              onUpdateOptions(question.id, options)
+            }
             onRemoveOption={onRemoveOption}
           />
           <Button

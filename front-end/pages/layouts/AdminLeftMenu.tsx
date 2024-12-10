@@ -21,7 +21,7 @@ import { clearCredentials } from '@/features/auth/authSlice'
 import { useSelector, useDispatch } from 'react-redux'
 import { RootState } from '@/app/store'
 import { useLocation } from 'react-router-dom'
-import { isMatchWithManageExam } from '@/features/exam/util'
+import { isMatchWithManageExam } from '@/features/exam/utils.ts'
 import { useMemo } from 'react'
 
 const AdminLeftMenu = (props: AdminLayoutProps) => {

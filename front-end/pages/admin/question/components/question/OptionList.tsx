@@ -1,33 +1,43 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import {
   Button,
   Checkbox,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
   FormControlLabel,
   List,
   ListItem,
   TextField,
+  Box,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
 } from '@mui/material'
 import { IOption } from '@/features/exam/type'
+import RestoreIcon from '@mui/icons-material/Restore'
+import SaveIcon from '@mui/icons-material/Save'
+import {
+  areOptionsDifferent,
+  optionsArrayToObject,
+} from '@/features/exam/utils'
 
 interface OptionListProps {
   questionId: number
   options: IOption[]
-  onUpdateOption: (id: number, updatedOption: IOption) => void
+  onUpdateOptions: (options: IOption[]) => void
   onRemoveOption: (questionId: number, id: number) => void
 }
-
 const OptionList = (props: OptionListProps) => {
-  const { options, questionId, onUpdateOption, onRemoveOption } = props
+  const { options, onUpdateOptions, questionId, onRemoveOption } = props
+  const [openDialog, setOpenDialog] = useState(false)
   const [editedOptions, setEditedOptions] = useState<{
     [key: number]: IOption
-  }>({})
-  const [openDialog, setOpenDialog] = useState(false)
+  }>(optionsArrayToObject(options))
   const [selectedOptionId, setSelectedOptionId] = useState<number | null>(null)
+
+  const isEdit = useMemo(() => {
+    return areOptionsDifferent(options, editedOptions)
+  }, [options, editedOptions])
 
   const handleOptionChange = (
     id: number,
@@ -43,18 +53,12 @@ const OptionList = (props: OptionListProps) => {
     }))
   }
 
-  const handleUpdate = (id: number) => {
-    const updatedOption = editedOptions[id]
-    if (updatedOption) {
-      onUpdateOption(id, updatedOption) // Gọi hàm cập nhật
-      setEditedOptions((prev) => {
-        const updated = { ...prev }
-        delete updated[id] // Xóa trạng thái chỉnh sửa sau khi cập nhật
-        return updated
-      })
-    }
+  const handleUpdateOption = () => {
+    onUpdateOptions(Object.values(editedOptions))
   }
-
+  const handleResetOption = () => {
+    setEditedOptions(optionsArrayToObject(options))
+  }
   const handleOpenDialog = (id: number) => {
     setSelectedOptionId(id)
     setOpenDialog(true)
@@ -71,22 +75,48 @@ const OptionList = (props: OptionListProps) => {
     }
     handleCloseDialog()
   }
+
   return (
-    <>
+    <Box position={'relative'}>
+      {isEdit && (
+        <Box position={'absolute'}>
+          <Button
+            variant="outlined"
+            color="secondary"
+            startIcon={<RestoreIcon />}
+            onClick={handleResetOption}
+          >
+            Reset
+          </Button>
+          <Button
+            variant="outlined"
+            color="warning"
+            startIcon={<SaveIcon />}
+            onClick={handleUpdateOption}
+          >
+            Cập nhật trả lời
+          </Button>
+        </Box>
+      )}
       <List>
         {options.map((option) => {
-          const isEdited =
-            editedOptions[option.id]?.content !== option.content ||
-            editedOptions[option.id]?.isCorrect !== option.isCorrect
+          const editedOption = editedOptions[option.id]
 
           return (
-            <ListItem key={option.id} sx={{ alignItems: 'center' }}>
+            <ListItem
+              key={option.id}
+              sx={{
+                alignItems: 'center',
+                border: '1px dashed #ccc',
+                borderRadius: '4px',
+                mb: 2,
+                p: 2,
+              }}
+            >
               <FormControlLabel
                 control={
                   <Checkbox
-                    checked={
-                      editedOptions[option.id]?.isCorrect ?? option.isCorrect
-                    }
+                    checked={editedOption?.isCorrect}
                     onChange={(e) =>
                       handleOptionChange(
                         option.id,
@@ -99,28 +129,14 @@ const OptionList = (props: OptionListProps) => {
                 label=""
               />
 
-              {/* TextField: Chỉnh sửa nội dung option */}
               <TextField
                 label="Trả lời"
-                value={editedOptions[option.id]?.content ?? option.content}
+                value={editedOption?.content ?? option.content}
                 onChange={(e) =>
                   handleOptionChange(option.id, 'content', e.target.value)
                 }
                 fullWidth
               />
-
-              {/* Nút Cập nhật: Chỉ hiển thị nếu có chỉnh sửa */}
-              {/*{isEdited && (*/}
-              {/*  <Button*/}
-              {/*    sx={{ ml: 1 }}*/}
-              {/*    variant="contained"*/}
-              {/*    color="primary"*/}
-              {/*    onClick={() => handleUpdate(option.id)}*/}
-              {/*  >*/}
-              {/*    Cập nhật*/}
-              {/*  </Button>*/}
-              {/*)}*/}
-
               <Button
                 sx={{ ml: 1 }}
                 variant="outlined"
@@ -158,7 +174,7 @@ const OptionList = (props: OptionListProps) => {
           </Button>
         </DialogActions>
       </Dialog>
-    </>
+    </Box>
   )
 }
 

@@ -71,18 +71,41 @@ const createEmptyQuestion = async (req, res) => {
     })
   }
 }
-
-// Update a question
 const updateQuestion = async (req, res) => {
   try {
     const { id } = req.params
-    const { questionText, point, orderNum } = req.body
+    const { questionText, point } = req.body
+    if (!questionText || point === undefined) {
+      return res.status(400).json({
+        success: false,
+        message: 'questionText and point are required',
+      })
+    }
+
     const question = await Question.findByPk(id)
-    if (!question) return res.status(404).json({ error: 'Question not found' })
-    await question.update({ questionText, point, orderNum })
-    res.status(200).json(question)
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to update question' })
+
+    if (!question) {
+      return res.status(404).json({
+        success: false,
+        message: 'Question not found',
+      })
+    }
+
+    question.questionText = questionText
+    question.point = point
+    await question.save()
+
+    res.status(200).json({
+      success: true,
+      message: 'Question updated successfully',
+      data: question,
+    })
+  } catch (error) {
+    console.error('Error updating question:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update question',
+    })
   }
 }
 
