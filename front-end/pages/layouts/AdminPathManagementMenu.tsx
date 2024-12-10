@@ -81,13 +81,13 @@ const AdminPathManagementMenu = (props: PathManagementMenuProps) => {
             width: '100%',
             borderBottom: '1px solid rgba(0,0,0,0.12)',
           }}
-          label="Chung"
+          label="Quản lý section"
           id="vertical-tab-0"
           aria-controls="vertical-tabpanel-0"
         />
         <Tab
           sx={{ width: '100%' }}
-          label="Quản lý"
+          label="Quản lý part"
           id="vertical-tab-1"
           aria-controls="vertical-tabpanel-1"
         />

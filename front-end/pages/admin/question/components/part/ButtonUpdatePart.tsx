@@ -51,7 +51,7 @@ const ButtonUpdatePart = (props: UpdatePartProps) => {
   }
 
   return (
-    <>
+    <Box px={2} py={1}>
       <Button
         variant={'outlined'}
         color={'warning'}
@@ -93,7 +93,7 @@ const ButtonUpdatePart = (props: UpdatePartProps) => {
           </Box>
         </DialogContent>
       </Dialog>
-    </>
+    </Box>
   )
 }
 

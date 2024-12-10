@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import {
+  Box,
   Button,
   Dialog,
   DialogActions,
@@ -49,15 +50,16 @@ const ButtonRemovePart = (props: RemovePartProps) => {
   }
 
   return (
-    <div>
+    <Box px={2} py={1}>
       <Button
         variant="outlined"
         color="error"
         startIcon={<DeleteIcon />}
         onClick={handleClickOpen}
         disabled={loading}
+        fullWidth={true}
       >
-        Xoá
+        Xoá part
       </Button>
       <Dialog open={open} onClose={handleClose}>
         <DialogTitle>Xoá part</DialogTitle>
@@ -75,7 +77,7 @@ const ButtonRemovePart = (props: RemovePartProps) => {
           </Button>
         </DialogActions>
       </Dialog>
-    </div>
+    </Box>
   )
 }
 

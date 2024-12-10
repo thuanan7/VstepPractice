@@ -3,9 +3,12 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { ISessionPart } from '@/features/exam/type.ts'
 import { sectionPartRequest } from '@/app/api'
 import { toast } from 'react-hot-toast'
-import { Box, Button, TextField } from '@mui/material'
-import ButtonUpdatePart from '@/pages/admin/question/components/part/ButtonUpdatePart.tsx'
-import ButtonRemovePart from '@/pages/admin/question/components/part/ButtonRemovePart.tsx'
+import { Box, Button, TextField, Typography, Fab, Menu } from '@mui/material'
+import AddIcon from '@mui/icons-material/Add'
+import ButtonUpdatePart from '../components/part/ButtonUpdatePart'
+import ButtonRemovePart from '../components/part/ButtonRemovePart'
+import ManagementWithTitle from '../components/ManagementWithTitle'
+
 interface WithPartProps {
   part: ISessionPart | null
 }
@@ -18,10 +21,13 @@ function withBasePartContent<P extends object>(
   return (props: P) => {
     const navigate = useNavigate()
     const [part, setPart] = useState<ISessionPart | null>(null)
-    const [newContent, setNewContent] = useState<string>('') // Dùng để lưu nội dung người dùng nhập
+    const [newContent, setNewContent] = useState<string>('')
+    const [isEditing, setIsEditing] = useState<boolean>(false)
     const [loading, setLoading] = useState(false)
     const [searchParams, setSearchParams] = useSearchParams()
     const partId = searchParams.get('part')
+    const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null) // Menu anchor state
+
     useEffect(() => {
       if (!partId) {
         navigate('/404', { replace: true })
@@ -68,6 +74,7 @@ function withBasePartContent<P extends object>(
         )
         if (res) {
           toast.success('Cập nhật đoạn văn thành công!')
+          setIsEditing(false)
           setTimeout(() => {
             window.location.reload()
           }, 500)
@@ -82,55 +89,99 @@ function withBasePartContent<P extends object>(
       }
     }
 
+    const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+      setMenuAnchor(event.currentTarget)
+    }
+
+    const handleMenuClose = () => {
+      setMenuAnchor(null)
+    }
+
+    const handleRemovePart = () => {
+      const currentParams = new URLSearchParams(searchParams)
+      currentParams.delete('part')
+      setSearchParams(currentParams)
+      setTimeout(() => {
+        window.location.reload()
+      }, 200)
+      toast.success('Xóa part thành công!')
+      setMenuAnchor(null)
+    }
+
     if (loading || !part) {
       return <div>Loading...</div>
     }
+
     return (
       <Box p={2} position={'relative'}>
-        <TextField
-          fullWidth
-          label={title.charAt(0).toUpperCase() + title.slice(1)}
-          variant="outlined"
-          multiline
-          value={newContent}
-          onChange={handleContentChange}
-          rows={countRow}
-        />
-        <Box
-          display={'flex'}
-          justifyContent={'flex-end'}
-          top={0}
-          gap={2}
-          right={0}
-          width={'100%'}
-          position={'absolute'}
-        >
-          <ButtonUpdatePart part={part} />
-          <ButtonRemovePart
-            id={part.id}
-            onRefresh={() => {
-              const currentParams = new URLSearchParams(searchParams)
-              currentParams.delete('part')
-              setSearchParams(currentParams)
-              setTimeout(() => {
-                window.location.reload()
-              }, 200)
-            }}
-          />
-        </Box>
-        <Box
-          gap={2}
-          mt={2}
+        <ManagementWithTitle title={title}>
+          {!isEditing ? (
+            <Typography
+              variant="body1"
+              onClick={() => setIsEditing(true)}
+              sx={{
+                cursor: 'pointer',
+                padding: 1,
+                backgroundColor: '#f9f9f9',
+                borderRadius: '4px',
+                border: '2px dashed #3f51b5',
+              }}
+            >
+              {newContent || 'Nhấn để chỉnh sửa...'}
+            </Typography>
+          ) : (
+            <Box>
+              <TextField
+                fullWidth
+                label={title.charAt(0).toUpperCase() + title.slice(1)}
+                variant="outlined"
+                multiline
+                value={newContent}
+                onChange={handleContentChange}
+                rows={countRow}
+              />
+              <Box
+                gap={2}
+                mt={2}
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'row',
+                  justifyContent: 'flex-end',
+                }}
+              >
+                <Button color="primary" onClick={() => setIsEditing(false)}>
+                  Hủy
+                </Button>
+                <Button variant="contained" onClick={handleUpdateContent}>
+                  Cập nhật {title}
+                </Button>
+              </Box>
+            </Box>
+          )}
+        </ManagementWithTitle>
+
+        <Fab
+          color="primary"
+          aria-label="add"
+          onClick={handleMenuOpen}
           sx={{
-            display: 'flex',
-            flexDirection: 'row',
-            justifyContent: 'flex-end',
+            position: 'fixed',
+            bottom: 16,
+            right: 16,
           }}
         >
-          <Button variant="contained" onClick={handleUpdateContent}>
-            Cập nhật {title}
-          </Button>
-        </Box>
+          <AddIcon />
+        </Fab>
+
+        <Menu
+          anchorEl={menuAnchor}
+          open={Boolean(menuAnchor)}
+          onClose={handleMenuClose}
+        >
+          <ButtonUpdatePart part={part} />
+          <ButtonRemovePart id={part.id} onRefresh={handleRemovePart} />
+        </Menu>
+
         <WrappedComponent {...props} part={part} />
       </Box>
     )
