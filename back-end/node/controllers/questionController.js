@@ -1,20 +1,29 @@
-const Question = require('../models/Question')
-const QuestionOption = require('../models/QuestionOption')
-
-// Get all questions for a SectionPart
+const { Question, QuestionOption } = require('../../db/models')
 const getQuestions = async (req, res) => {
   try {
-    const { sectionId } = req.params
+    const { id } = req.params
     const questions = await Question.findAll({
-      where: { sectionId },
-      include: [{ model: QuestionOption, as: 'options' }],
+      attributes: ['id', 'questionText', 'point'],
+      where: { passageId: id },
+      include: [
+        {
+          model: QuestionOption,
+          as: 'options',
+          attributes: ['id', 'content', 'isCorrect'],
+        },
+      ],
     })
-    res.status(200).json(questions)
+    res.status(200).json({
+      success: true,
+      data: questions,
+      message: 'get list question successfully',
+    })
   } catch (err) {
-    res.status(500).json({ error: 'Failed to fetch questions' })
+    res
+      .status(500)
+      .json({ success: false, message: 'Failed to fetch questions' })
   }
 }
-
 // Create a new question
 const createQuestion = async (req, res) => {
   try {

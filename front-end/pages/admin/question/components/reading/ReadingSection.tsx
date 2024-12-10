@@ -8,10 +8,12 @@ interface IReadingSectionProps {
   part: ISessionPart | null
 }
 const ReadingSection = (props: IReadingSectionProps) => {
+  const { part } = props
+  if (!part?.id) return <Box>Loading ...</Box>
   return (
     <Box mt={2}>
       <ManagementWithTitle title={'Câu hỏi'}>
-        <QuestionManager />
+        <QuestionManager part={part} />
       </ManagementWithTitle>
     </Box>
   )

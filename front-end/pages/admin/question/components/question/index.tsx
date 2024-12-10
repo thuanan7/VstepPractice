@@ -1,76 +1,28 @@
-import React, { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { List, Box } from '@mui/material'
 import QuestionItem from './QuestionItem'
+import { IQuestion, ISessionPart } from '@/features/exam/type'
+import { questionRequest } from '@/app/api'
 
-export interface Option {
-  id: number
-  content: string
-  isCorrect: boolean
+interface QuestionManagerProps {
+  part: ISessionPart
 }
-
-export interface Question {
-  id: number
-  questionText: string
-  point: number
-  options: Option[]
-}
-
-const QuestionManager: React.FC = () => {
-  const [questions, setQuestions] = useState<Question[]>([
-    {
-      id: 1,
-      questionText: 'Câu hỏi 1: What is 2 + 2?',
-      point: 1,
-      options: [
-        { id: 1, content: '3', isCorrect: false },
-        { id: 2, content: '4', isCorrect: true },
-        { id: 3, content: '5', isCorrect: false },
-      ],
-    },
-    {
-      id: 2,
-      questionText: 'Câu hỏi 2: What is 3 + 3?',
-      point: 1,
-      options: [
-        { id: 1, content: '5', isCorrect: false },
-        { id: 2, content: '6', isCorrect: true },
-        { id: 3, content: '7', isCorrect: false },
-      ],
-    },
-    {
-      id: 3,
-      questionText: 'Câu hỏi 3: What is the capital of France?',
-      point: 1,
-      options: [
-        { id: 1, content: 'Paris', isCorrect: true },
-        { id: 2, content: 'London', isCorrect: false },
-        { id: 3, content: 'Berlin', isCorrect: false },
-      ],
-    },
-    {
-      id: 4,
-      questionText: 'Câu hỏi 4: What is 5 * 6?',
-      point: 1,
-      options: [
-        { id: 1, content: '30', isCorrect: true },
-        { id: 2, content: '35', isCorrect: false },
-        { id: 3, content: '40', isCorrect: false },
-      ],
-    },
-    {
-      id: 5,
-      questionText: 'Câu hỏi 5: What is the color of the sky?',
-      point: 1,
-      options: [
-        { id: 1, content: 'Blue', isCorrect: true },
-        { id: 2, content: 'Red', isCorrect: false },
-        { id: 3, content: 'Green', isCorrect: false },
-      ],
-    },
-  ])
-
+const QuestionManager = (props: QuestionManagerProps) => {
+  const { part } = props
+  const [questions, setQuestions] = useState<IQuestion[]>([])
   const [openQuestionId, setOpenQuestionId] = useState<number | null>(null)
 
+  useEffect(() => {
+    void fetchQuestions()
+  }, [part.id])
+  const fetchQuestions = async () => {
+    const response = await questionRequest.questionsByPartId(part.id)
+    if (response && response.length > 0) {
+      void setQuestions(response)
+    } else {
+      setQuestions([])
+    }
+  }
   const handleClickQuestion = (questionId: number) => {
     setOpenQuestionId(openQuestionId === questionId ? null : questionId)
   }

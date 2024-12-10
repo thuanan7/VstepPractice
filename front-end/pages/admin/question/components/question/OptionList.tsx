@@ -6,9 +6,9 @@ import {
   ListItem,
   TextField,
 } from '@mui/material'
-import { Option } from './'
+import { IOption } from '@/features/exam/type'
 interface OptionListProps {
-  options: Option[]
+  options: IOption[]
 }
 const OptionList = (props: OptionListProps) => {
   const { options } = props

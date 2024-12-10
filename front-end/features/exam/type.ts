@@ -123,3 +123,16 @@ export interface ISessionPart extends ISessionPartBase {
 export interface IReqPostSessionPart extends ISessionPartBase {
   parentId?: number
 }
+
+export interface IOption {
+  id: number
+  content: string
+  isCorrect: boolean
+}
+
+export interface IQuestion {
+  id: number
+  questionText: string
+  point: number
+  options: IOption[]
+}

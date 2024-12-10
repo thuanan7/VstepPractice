@@ -4,9 +4,11 @@ export const storePathConfigs = {
 
 export const sectionPartsPathConfigs = {
   listByType: 'section-parts',
+  questions: 'section-parts/{partId}/questions',
   parts: 'section-parts/section',
   partById: 'section-parts/part',
 }
+
 export enum SectionPartType {
   listening = 0,
   reading = 1,

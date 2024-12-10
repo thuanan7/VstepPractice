@@ -16,6 +16,7 @@ const {
   updateContentSectionPart,
   upload,
 } = require('../controllers/sectionPartControllers')
+const questionController = require('../controllers/questionController')
 
 const sectionPartRouter = express.Router()
 
@@ -32,6 +33,7 @@ sectionPartRouter.post(
 )
 
 sectionPartRouter.get('/:id', getSectionParts)
+sectionPartRouter.get('/:id/questions', questionController.getQuestions)
 sectionPartRouter.get('/section/:id/parts', getPartsBySection)
 sectionPartRouter.get('/part/:id', getPartsById)
 sectionPartRouter.put(

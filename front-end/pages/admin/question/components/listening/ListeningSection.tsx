@@ -7,13 +7,14 @@ import {
   DialogTitle,
   Button,
   Box,
-  Typography,
 } from '@mui/material'
 
 import { sectionPartRequest } from '@/app/api'
 import { ISessionPart } from '@/features/exam/type'
 import { toast } from 'react-hot-toast'
 import LoadingSpinner from './LoadingSpinner'
+import ManagementWithTitle from '@/pages/admin/question/components/ManagementWithTitle.tsx'
+import QuestionManager from '@/pages/admin/question/components/question'
 
 const baseApiUrl = `${import.meta.env.VITE_BASE_URL || ''}/api`
 
@@ -98,58 +99,62 @@ const ListeningSection = () => {
   return (
     <Box p={2}>
       {isLoading && <LoadingSpinner />}
-
       {part ? (
-        <>
-          <Box mb={1}>
-            <Typography fontWeight={'bold'} color={'text.secondary'}>
-              Audio
-            </Typography>
-          </Box>
-          <Box
-            display={'flex'}
-            flexDirection={'row'}
-            gap={2}
-            alignItems={'center'}
-          >
-            <audio controls>
-              <source src={`${baseApiUrl}/${part.content}`} type="audio/mp3" />
-              Your browser does not support the audio element.
-            </audio>
-            <div>
-              <Button variant="contained" onClick={handleUploadClick}>
-                Tải lên
-              </Button>
-              <input
-                type="file"
-                accept="audio/*"
-                onChange={handleAudioUpload}
-                ref={fileInputRef}
-                style={{ display: 'none' }}
-              />
-            </div>
-          </Box>
-          <Dialog open={openConfirmModal} onClose={handleCancelUpload}>
-            <DialogTitle>Xác nhận thay đổi file audio</DialogTitle>
-            <DialogContent>
-              <p>Bạn có chắc chắn muốn thay đổi file audio?</p>
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={handleCancelUpload} color="primary">
-                Hủy
-              </Button>
-              <Button
-                onClick={handleConfirmUpload}
-                color="primary"
-                variant="contained"
-              >
-                Đồng ý
-              </Button>
-            </DialogActions>
-          </Dialog>
-        </>
+        <Box mb={2}>
+          <ManagementWithTitle title={'Audio'}>
+            <Box
+              display={'flex'}
+              flexDirection={'row'}
+              gap={2}
+              alignItems={'center'}
+            >
+              <audio controls>
+                <source
+                  src={`${baseApiUrl}/${part.content}`}
+                  type="audio/mp3"
+                />
+                Your browser does not support the audio element.
+              </audio>
+              <div>
+                <Button variant="contained" onClick={handleUploadClick}>
+                  Tải lên
+                </Button>
+                <input
+                  type="file"
+                  accept="audio/*"
+                  onChange={handleAudioUpload}
+                  ref={fileInputRef}
+                  style={{ display: 'none' }}
+                />
+              </div>
+            </Box>
+            <Dialog open={openConfirmModal} onClose={handleCancelUpload}>
+              <DialogTitle>Xác nhận thay đổi file audio</DialogTitle>
+              <DialogContent>
+                <p>Bạn có chắc chắn muốn thay đổi file audio?</p>
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={handleCancelUpload} color="primary">
+                  Hủy
+                </Button>
+                <Button
+                  onClick={handleConfirmUpload}
+                  color="primary"
+                  variant="contained"
+                >
+                  Đồng ý
+                </Button>
+              </DialogActions>
+            </Dialog>
+          </ManagementWithTitle>
+        </Box>
       ) : (
         <div>Không tìm thấy thông tin phần này.</div>
+      )}
+      {part && (
+        <ManagementWithTitle title={'Câu hỏi'}>
+          <QuestionManager part={part} />
+        </ManagementWithTitle>
       )}
     </Box>
   )

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Dialog, DialogContent, DialogTitle, Button, Box } from '@mui/material'
 import AddCircleIcon from '@mui/icons-material/AddCircle'
 import EditIcon from '@mui/icons-material/Edit'
-import SessionForm, { FormDataSession } from './SessionForm.tsx'
+import SessionForm, { FormDataSession } from './SessionForm'
 import { sectionPartRequest } from '@/app/api'
 import { SectionPartTypes } from '@/features/exam/configs'
 

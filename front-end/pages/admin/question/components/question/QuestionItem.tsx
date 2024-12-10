@@ -7,15 +7,15 @@ import {
   ListItemText,
   TextField,
 } from '@mui/material'
-import { Question } from './'
 import OptionList from './OptionList'
+import { IQuestion } from '@/features/exam/type'
 
 interface QuestionItemProps {
   opening: boolean
   onOpen: (id: number) => void
   onUpdateQuestion: () => void
   onRemoveQuestion: (id: number) => void
-  question: Question
+  question: IQuestion
 }
 const QuestionItem = (props: QuestionItemProps) => {
   const { opening, onOpen, onRemoveQuestion, question } = props
