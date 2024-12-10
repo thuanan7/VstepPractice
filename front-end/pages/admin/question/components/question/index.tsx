@@ -76,7 +76,32 @@ const QuestionManager = forwardRef<QuestionManagerHandle, QuestionManagerProps>(
         console.error('Error creating empty option:', e)
       }
     }
-
+    const handleRemoveOption = async (questionId: number, optionId: number) => {
+      try {
+        const response = await questionRequest.deleteOption(optionId)
+        if (response) {
+          toast.success('Xoá option thành công')
+          setQuestions((prevQuestions) =>
+            prevQuestions.map((question) => {
+              if (question.id === questionId) {
+                return {
+                  ...question,
+                  options: question.options.filter(
+                    (option) => option.id !== optionId,
+                  ),
+                }
+              }
+              return question
+            }),
+          )
+        } else {
+          toast.error('Xoá option thất bại')
+        }
+      } catch (e) {
+        console.error('Error removing option:', e)
+        toast.error('Đã xảy ra lỗi khi xóa option')
+      }
+    }
     useImperativeHandle(ref, () => ({
       addQuestion: async () => {
         try {
@@ -102,6 +127,7 @@ const QuestionManager = forwardRef<QuestionManagerHandle, QuestionManagerProps>(
             opening={opening}
             onOpen={handleClickQuestion}
             onRemoveQuestion={handleRemoveQuestion}
+            onRemoveOption={handleRemoveOption}
             onAddOption={handleAddEmptyOption}
           />
         </div>

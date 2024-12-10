@@ -38,7 +38,6 @@ const QuestionItem = (props: QuestionItemProps) => {
         borderRadius: '4px',
         marginBottom: '8px',
         paddingBottom: 1,
-
         position: 'relative',
       }}
     >
