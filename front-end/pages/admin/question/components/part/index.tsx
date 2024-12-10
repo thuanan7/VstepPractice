@@ -97,7 +97,7 @@ const PartList = (props: PartManagementProps) => {
     setOpen(true)
   }
   return (
-    <Box>
+    <Box width={'100%'}>
       <List>
         <Button
           variant="outlined"
@@ -145,9 +145,9 @@ const PartList = (props: PartManagementProps) => {
             <ListItemText
               primary={part.title}
               sx={{
-                whiteSpace: 'nowrap', // Prevent line break
-                overflow: 'hidden', // Hide overflow text
-                textOverflow: 'ellipsis', // Show "..." when text overflows
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
               }}
             />
           </ListItemButton>
