@@ -86,7 +86,6 @@ const updateQuestion = async (req, res) => {
   }
 }
 
-// Delete a question
 const deleteQuestion = async (req, res) => {
   try {
     const { id } = req.params
@@ -98,9 +97,39 @@ const deleteQuestion = async (req, res) => {
     res.status(500).json({ error: 'Failed to delete question' })
   }
 }
+
+const removeQuestion = async (req, res) => {
+  try {
+    const { id } = req.params
+    const question = await Question.findByPk(id)
+
+    if (!question) {
+      return res.status(404).json({
+        success: false,
+        message: 'Question not found',
+      })
+    }
+    await QuestionOption.destroy({
+      where: { questionId: id },
+    })
+    await question.destroy()
+
+    res.status(200).json({
+      success: true,
+      message: 'Question and related options removed successfully',
+    })
+  } catch (err) {
+    console.error('Error removing question:', err)
+    res.status(500).json({
+      success: false,
+      message: 'Failed to remove question',
+    })
+  }
+}
 module.exports = {
   deleteQuestion,
   updateQuestion,
   getQuestions,
   createEmptyQuestion,
+  removeQuestion,
 }

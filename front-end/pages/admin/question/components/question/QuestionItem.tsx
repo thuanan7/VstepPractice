@@ -10,6 +10,7 @@ import {
 import OptionList from './OptionList'
 import { IQuestion } from '@/features/exam/type'
 import AddCircleIcon from '@mui/icons-material/AddCircle'
+import ButtonRemoveQuestion from '@/pages/admin/question/components/question/ButtonRemoveQuestion.tsx'
 
 interface QuestionItemProps {
   opening: boolean
@@ -37,8 +38,17 @@ const QuestionItem = (props: QuestionItemProps) => {
         borderRadius: '4px',
         marginBottom: '8px',
         paddingBottom: 1,
+
+        position: 'relative',
       }}
     >
+      {opening && (
+        <Box position={'absolute'} zIndex={1} right={5} top={5}>
+          <ButtonRemoveQuestion
+            onRemove={() => onRemoveQuestion(question.id)}
+          />
+        </Box>
+      )}
       <ListItem
         button
         onClick={() => onOpen(question.id)}
@@ -95,17 +105,8 @@ const QuestionItem = (props: QuestionItemProps) => {
               marginBottom: '8px',
             }}
           >
-            Tạo mới option
+            Tạo mới trả lời
           </Button>
-          <Box display="flex" justifyContent="space-between" mt={2} mb={2}>
-            <Button
-              variant="contained"
-              color="error"
-              onClick={() => onRemoveQuestion(question.id)}
-            >
-              Xóa Câu Hỏi
-            </Button>
-          </Box>
         </Box>
       </Collapse>
       <Divider />

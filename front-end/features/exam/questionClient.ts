@@ -45,11 +45,19 @@ export default class QuestionClient extends APIClient {
       return r?.success || false
     })
   }
+  deleteQuestion(questionId: number, cancelToken?: any) {
+    const subParams = getUrlGet(questionPathConfigs.deleteQuestion, {
+      id: questionId,
+    })
+    return super.delete(subParams, undefined, cancelToken).then((r) => {
+      return r?.success || false
+    })
+  }
 
   getQuestions() {}
   createQuestion() {}
   updateQuestion() {}
-  deleteQuestion() {}
+
   getOptions() {}
 
   createOption() {}

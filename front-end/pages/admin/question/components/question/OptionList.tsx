@@ -75,14 +75,12 @@ const OptionList = (props: OptionListProps) => {
     <>
       <List>
         {options.map((option) => {
-          // Kiểm tra nếu có thay đổi so với dữ liệu ban đầu
           const isEdited =
             editedOptions[option.id]?.content !== option.content ||
             editedOptions[option.id]?.isCorrect !== option.isCorrect
 
           return (
             <ListItem key={option.id} sx={{ alignItems: 'center' }}>
-              {/* Checkbox: Đánh dấu đúng/sai */}
               <FormControlLabel
                 control={
                   <Checkbox
@@ -103,7 +101,7 @@ const OptionList = (props: OptionListProps) => {
 
               {/* TextField: Chỉnh sửa nội dung option */}
               <TextField
-                label="Option"
+                label="Trả lời"
                 value={editedOptions[option.id]?.content ?? option.content}
                 onChange={(e) =>
                   handleOptionChange(option.id, 'content', e.target.value)

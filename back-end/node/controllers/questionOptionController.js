@@ -17,14 +17,14 @@ const createEmptyOption = async (req, res) => {
     })
     const newOrderNumber = maxOrderOption ? maxOrderOption.orderNum + 1 : 0
     const option = await QuestionOption.create({
-      content: '',
+      content: 'Nội dung câu trả lời',
       isCorrect: false,
       questionId: questionId,
       orderNum: newOrderNumber,
     })
     res.status(201).json({
       data: option,
-      message: 'create question option successfully',
+      message: 'Create question option successfully',
       success: true,
     })
   } catch (err) {

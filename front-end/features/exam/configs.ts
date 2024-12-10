@@ -12,6 +12,7 @@ export const questionPathConfigs = {
   createEmptyOption: 'questions/option',
   createEmptyQuestion: 'questions',
   deleteOption: 'questions/option/{optionId}',
+  deleteQuestion: 'questions/{id}',
 }
 
 export enum SectionPartType {

@@ -36,9 +36,21 @@ const QuestionManager = forwardRef<QuestionManagerHandle, QuestionManagerProps>(
       setOpenQuestionId(openQuestionId === questionId ? null : questionId)
     }
 
-    const handleRemoveQuestion = (questionId: number) => {
-      const updatedQuestions = questions.filter((q) => q.id !== questionId)
-      setQuestions(updatedQuestions)
+    const handleRemoveQuestion = async (questionId: number) => {
+      try {
+        const response = await questionRequest.deleteQuestion(questionId)
+        if (response) {
+          toast.success('Xóa câu hỏi thành công')
+          setQuestions((prevQuestions) =>
+            prevQuestions.filter((question) => question.id !== questionId),
+          )
+        } else {
+          toast.error('Xóa câu hỏi thất bại')
+        }
+      } catch (e) {
+        console.error('Error removing question:', e)
+        toast.error('Đã xảy ra lỗi khi xóa câu hỏi')
+      }
     }
 
     const handleAddEmptyOption = async (idQuestion: number) => {
@@ -71,7 +83,6 @@ const QuestionManager = forwardRef<QuestionManagerHandle, QuestionManagerProps>(
           const response = await questionRequest.createEmptyQuestion(part.id)
           if (response) {
             toast.success('Tạo câu hỏi mới thành công')
-            console.log('dsdsadsa', response)
             setQuestions((prevQuestions) => [...prevQuestions, response])
           } else {
             toast.error('Tạo câu hỏi mới thất bại')
