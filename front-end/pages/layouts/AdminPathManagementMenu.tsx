@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import { RootState } from '@/app/store'
-import { Divider, Tab, Tabs, Typography } from '@mui/material'
+import { Divider, Tab, Tabs } from '@mui/material'
 import PartsList from '@/pages/admin/question/components/part'
+import AdminItemActive from './AdminItemActive'
 
 interface PathManagementMenuProps {
   examId: number
@@ -14,6 +15,10 @@ const AdminPathManagementMenu = (props: PathManagementMenuProps) => {
   const [searchParams, setSearchParams] = useSearchParams()
   const tabParam = searchParams.get('tab')
   const section = useSelector((state: RootState) => state.examAdmin?.section)
+  const firstLetter = useMemo(() => {
+    if (section?.title) return section.title.charAt(0).toUpperCase()
+    return 'Part'
+  }, [section?.title])
   useEffect(() => {
     if (tabParam) {
       setValue(Number(tabParam))
@@ -38,7 +43,11 @@ const AdminPathManagementMenu = (props: PathManagementMenuProps) => {
   }
   return (
     <>
-      <Typography>Part</Typography>
+      <AdminItemActive
+        level={2}
+        firstLetter={firstLetter}
+        title={section?.title || 'Part'}
+      />
       <Divider />
       <Tabs
         orientation="vertical"
@@ -53,9 +62,14 @@ const AdminPathManagementMenu = (props: PathManagementMenuProps) => {
             fontSize: '14px',
             color: 'text.primary',
             transition: 'background-color 0.3s ease, color 0.3s ease',
+            display: 'flex',
+            alignItems: 'flex-start',
+            textAlign: 'left',
+            width: '100%',
           },
           '& .Mui-selected': {
-            color: 'text.secondary',
+            color: 'white',
+            backgroundColor: 'text.secondary',
           },
           '& .MuiTabs-flexContainer': {
             alignItems: 'flex-start',
@@ -63,7 +77,10 @@ const AdminPathManagementMenu = (props: PathManagementMenuProps) => {
         }}
       >
         <Tab
-          sx={{ width: '100%', borderBottom: '1px solid rgba(0,0,0,0.12)' }}
+          sx={{
+            width: '100%',
+            borderBottom: '1px solid rgba(0,0,0,0.12)',
+          }}
           label="Chung"
           id="vertical-tab-0"
           aria-controls="vertical-tabpanel-0"

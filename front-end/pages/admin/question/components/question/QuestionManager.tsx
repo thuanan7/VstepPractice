@@ -122,16 +122,14 @@ const QuestionManager: React.FC = () => {
     content: string,
     isCorrect: boolean,
   ) => {
-    // Logic để đảm bảo chỉ có 1 option đúng trong mỗi câu hỏi
     const updatedQuestions = questions.map((q) => {
       if (q.id === questionId) {
-        // Nếu chọn là đúng, set tất cả các option khác thành false
         q.options = q.options.map((o) => {
           if (o.id === optionId) {
             o.content = content
             o.isCorrect = isCorrect
           } else {
-            o.isCorrect = false // Set tất cả các câu trả lời còn lại thành sai
+            o.isCorrect = false
           }
           return o
         })
