@@ -1,5 +1,6 @@
 ﻿using Betalgo.Ranul.OpenAI.Extensions;
 using VstepPractice.API.Services.AI;
+using VstepPractice.API.Services.Speech;
 
 namespace VstepPractice.API.DependencyInjection.Extensions;
 
@@ -30,6 +31,9 @@ public static class OpenAiServiceExtensions
 
         // Register our scoring service
         services.AddScoped<IAiScoringService, OpenAiScoringService>();
+
+        // New hybrid service for speaking
+        services.AddScoped<ISpeakingAssessmentService, HybridSpeakingService>();
 
         return services;
     }

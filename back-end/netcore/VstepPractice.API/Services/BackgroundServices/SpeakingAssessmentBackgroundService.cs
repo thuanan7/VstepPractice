@@ -4,7 +4,6 @@ using VstepPractice.API.Models.Entities;
 using VstepPractice.API.Repositories.Interfaces;
 using VstepPractice.API.Services.AI;
 using VstepPractice.API.Services.Speech;
-using VstepPractice.API.Services.Storage;
 
 namespace VstepPractice.API.Services.BackgroundServices;
 
@@ -20,13 +19,15 @@ public class SpeakingAssessmentBackgroundService : BackgroundService, ISpeakingA
     {
         _scopeFactory = scopeFactory;
         _logger = logger;
-
         _taskChannel = Channel.CreateUnbounded<SpeakingAssessmentTask>();
     }
 
     public async Task QueueAssessmentTaskAsync(SpeakingAssessmentTask task)
     {
         await _taskChannel.Writer.WriteAsync(task);
+        _logger.LogInformation(
+            "Queued speaking assessment task for answerId {AnswerId}",
+            task.AnswerId);
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -50,20 +51,18 @@ public class SpeakingAssessmentBackgroundService : BackgroundService, ISpeakingA
     }
 
     private async Task ProcessSpeakingAssessmentAsync(
-    SpeakingAssessmentTask task,
-    CancellationToken cancellationToken)
+        SpeakingAssessmentTask task,
+        CancellationToken cancellationToken)
     {
         using var scope = _scopeFactory.CreateScope();
-        var speechToTextService = scope.ServiceProvider.GetRequiredService<ISpeechToTextService>();
-        var storageService = scope.ServiceProvider.GetRequiredService<IFileStorageService>();
-        var aiService = scope.ServiceProvider.GetRequiredService<IAiScoringService>();
+        var hybridScoringService = scope.ServiceProvider.GetRequiredService<ISpeakingAssessmentService>();
         var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
 
         try
         {
             await unitOfWork.BeginTransactionAsync(cancellationToken);
 
-            // 1. Get answer
+            // 1. Get answer with details
             var answer = await unitOfWork.AnswerRepository
                 .GetAnswerWithDetailsAsync(task.AnswerId, cancellationToken);
 
@@ -73,29 +72,15 @@ public class SpeakingAssessmentBackgroundService : BackgroundService, ISpeakingA
                 return;
             }
 
-            // 2. Download and transcribe audio
-            using var audioStream = await storageService
-        .DownloadFileAsync(task.AudioUrl);
-
-            // Transcribe using Whisper
-            var transcribedText = await speechToTextService
-                .TranscribeAudioAsync(audioStream, cancellationToken);
-
-            // 3. Get AI assessment
-            var assessmentResult = await aiService.AssessSpeakingAsync(new SpeakingAssessmentTask
-            {
-                AnswerId = task.AnswerId,
-                AudioUrl = task.AudioUrl,
-                PassageTitle = answer.Question.Passage.Title,
-                PassageContent = answer.Question.Passage.Content ?? string.Empty,
-                QuestionText = answer.Question.QuestionText ?? string.Empty,
-                TranscribedText = transcribedText
-            }, cancellationToken);
+            // 2. Get hybrid assessment (combines Azure + OpenAI)
+            var assessmentResult = await hybridScoringService.AssessSpeakingAsync(
+                task,
+                cancellationToken);
 
             if (!assessmentResult.IsSuccess)
             {
                 _logger.LogError(
-                    "Failed to get AI assessment for answerId {AnswerId}: {Error}",
+                    "Failed to get assessment for answerId {AnswerId}: {Error}",
                     task.AnswerId,
                     assessmentResult.Error.Message);
                 return;
@@ -103,24 +88,32 @@ public class SpeakingAssessmentBackgroundService : BackgroundService, ISpeakingA
 
             var assessment = assessmentResult.Value;
 
-            // 4. Create SpeakingAssessment
+            // 3. Create speaking assessment entity
             var speakingAssessment = new SpeakingAssessment
             {
                 AnswerId = task.AnswerId,
-                Pronunciation = assessment.Pronunciation,
-                Fluency = assessment.Fluency,
-                Vocabulary = assessment.Vocabulary,
-                Grammar = assessment.Grammar,
+                // Azure Scores
+                Pronunciation = assessment.PronScore,
+                Fluency = assessment.FluencyScore,
+                AccuracyScore = assessment.AccuracyScore,
+                ProsodyScore = assessment.ProsodyScore,
+                // OpenAI Scores
+                Vocabulary = assessment.VocabularyScore,
+                Grammar = assessment.GrammarScore,
+                TopicScore = assessment.TopicScore,
+                // Content
                 DetailedFeedback = assessment.DetailedFeedback,
-                TranscribedText = transcribedText,
+                TranscribedText = assessment.RecognizedText,
+                DetailedResultUrl = assessment.DetailedResultUrl,
                 AudioUrl = task.AudioUrl,
                 AssessedAt = DateTime.UtcNow
             };
 
-            // 5. Update Answer score and feedback
-            answer.Score = assessment.TotalScore;
+            // 4. Update answer score and feedback
+            answer.Score = speakingAssessment.TotalScore;
             answer.AiFeedback = assessment.DetailedFeedback;
 
+            // 5. Save changes
             unitOfWork.AnswerRepository.Update(answer);
             unitOfWork.SpeakingAssessmentRepository.Add(speakingAssessment);
 
@@ -128,8 +121,14 @@ public class SpeakingAssessmentBackgroundService : BackgroundService, ISpeakingA
             await unitOfWork.CommitAsync(cancellationToken);
 
             _logger.LogInformation(
-                "Successfully processed speaking assessment for answerId {AnswerId}",
-                task.AnswerId);
+                "Successfully processed speaking assessment for answerId {AnswerId}. " +
+                "Scores - Pronunciation: {PronScore}, Fluency: {FluencyScore}, " +
+                "Vocabulary: {VocabScore}, Grammar: {GrammarScore}",
+                task.AnswerId,
+                assessment.PronScore,
+                assessment.FluencyScore,
+                assessment.VocabularyScore,
+                assessment.GrammarScore);
         }
         catch (Exception ex)
         {

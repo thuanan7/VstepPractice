@@ -27,5 +27,7 @@ public static class AzureServiceExtensions
 
         // OpenAPI is a better choice for our use case
         services.AddScoped<ISpeechToTextService, WhisperTranscriptionService>();
+
+        services.AddScoped<IAzurePronunciationService, AzurePronunciationService>();
     }
 }

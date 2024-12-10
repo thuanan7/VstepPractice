@@ -158,19 +158,35 @@ public class ApplicationDbContext : DbContext
         {
             entity.ToTable("SpeakingAssessments");
 
+            // Core pronunciation scores (0-100 scale)
             entity.Property(e => e.Pronunciation)
-                .HasColumnType("decimal(4,2)");
+                .HasColumnType("decimal(5,2)");
             entity.Property(e => e.Fluency)
-                .HasColumnType("decimal(4,2)");
+                .HasColumnType("decimal(5,2)");
+            entity.Property(e => e.AccuracyScore)
+                .HasColumnType("decimal(5,2)");
+            entity.Property(e => e.ProsodyScore)
+                .HasColumnType("decimal(5,2)");
+
+            // Content assessment scores (0-100 scale)
             entity.Property(e => e.Vocabulary)
-                .HasColumnType("decimal(4,2)");
+                .HasColumnType("decimal(5,2)");
             entity.Property(e => e.Grammar)
-                .HasColumnType("decimal(4,2)");
+                .HasColumnType("decimal(5,2)");
+            entity.Property(e => e.TopicScore)
+                .HasColumnType("decimal(5,2)");
+
+            // Text content
             entity.Property(e => e.DetailedFeedback);
             entity.Property(e => e.TranscribedText);
+
+            // URLs with length constraints
             entity.Property(e => e.AudioUrl)
                 .HasMaxLength(255);
+            entity.Property(e => e.DetailedResultUrl)
+                .HasMaxLength(255);
 
+            // Relationship
             entity.HasOne(w => w.Answer)
                 .WithMany()
                 .HasForeignKey(w => w.AnswerId)
