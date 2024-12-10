@@ -64,6 +64,56 @@ const removeOption = async (req, res) => {
     res.status(500).json({ success: false, message: 'Failed to remove option' })
   }
 }
+
+const updateOptions = async (req, res) => {
+  try {
+    const { options } = req.body
+
+    if (!options || !Array.isArray(options)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid options payload',
+      })
+    }
+    const updatedOptions = []
+    for (const option of options) {
+      const { id, content, isCorrect } = option
+
+      if (!id || content === undefined || isCorrect === undefined) {
+        return res.status(400).json({
+          success: false,
+          message: 'Each option must have id, content, and isCorrect',
+        })
+      }
+      const existingOption = await QuestionOption.findByPk(id)
+
+      if (!existingOption) {
+        return res.status(404).json({
+          success: false,
+          message: `Option with id ${id} not found`,
+        })
+      }
+      existingOption.content = content
+      existingOption.isCorrect = isCorrect
+      await existingOption.save()
+
+      updatedOptions.push(existingOption)
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Options updated successfully',
+      data: updatedOptions,
+    })
+  } catch (error) {
+    console.error('Error updating options:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update options',
+    })
+  }
+}
+
 const createOption = async (req, res) => {
   try {
     const { content, isCorrect, orderNum, questionId } = req.body
@@ -112,4 +162,5 @@ module.exports = {
   getOptions,
   createEmptyOption,
   removeOption,
+  updateOptions,
 }

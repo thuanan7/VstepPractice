@@ -17,6 +17,7 @@ function withBasePartContent<P extends object>(
   WrappedComponent: React.ComponentType<P & WithPartProps>,
   title: string | undefined = 'đoạn văn',
   countRow: number | undefined = 4,
+  showContent: boolean | undefined = true,
 ) {
   return (props: P) => {
     const navigate = useNavigate()
@@ -114,51 +115,53 @@ function withBasePartContent<P extends object>(
 
     return (
       <Box p={2} position={'relative'}>
-        <ManagementWithTitle title={title}>
-          {!isEditing ? (
-            <Typography
-              variant="body1"
-              onClick={() => setIsEditing(true)}
-              sx={{
-                cursor: 'pointer',
-                padding: 1,
-                backgroundColor: '#f9f9f9',
-                borderRadius: '4px',
-                border: '2px dashed #3f51b5',
-              }}
-            >
-              {newContent || 'Nhấn để chỉnh sửa...'}
-            </Typography>
-          ) : (
-            <Box>
-              <TextField
-                fullWidth
-                label={title.charAt(0).toUpperCase() + title.slice(1)}
-                variant="outlined"
-                multiline
-                value={newContent}
-                onChange={handleContentChange}
-                rows={countRow}
-              />
-              <Box
-                gap={2}
-                mt={2}
+        {showContent && (
+          <ManagementWithTitle title={title}>
+            {!isEditing ? (
+              <Typography
+                variant="body1"
+                onClick={() => setIsEditing(true)}
                 sx={{
-                  display: 'flex',
-                  flexDirection: 'row',
-                  justifyContent: 'flex-end',
+                  cursor: 'pointer',
+                  padding: 1,
+                  backgroundColor: '#f9f9f9',
+                  borderRadius: '4px',
+                  border: '2px dashed #3f51b5',
                 }}
               >
-                <Button color="primary" onClick={() => setIsEditing(false)}>
-                  Hủy
-                </Button>
-                <Button variant="contained" onClick={handleUpdateContent}>
-                  Cập nhật {title}
-                </Button>
+                {newContent || 'Nhấn để chỉnh sửa...'}
+              </Typography>
+            ) : (
+              <Box>
+                <TextField
+                  fullWidth
+                  label={title.charAt(0).toUpperCase() + title.slice(1)}
+                  variant="outlined"
+                  multiline
+                  value={newContent}
+                  onChange={handleContentChange}
+                  rows={countRow}
+                />
+                <Box
+                  gap={2}
+                  mt={2}
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    justifyContent: 'flex-end',
+                  }}
+                >
+                  <Button color="primary" onClick={() => setIsEditing(false)}>
+                    Hủy
+                  </Button>
+                  <Button variant="contained" onClick={handleUpdateContent}>
+                    Cập nhật {title}
+                  </Button>
+                </Box>
               </Box>
-            </Box>
-          )}
-        </ManagementWithTitle>
+            )}
+          </ManagementWithTitle>
+        )}
 
         <Fab
           color="primary"

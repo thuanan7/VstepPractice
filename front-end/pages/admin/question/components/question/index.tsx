@@ -137,9 +137,29 @@ const QuestionManager = forwardRef<QuestionManagerHandle, QuestionManagerProps>(
     }
 
     const handleUpdateOptions = async (
-      question: number,
+      questionId: number,
       options: IOption[],
-    ) => {}
+    ) => {
+      try {
+        const response = await questionRequest.updateOptions(
+          questionId,
+          options,
+        )
+        if (response) {
+          toast.success('Cập nhật các câu trả lời thành công')
+          setQuestions((prevQuestions) =>
+            prevQuestions.map((question) =>
+              question.id === questionId ? { ...question, options } : question,
+            ),
+          )
+        } else {
+          toast.error('Cập nhật các câu trả lời thất bại')
+        }
+      } catch (error) {
+        console.error('Error updating options:', error)
+        toast.error('Đã xảy ra lỗi trong quá trình cập nhật các câu trả lời')
+      }
+    }
     const renderItem = (question: IQuestion, index: number) => {
       const opening = openQuestionId === question.id
       return (

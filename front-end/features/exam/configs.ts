@@ -14,6 +14,7 @@ export const questionPathConfigs = {
   deleteOption: 'questions/option/{optionId}',
   deleteQuestion: 'questions/{id}',
   updateQuestion: 'questions/{questionId}',
+  updateOptions: 'questions/{questionId}/options',
 }
 
 export enum SectionPartType {

@@ -9,17 +9,5 @@ router.delete('/:id', questionController.removeQuestion)
 router.put('/:id', questionController.updateQuestion)
 router.post('/option', questionOptionController.createEmptyOption)
 router.delete('/option/:id', questionOptionController.removeOption)
-
-// // Question routes
-// router.get("/:sectionId/questions", questionController.getQuestions);
-// router.post("/questions", questionController.createQuestion);
-// router.put("/questions/:id", questionController.updateQuestion);
-// router.delete("/questions/:id", questionController.deleteQuestion);
-//
-// // QuestionOption routes
-// router.get("/questions/:questionId/options", questionOptionController.getOptions);
-// router.post("/questions/options", questionOptionController.createOption);
-// router.put("/questions/options/:id", questionOptionController.updateOption);
-// router.delete("/questions/options/:id", questionOptionController.deleteOption);
-
+router.put('/:id/options', questionOptionController.updateOptions)
 module.exports = router

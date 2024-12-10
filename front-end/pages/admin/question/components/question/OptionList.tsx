@@ -20,6 +20,7 @@ import {
   areOptionsDifferent,
   optionsArrayToObject,
 } from '@/features/exam/utils'
+import DeleteIcon from '@mui/icons-material/Delete'
 
 interface OptionListProps {
   questionId: number
@@ -77,9 +78,16 @@ const OptionList = (props: OptionListProps) => {
   }
 
   return (
-    <Box position={'relative'}>
+    <Box position={'relative'} pt={5} borderTop={'2px dashed #3f51b5'}>
       {isEdit && (
-        <Box position={'absolute'}>
+        <Box
+          position={'absolute'}
+          display={'flex'}
+          top={4}
+          gap={2}
+          right={0}
+          zIndex={2}
+        >
           <Button
             variant="outlined"
             color="secondary"
@@ -111,6 +119,7 @@ const OptionList = (props: OptionListProps) => {
                 borderRadius: '4px',
                 mb: 2,
                 p: 2,
+                gap: 2,
               }}
             >
               <FormControlLabel
@@ -138,9 +147,9 @@ const OptionList = (props: OptionListProps) => {
                 fullWidth
               />
               <Button
-                sx={{ ml: 1 }}
                 variant="outlined"
                 color="error"
+                startIcon={<DeleteIcon />}
                 onClick={() => handleOpenDialog(option.id)}
               >
                 Xóa

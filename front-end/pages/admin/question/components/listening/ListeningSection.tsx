@@ -14,11 +14,16 @@ import { ISessionPart } from '@/features/exam/type'
 import { toast } from 'react-hot-toast'
 import LoadingSpinner from './LoadingSpinner'
 import ManagementWithTitle from '@/pages/admin/question/components/ManagementWithTitle.tsx'
-import QuestionManager from '@/pages/admin/question/components/question'
+import QuestionManager, {
+  QuestionManagerHandle,
+} from '@/pages/admin/question/components/question'
+import ButtonCreateQuestion from '@/pages/admin/question/components/question/ButtonCreateQuestion.tsx'
+import withBasePartContent from '@/pages/admin/question/hoc/withBasePartContent.tsx'
 
 const baseApiUrl = `${import.meta.env.VITE_BASE_URL || ''}/api`
 
 const ListeningSection = () => {
+  const questionManagerRef = useRef<QuestionManagerHandle>(null)
   const navigate = useNavigate()
   const [loading, setLoading] = useState(false)
   const [part, setPart] = useState<ISessionPart | null>(null)
@@ -35,6 +40,11 @@ const ListeningSection = () => {
       void fetchPart()
     }
   }, [partId, navigate])
+  const handleCreateEmptyQuestion = () => {
+    if (questionManagerRef.current) {
+      questionManagerRef.current.addQuestion()
+    }
+  }
   const handleAudioUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
@@ -152,11 +162,16 @@ const ListeningSection = () => {
         <div>Không tìm thấy thông tin phần này.</div>
       )}
       {part && (
-        <ManagementWithTitle title={'Câu hỏi'}>
-          <QuestionManager part={part} />
-        </ManagementWithTitle>
+        <Box mt={2}>
+          <ManagementWithTitle title={'Câu hỏi'}>
+            <Box position={'absolute'} right={0} top={0} p={2}>
+              <ButtonCreateQuestion onCreate={handleCreateEmptyQuestion} />
+            </Box>
+            <QuestionManager ref={questionManagerRef} part={part} />
+          </ManagementWithTitle>
+        </Box>
       )}
     </Box>
   )
 }
-export default ListeningSection
+export default withBasePartContent(ListeningSection, '', 0, false)
