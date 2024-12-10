@@ -24,7 +24,7 @@ interface PartManagementProps {
   section: ISessionPart
 }
 
-const PartManagement = (props: PartManagementProps) => {
+const PartList = (props: PartManagementProps) => {
   const { section, examId, onChoose } = props
   const navigate = useNavigate()
   const [open, setOpen] = useState(false)
@@ -157,4 +157,4 @@ const PartManagement = (props: PartManagementProps) => {
   )
 }
 
-export default PartManagement
+export default PartList

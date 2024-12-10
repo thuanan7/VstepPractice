@@ -3,7 +3,7 @@ import { Box, Tabs, Tab } from '@mui/material'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { sectionPartRequest } from '@/app/api'
 import { ISessionPart } from '@/features/exam/type'
-import { manageExam } from '@/features/exam/examSlice'
+import { manageExam, manageSection } from '@/features/exam/examSlice'
 
 import { useDispatch } from 'react-redux'
 import SessionManagement from './components/section-part'
@@ -40,8 +40,15 @@ const ExamQuestionManagement: React.FC = () => {
       } else {
         setSession(sectionParts[findIndex])
       }
+    } else {
+      if (sectionParts && !sTab) {
+        setSearchParams({ section: `${sectionParts[0].id}` })
+      }
     }
   }, [sectionParts, sTab])
+  useEffect(() => {
+    dispatch(manageSection(section))
+  }, [section])
   const fetchSectionParts = async () => {
     const response = await sectionPartRequest.sectionPartsById(
       parseInt(`${id}`),
