@@ -8,6 +8,11 @@ export const sectionPartsPathConfigs = {
   parts: 'section-parts/section',
   partById: 'section-parts/part',
 }
+export const questionPathConfigs = {
+  createEmptyOption: 'questions/option',
+  createEmptyQuestion: 'questions',
+  deleteOption: 'questions/option/{optionId}',
+}
 
 export enum SectionPartType {
   listening = 0,

@@ -7,7 +7,7 @@ interface IManagementWithTitleProps extends PropsWithChildren {
 const ManagementWithTitle = (props: IManagementWithTitleProps) => {
   const { title, children } = props
   return (
-    <Paper elevation={3} sx={{ padding: 2 }}>
+    <Paper elevation={3} sx={{ padding: 2, position: 'relative' }}>
       <Typography
         variant="h6"
         sx={{

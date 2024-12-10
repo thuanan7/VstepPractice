@@ -1,6 +1,4 @@
-const QuestionOption = require('../models/QuestionOption')
-
-// Get all options for a question
+const { QuestionOption } = require('../../db/models')
 const getOptions = async (req, res) => {
   try {
     const { questionId } = req.params
@@ -10,8 +8,62 @@ const getOptions = async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch options' })
   }
 }
+const createEmptyOption = async (req, res) => {
+  try {
+    const { questionId } = req.body
+    const maxOrderOption = await QuestionOption.findOne({
+      where: { questionId: questionId },
+      order: [['orderNum', 'DESC']],
+    })
+    const newOrderNumber = maxOrderOption ? maxOrderOption.orderNum + 1 : 0
+    const option = await QuestionOption.create({
+      content: '',
+      isCorrect: false,
+      questionId: questionId,
+      orderNum: newOrderNumber,
+    })
+    res.status(201).json({
+      data: option,
+      message: 'create question option successfully',
+      success: true,
+    })
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Failed to create option' })
+  }
+}
 
-// Create a new option
+const removeOption = async (req, res) => {
+  try {
+    const { id } = req.params
+    const option = await QuestionOption.findByPk(id)
+    if (!option) {
+      return res
+        .status(404)
+        .json({ success: false, message: 'Option not found' })
+    }
+    const questionId = option.questionId
+    await option.destroy()
+    const options = await QuestionOption.findAll({
+      where: { questionId },
+      order: [['orderNum', 'ASC']],
+    })
+
+    await Promise.all(
+      options.map((opt, index) => {
+        opt.orderNum = index
+        return opt.save()
+      }),
+    )
+
+    res.status(200).json({
+      success: true,
+      message: 'Option removed successfully and orderNum updated',
+    })
+  } catch (err) {
+    console.error('Error removing option:', err)
+    res.status(500).json({ success: false, message: 'Failed to remove option' })
+  }
+}
 const createOption = async (req, res) => {
   try {
     const { content, isCorrect, orderNum, questionId } = req.body
@@ -58,4 +110,6 @@ module.exports = {
   updateOption,
   createOption,
   getOptions,
+  createEmptyOption,
+  removeOption,
 }

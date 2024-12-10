@@ -9,16 +9,27 @@ import {
 } from '@mui/material'
 import OptionList from './OptionList'
 import { IQuestion } from '@/features/exam/type'
+import AddCircleIcon from '@mui/icons-material/AddCircle'
 
 interface QuestionItemProps {
   opening: boolean
   onOpen: (id: number) => void
   onUpdateQuestion: () => void
   onRemoveQuestion: (id: number) => void
+  onAddOption: (id: number) => void
+  onRemoveOption: (questionId: number, id: number) => void
   question: IQuestion
 }
 const QuestionItem = (props: QuestionItemProps) => {
-  const { opening, onOpen, onRemoveQuestion, question } = props
+  const {
+    opening,
+    onOpen,
+    onRemoveQuestion,
+    onRemoveOption,
+    question,
+    onAddOption,
+  } = props
+
   return (
     <Box
       sx={{
@@ -63,15 +74,30 @@ const QuestionItem = (props: QuestionItemProps) => {
             fullWidth
             margin="normal"
           />
-          <OptionList options={question.options} />
+          <OptionList
+            questionId={question.id}
+            options={question.options}
+            onRemoveOption={onRemoveOption}
+          />
+          <Button
+            variant="outlined"
+            color="primary"
+            startIcon={<AddCircleIcon />}
+            onClick={() => onAddOption(question.id)}
+            sx={{
+              border: '2px dashed',
+              color: 'text.secondary',
+              borderColor: 'text.secondary',
+              borderRadius: '4px',
+              padding: '8px',
+              transition: 'background-color 0.3s',
+              width: '100%',
+              marginBottom: '8px',
+            }}
+          >
+            Tạo mới option
+          </Button>
           <Box display="flex" justifyContent="space-between" mt={2} mb={2}>
-            <Button
-              variant="contained"
-              color="primary"
-              // onClick={() => handleAddOption(question.id)}
-            >
-              Thêm Option
-            </Button>
             <Button
               variant="contained"
               color="error"

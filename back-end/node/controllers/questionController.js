@@ -24,19 +24,51 @@ const getQuestions = async (req, res) => {
       .json({ success: false, message: 'Failed to fetch questions' })
   }
 }
-// Create a new question
-const createQuestion = async (req, res) => {
+const createEmptyQuestion = async (req, res) => {
   try {
-    const { questionText, point, orderNum, sectionId } = req.body
-    const question = await Question.create({
-      questionText,
-      point,
-      orderNum,
-      sectionId,
+    const { partId } = req.body
+    if (!partId) {
+      return res.status(400).json({
+        success: false,
+        message: 'partId is required',
+      })
+    }
+    const maxOrderQuestion = await Question.findOne({
+      where: { passageId: partId },
+      order: [['orderNum', 'DESC']],
     })
-    res.status(201).json(question)
+
+    const newOrderNum = maxOrderQuestion ? maxOrderQuestion.orderNum + 1 : 0
+    const question = await Question.create({
+      questionText: 'Nội dung câu hỏi',
+      point: 1,
+      orderNum: newOrderNum,
+      passageId: partId,
+    })
+
+    const option = await QuestionOption.create({
+      content: 'Nội dung câu trả lời',
+      isCorrect: false,
+      questionId: question.id,
+      orderNum: 0,
+    })
+
+    res.status(201).json({
+      success: true,
+      message: 'Question created successfully',
+      data: {
+        question: {
+          ...question.toJSON(),
+          options: [option],
+        },
+      },
+    })
   } catch (err) {
-    res.status(500).json({ error: 'Failed to create question' })
+    console.error('Error creating empty question:', err)
+    res.status(500).json({
+      success: false,
+      message: 'Failed to create empty question',
+    })
   }
 }
 
@@ -69,6 +101,6 @@ const deleteQuestion = async (req, res) => {
 module.exports = {
   deleteQuestion,
   updateQuestion,
-  createQuestion,
   getQuestions,
+  createEmptyQuestion,
 }
