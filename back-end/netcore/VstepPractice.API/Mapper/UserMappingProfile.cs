@@ -126,5 +126,13 @@ public class AutoMapperProfile : Profile
         // Add mappings for WordDetail if needed
         CreateMap<WordDetail, WordDetail>();
         CreateMap<PhonemeDetail, PhonemeDetail>();
+
+        CreateMap<WritingAssessmentResponse, WritingAssessment>()
+            .ForMember(dest => dest.TaskAchievement, opt => opt.MapFrom(src => src.TaskAchievement))
+            .ForMember(dest => dest.CoherenceCohesion, opt => opt.MapFrom(src => src.CoherenceCohesion))
+            .ForMember(dest => dest.LexicalResource, opt => opt.MapFrom(src => src.LexicalResource))
+            .ForMember(dest => dest.GrammarAccuracy, opt => opt.MapFrom(src => src.GrammarAccuracy))
+            .ForMember(dest => dest.DetailedFeedback, opt => opt.MapFrom(src => src.DetailedFeedback))
+            .ForMember(dest => dest.AssessedAt, opt => opt.MapFrom(src => DateTime.UtcNow));
     }
 }
