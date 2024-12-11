@@ -231,51 +231,82 @@ public class StudentAttemptService : IStudentAttemptService
             return Result.Failure<AnswerResponse>(
                 new Error("Question.Invalid", "Invalid speaking question."));
 
-        // Save audio to blob
-        using var stream = request.AudioFile.OpenReadStream();
-        var audioUrl = await _storageService.UploadFileAsync(
-            stream,
-            request.AudioFile.FileName,
-            request.AudioFile.ContentType);
-
-        // Create or update answer
-        var answer = await _unitOfWork.AnswerRepository
-            .FindSingleAsync(a =>
-                a.AttemptId == attemptId &&
-                a.QuestionId == request.QuestionId,
-                cancellationToken);
-
-        if (answer == null)
+        try
         {
-            answer = new Answer
+            await _unitOfWork.BeginTransactionAsync(cancellationToken);
+
+            // Get existing answer and its speaking assessment
+            var answer = await _unitOfWork.AnswerRepository
+                .FindSingleAsync(a =>
+                    a.AttemptId == attemptId &&
+                    a.QuestionId == request.QuestionId,
+                    cancellationToken);
+
+            if (answer != null)
             {
-                AttemptId = attemptId,
-                QuestionId = request.QuestionId,
-                // Store audioUrl in AiFeedback field temporarily
-                AiFeedback = audioUrl
-            };
-            _unitOfWork.AnswerRepository.Add(answer);
+                // Check if there's an existing speaking assessment
+                var existingAssessment = await _unitOfWork.SpeakingAssessmentRepository
+                    .FindSingleAsync(s => s.AnswerId == answer.Id, cancellationToken);
+
+                // Delete old audio file if exists
+                if (existingAssessment != null && !string.IsNullOrEmpty(existingAssessment.AudioUrl))
+                {
+                    try
+                    {
+                        await _storageService.DeleteFileAsync(existingAssessment.AudioUrl);
+                        _logger.LogInformation(
+                            "Deleted previous audio file for answerId {AnswerId}",
+                            answer.Id);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex,
+                            "Failed to delete previous audio file for answerId {AnswerId}",
+                            answer.Id);
+                    }
+                }
+            }
+
+            // Upload new audio file
+            using var stream = request.AudioFile.OpenReadStream();
+            var audioUrl = await _storageService.UploadFileAsync(
+                stream,
+                request.AudioFile.FileName,
+                request.AudioFile.ContentType);
+
+            if (answer == null)
+            {
+                answer = new Answer
+                {
+                    AttemptId = attemptId,
+                    QuestionId = request.QuestionId
+                };
+                _unitOfWork.AnswerRepository.Add(answer);
+            }
+
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+            await _unitOfWork.CommitAsync(cancellationToken);
+
+            // Queue for assessment
+            await _speakingAssessmentQueue.QueueAssessmentTaskAsync(new SpeakingAssessmentTask
+            {
+                AnswerId = answer.Id,
+                AudioUrl = audioUrl,
+                QuestionText = question.QuestionText ?? string.Empty
+            });
+
+            var response = _mapper.Map<AnswerResponse>(answer);
+            return Result.Success(response);
         }
-        else
+        catch (Exception ex)
         {
-            answer.AiFeedback = audioUrl;
-            _unitOfWork.AnswerRepository.Update(answer);
+            _logger.LogError(ex,
+                "Error submitting speaking answer for attemptId {AttemptId}, questionId {QuestionId}",
+                attemptId,
+                request.QuestionId);
+            await _unitOfWork.RollbackAsync(cancellationToken);
+            throw;
         }
-
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
-
-        // Queue for assessment
-        await _speakingAssessmentQueue.QueueAssessmentTaskAsync(new SpeakingAssessmentTask
-        {
-            AnswerId = answer.Id,
-            AudioUrl = audioUrl,
-            QuestionText = question.QuestionText ?? string.Empty,
-            PassageTitle = question.Passage.Title,
-            PassageContent = question.Passage.Content ?? string.Empty
-        });
-
-        var response = _mapper.Map<AnswerResponse>(answer);
-        return Result.Success(response);
     }
 
 
