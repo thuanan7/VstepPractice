@@ -8,27 +8,27 @@ public class SpeakingAssessment : BaseEntity
     [Column("answerId")]
     public int AnswerId { get; set; }
 
-    // Core pronunciation scores from Azure (0-100)
-    [Column("pronunciation", TypeName = "decimal(5,2)")]
-    public decimal Pronunciation { get; set; }  // Overall pronunciation score
+    // Core pronunciation scores from Azure (0-10)
+    [Column("pronunciation", TypeName = "decimal(4,2)")]
+    public decimal PronunciationScore { get; set; }  // Overall pronunciation score
 
-    [Column("fluency", TypeName = "decimal(5,2)")]
-    public decimal Fluency { get; set; }  // Speech fluency/smoothness
+    [Column("fluency", TypeName = "decimal(4,2)")]
+    public decimal FluencyScore { get; set; }  // Speech fluency/smoothness
 
-    [Column("accuracy", TypeName = "decimal(5,2)")]
+    [Column("accuracy", TypeName = "decimal(4,2)")]
     public decimal AccuracyScore { get; set; }  // Pronunciation accuracy
 
-    [Column("prosody", TypeName = "decimal(5,2)")]
+    [Column("prosody", TypeName = "decimal(4,2)")]
     public decimal ProsodyScore { get; set; }  // Intonation and stress patterns
 
-    // Content assessment scores from Azure (0-100)
-    [Column("vocabulary", TypeName = "decimal(5,2)")]
+    // Content assessment scores from OpenAI (0-10)
+    [Column("vocabulary", TypeName = "decimal(4,2)")]
     public decimal Vocabulary { get; set; }  // Vocabulary usage score
 
-    [Column("grammar", TypeName = "decimal(5,2)")]
+    [Column("grammar", TypeName = "decimal(4,2)")]
     public decimal Grammar { get; set; }  // Grammar accuracy
 
-    [Column("topicScore", TypeName = "decimal(5,2)")]
+    [Column("topicScore", TypeName = "decimal(4,2)")]
     public decimal TopicScore { get; set; }  // Topic relevance score
 
     // Feedback and text content
@@ -43,9 +43,8 @@ public class SpeakingAssessment : BaseEntity
     [StringLength(255)]
     public string AudioUrl { get; set; } = string.Empty;  // URL to audio recording
 
-    [Column("detailedResultUrl")]
-    [StringLength(255)]
-    public string DetailedResultUrl { get; set; } = string.Empty;  // URL to detailed JSON assessment
+    [Column("wordDetails", TypeName = "jsonb")]
+    public List<WordDetail>? WordDetails { get; set; } = new();  // detailed JSON assessment
 
     [Column("assessedAt")]
     public DateTime AssessedAt { get; set; } = DateTime.UtcNow;
@@ -53,10 +52,27 @@ public class SpeakingAssessment : BaseEntity
     // Calculated total score (0-10 scale for VSTEP compatibility)
     [NotMapped]
     public decimal TotalScore => Math.Round(
-        (Pronunciation + Fluency + Vocabulary + Grammar) / 4 * 0.1m,
+        (PronunciationScore + AccuracyScore + FluencyScore + ProsodyScore
+        + Grammar + Vocabulary + TopicScore) / 7,
         1);  // Convert 100-scale to 10-scale
 
     // Navigation property
     [ForeignKey(nameof(AnswerId))]
     public virtual Answer Answer { get; set; } = default!;
+}
+
+public class WordDetail
+{
+    public string Word { get; set; } = string.Empty;
+    public decimal AccuracyScore { get; set; }
+    public string ErrorType { get; set; } = string.Empty;
+    public ICollection<PhonemeDetail>? Phonemes { get; set; }
+}
+
+public class PhonemeDetail
+{
+    public string Phoneme { get; set; } = string.Empty;
+    public decimal AccuracyScore { get; set; }
+    public long Offset { get; set; }
+    public int Duration { get; set; }
 }

@@ -158,33 +158,22 @@ public class ApplicationDbContext : DbContext
         {
             entity.ToTable("SpeakingAssessments");
 
-            // Core pronunciation scores (0-100 scale)
-            entity.Property(e => e.Pronunciation)
-                .HasColumnType("decimal(5,2)");
-            entity.Property(e => e.Fluency)
-                .HasColumnType("decimal(5,2)");
-            entity.Property(e => e.AccuracyScore)
-                .HasColumnType("decimal(5,2)");
-            entity.Property(e => e.ProsodyScore)
-                .HasColumnType("decimal(5,2)");
+            // Score columns with precision(5,2) for 0-100 range
+            entity.Property(e => e.PronunciationScore).HasColumnType("decimal(4,2)");
+            entity.Property(e => e.FluencyScore).HasColumnType("decimal(4,2)");
+            entity.Property(e => e.AccuracyScore).HasColumnType("decimal(4,2)");
+            entity.Property(e => e.ProsodyScore).HasColumnType("decimal(4,2)");
+            entity.Property(e => e.Vocabulary).HasColumnType("decimal(4,2)");
+            entity.Property(e => e.Grammar).HasColumnType("decimal(4,2)");
+            entity.Property(e => e.TopicScore).HasColumnType("decimal(4,2)");
 
-            // Content assessment scores (0-100 scale)
-            entity.Property(e => e.Vocabulary)
-                .HasColumnType("decimal(5,2)");
-            entity.Property(e => e.Grammar)
-                .HasColumnType("decimal(5,2)");
-            entity.Property(e => e.TopicScore)
-                .HasColumnType("decimal(5,2)");
-
-            // Text content
+            // Text columns
             entity.Property(e => e.DetailedFeedback);
             entity.Property(e => e.TranscribedText);
+            entity.Property(e => e.AudioUrl).HasMaxLength(255);
 
-            // URLs with length constraints
-            entity.Property(e => e.AudioUrl)
-                .HasMaxLength(255);
-            entity.Property(e => e.DetailedResultUrl)
-                .HasMaxLength(255);
+            // Word details as JSONB
+            entity.Property(e => e.WordDetails).HasColumnType("jsonb");
 
             // Relationship
             entity.HasOne(w => w.Answer)

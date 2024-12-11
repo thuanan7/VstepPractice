@@ -1,12 +1,13 @@
 ﻿using Betalgo.Ranul.OpenAI.Interfaces;
 using Betalgo.Ranul.OpenAI.ObjectModels.RequestModels;
 using Microsoft.Extensions.Options;
-using Polly.Retry;
 using Polly;
+using Polly.Retry;
 using System.Text;
 using System.Text.Json;
 using VstepPractice.API.Common.Utils;
 using VstepPractice.API.Models.DTOs.AI;
+using VstepPractice.API.Models.Entities;
 using VstepPractice.API.Services.AI;
 using VstepPractice.API.Services.Storage;
 
@@ -77,53 +78,65 @@ public class HybridSpeakingService : ISpeakingAssessmentService
                     task.QuestionText,
                     cts.Token);
 
-                // 2. Save detailed pronunciation results to blob
-                var jsonUrl = await _storageService.UploadFileAsync(
-                    new MemoryStream(Encoding.UTF8.GetBytes(pronResult.DetailedResultJson)),
-                    $"pron_{task.AnswerId}.json",
-                    "application/json");
+                // 2. Get OpenAI assessment for content
+                var systemMessage = @$"You are a certified VSTEP B2 speaking examiner. Your task is to evaluate the Transcribed Text of a speaking audio and provide scores (0-10) for each of the criteria below. Then, based on all scores (Vocabulary, Grammar, Topic, Pronunciation, Fluency, Accuracy, Prosody), provide detailed feedback to help the speaker improve their speaking skills.
 
-                // 3. Get OpenAI assessment for content
-                var prompt = @$"As a VSTEP speaking examiner, assess this response:
-Title: {task.PassageTitle}
-Context: {task.PassageContent}
-Question: {task.QuestionText}
-Student's Response: {pronResult.RecognizedText}
+Scoring Criteria:
+1. **Vocabulary**: Evaluate the speaker's effective use of words, variety of vocabulary, and appropriateness of word choice within the context.
+2. **Grammar**: Assess the speaker's ability to construct grammatically correct sentences. Consider the frequency and impact of errors on communication.
+3. **Topic**: Measure the speaker's understanding, relevance, and engagement with the topic, along with their ability to express thoughts and ideas effectively and the ability to engage with the topic.
 
-Current pronunciation scores:
-- Pronunciation: {pronResult.PronScore:F1}/100
-- Fluency: {pronResult.FluencyScore:F1}/100
-- Accuracy: {pronResult.AccuracyScore:F1}/100
-- Prosody: {pronResult.ProsodyScore:F1}/100
+4. **Pronunciation**: Judge the clarity and naturalness of the speaker's pronunciation, considering how understandable the speech is.
+5. **Fluency**: Assess how smoothly the speaker delivers their speech, focusing on rhythm, speed, and the use of pauses.
+6. **Accuracy**: Measure how closely the phonemes match a native speaker's pronunciation.
+7. **Prosody**: Evaluate the speaker's use of stress, intonation, rhythm, and speaking speed to make their speech natural and engaging.
 
-Please provide:
-1. Scores (0-100) for:
-   - Grammar
-   - Vocabulary
-   - Topic Development
-2. Detailed feedback with:
-   - Strengths
-   - Areas for improvement
-   - Specific suggestions for practice
+**IMPORTANT**:
+- Each criterion MUST be scored between 0 and 10 points. DO NOT exceed 10 points per criterion.
+- Provide actionable feedback including strengths, weaknesses, and specific suggestions for improvement.
 
-Return as JSON with exact format:
+Current pronunciation scores (automatically assessed):
+- Pronunciation: {pronResult.PronScore:F1}/10
+- Fluency: {pronResult.FluencyScore:F1}/10
+- Accuracy: {pronResult.AccuracyScore:F1}/10
+- Prosody: {pronResult.ProsodyScore:F1}/10
+
+**Feedback Instructions**:
+- Provide strengths and weaknesses for each scoring criterion, including Vocabulary, Grammar, Topic, Pronunciation, Fluency, Accuracy, and Prosody.
+- Include actionable suggestions for improvement in each area.
+
+**Output Format**: Return the evaluation result in JSON format as follows:
 {{
     ""grammarScore"": decimal,
     ""vocabularyScore"": decimal,
     ""topicScore"": decimal,
     ""feedback"": {{
-        ""strengths"": string[],
-        ""weaknesses"": string[],
-        ""suggestions"": string[]
+        ""strengths"": [""...""], // Specific areas where the speaker performed well.
+        ""weaknesses"": [""...""], // Areas needing improvement across all criteria.
+        ""suggestions"": [""...""] // Actionable recommendations to improve speaking skills.
     }}
-}}";
+}}
+";
+
+
+
+
+                var prompt = @$"Please assess the following VSTEP B2 speaking task:
+Topic Title: {task.PassageTitle}
+
+Topic Description: {task.PassageContent}
+
+Topic Question: {task.QuestionText}
+
+Student's Response: {pronResult.RecognizedText}
+";
 
                 var completionResult = await _openAiService.ChatCompletion.CreateCompletion(
                     new ChatCompletionCreateRequest
                     {
                         Messages = new List<ChatMessage>
                         {
-                            ChatMessage.FromSystem("You are a VSTEP speaking examiner"),
+                            ChatMessage.FromSystem(systemMessage),
                             ChatMessage.FromUser(prompt)
                         },
                         Model = _options.ModelName,
@@ -145,26 +158,16 @@ Return as JSON with exact format:
                 }
 
                 // 4. Combine results
-                var response = new SpeakingAssessmentResponse
-                {
-                    // Azure scores
-                    PronScore = pronResult.PronScore,
-                    AccuracyScore = pronResult.AccuracyScore,
-                    FluencyScore = pronResult.FluencyScore,
-                    ProsodyScore = pronResult.ProsodyScore,
 
-                    // OpenAI scores
-                    GrammarScore = decimal.Parse(aiResult.Value.GetProperty("grammarScore").ToString()),
-                    VocabularyScore = decimal.Parse(aiResult.Value.GetProperty("vocabularyScore").ToString()),
-                    TopicScore = decimal.Parse(aiResult.Value.GetProperty("topicScore").ToString()),
+                // OpenAI scores
+                pronResult.GrammarScore = decimal.Parse(aiResult.Value.GetProperty("grammarScore").ToString());
+                pronResult.VocabularyScore = decimal.Parse(aiResult.Value.GetProperty("vocabularyScore").ToString());
+                pronResult.TopicScore = decimal.Parse(aiResult.Value.GetProperty("topicScore").ToString());
 
-                    // Text content
-                    RecognizedText = pronResult.RecognizedText,
-                    DetailedResultUrl = jsonUrl,
-                    DetailedFeedback = FormatFeedback(pronResult, aiResult.Value.GetProperty("feedback"))
-                };
+                pronResult.DetailedFeedback = FormatFeedback(pronResult, aiResult.Value.GetProperty("feedback"));
 
-                return Result.Success(response);
+
+                return Result.Success(pronResult);
             }
             catch (Exception ex)
             {
@@ -176,7 +179,7 @@ Return as JSON with exact format:
     }
 
     private string FormatFeedback(
-        PronunciationAssessmentResponse pronResult,
+        SpeakingAssessmentResponse pronResult,
         JsonElement feedbackElement)
     {
         var feedback = new StringBuilder();
@@ -188,6 +191,9 @@ Return as JSON with exact format:
         feedback.AppendLine($"- Fluency: {pronResult.FluencyScore:F1}/100");
         feedback.AppendLine($"- Accuracy: {pronResult.AccuracyScore:F1}/100");
         feedback.AppendLine($"- Prosody: {pronResult.ProsodyScore:F1}/100");
+        feedback.AppendLine($"- Grammar: {pronResult.GrammarScore:F1}/100");
+        feedback.AppendLine($"- Vocabulary: {pronResult.VocabularyScore:F1}/100");
+        feedback.AppendLine($"- Topic: {pronResult.TopicScore:F1}/100");
 
         feedback.AppendLine("\nDetailed Feedback:");
 

@@ -269,7 +269,9 @@ public class StudentAttemptService : IStudentAttemptService
         {
             AnswerId = answer.Id,
             AudioUrl = audioUrl,
-            QuestionText = question.QuestionText ?? string.Empty
+            QuestionText = question.QuestionText ?? string.Empty,
+            PassageTitle = question.Passage.Title,
+            PassageContent = question.Passage.Content ?? string.Empty
         });
 
         var response = _mapper.Map<AnswerResponse>(answer);
@@ -352,8 +354,8 @@ public class StudentAttemptService : IStudentAttemptService
                 {
                     answerResponse.SpeakingScore = new SpeakingScoreDetails
                     {
-                        Pronunciation = speakingAssessment.Pronunciation,
-                        Fluency = speakingAssessment.Fluency,
+                        Pronunciation = speakingAssessment.PronunciationScore,
+                        Fluency = speakingAssessment.FluencyScore,
                         Vocabulary = speakingAssessment.Vocabulary,
                         Grammar = speakingAssessment.Grammar,
                         AudioUrl = speakingAssessment.AudioUrl,

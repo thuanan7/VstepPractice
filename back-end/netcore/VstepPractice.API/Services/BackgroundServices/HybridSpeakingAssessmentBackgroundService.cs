@@ -1,4 +1,6 @@
-﻿using System.Threading.Channels;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Mvc;
+using System.Threading.Channels;
 using VstepPractice.API.Models.DTOs.AI;
 using VstepPractice.API.Models.Entities;
 using VstepPractice.API.Repositories.Interfaces;
@@ -7,19 +9,22 @@ using VstepPractice.API.Services.Speech;
 
 namespace VstepPractice.API.Services.BackgroundServices;
 
-public class SpeakingAssessmentBackgroundService : BackgroundService, ISpeakingAssessmentQueue
+public class HybridSpeakingAssessmentBackgroundService : BackgroundService, ISpeakingAssessmentQueue
 {
     private readonly Channel<SpeakingAssessmentTask> _taskChannel;
     private readonly IServiceScopeFactory _scopeFactory;
-    private readonly ILogger<SpeakingAssessmentBackgroundService> _logger;
+    private readonly ILogger<HybridSpeakingAssessmentBackgroundService> _logger;
+    private readonly IMapper _mapper;
 
-    public SpeakingAssessmentBackgroundService(
+    public HybridSpeakingAssessmentBackgroundService(
         IServiceScopeFactory scopeFactory,
-        ILogger<SpeakingAssessmentBackgroundService> logger)
+        IMapper mapper,
+        ILogger<HybridSpeakingAssessmentBackgroundService> logger)
     {
         _scopeFactory = scopeFactory;
         _logger = logger;
         _taskChannel = Channel.CreateUnbounded<SpeakingAssessmentTask>();
+        _mapper = mapper;
     }
 
     public async Task QueueAssessmentTaskAsync(SpeakingAssessmentTask task)
@@ -51,8 +56,8 @@ public class SpeakingAssessmentBackgroundService : BackgroundService, ISpeakingA
     }
 
     private async Task ProcessSpeakingAssessmentAsync(
-        SpeakingAssessmentTask task,
-        CancellationToken cancellationToken)
+    SpeakingAssessmentTask task,
+    CancellationToken cancellationToken)
     {
         using var scope = _scopeFactory.CreateScope();
         var hybridScoringService = scope.ServiceProvider.GetRequiredService<ISpeakingAssessmentService>();
@@ -72,7 +77,11 @@ public class SpeakingAssessmentBackgroundService : BackgroundService, ISpeakingA
                 return;
             }
 
-            // 2. Get hybrid assessment (combines Azure + OpenAI)
+            // 2. Check if assessment already exists
+            var existingAssessment = await unitOfWork.SpeakingAssessmentRepository
+                .FindSingleAsync(x => x.AnswerId == task.AnswerId, cancellationToken);
+
+            // 3. Get hybrid assessment
             var assessmentResult = await hybridScoringService.AssessSpeakingAsync(
                 task,
                 cancellationToken);
@@ -88,34 +97,37 @@ public class SpeakingAssessmentBackgroundService : BackgroundService, ISpeakingA
 
             var assessment = assessmentResult.Value;
 
-            // 3. Create speaking assessment entity
-            var speakingAssessment = new SpeakingAssessment
+            // 4. Update or create speaking assessment
+            if (existingAssessment != null)
             {
-                AnswerId = task.AnswerId,
-                // Azure Scores
-                Pronunciation = assessment.PronScore,
-                Fluency = assessment.FluencyScore,
-                AccuracyScore = assessment.AccuracyScore,
-                ProsodyScore = assessment.ProsodyScore,
-                // OpenAI Scores
-                Vocabulary = assessment.VocabularyScore,
-                Grammar = assessment.GrammarScore,
-                TopicScore = assessment.TopicScore,
-                // Content
-                DetailedFeedback = assessment.DetailedFeedback,
-                TranscribedText = assessment.RecognizedText,
-                DetailedResultUrl = assessment.DetailedResultUrl,
-                AudioUrl = task.AudioUrl,
-                AssessedAt = DateTime.UtcNow
-            };
+                // Update existing assessment
+                _mapper.Map(assessment, existingAssessment);
+                existingAssessment.TranscribedText = assessment.RecognizedText;
+                existingAssessment.AudioUrl = task.AudioUrl;
+                existingAssessment.UpdateAt = DateTime.UtcNow;
 
-            // 4. Update answer score and feedback
-            answer.Score = speakingAssessment.TotalScore;
+                unitOfWork.SpeakingAssessmentRepository.Update(existingAssessment);
+                _logger.LogInformation(
+                    "Updated existing speaking assessment for answerId {AnswerId}",
+                    task.AnswerId);
+            }
+            else
+            {
+                // Create new assessment
+                var speakingAssessment = _mapper.Map<SpeakingAssessment>(assessment);
+                speakingAssessment.AnswerId = task.AnswerId;
+                speakingAssessment.AudioUrl = task.AudioUrl;
+
+                unitOfWork.SpeakingAssessmentRepository.Add(speakingAssessment);
+                _logger.LogInformation(
+                    "Created new speaking assessment for answerId {AnswerId}",
+                    task.AnswerId);
+            }
+
+            // 5. Update answer score and feedback
+            answer.Score = assessment.TotalScore;
             answer.AiFeedback = assessment.DetailedFeedback;
-
-            // 5. Save changes
             unitOfWork.AnswerRepository.Update(answer);
-            unitOfWork.SpeakingAssessmentRepository.Add(speakingAssessment);
 
             await unitOfWork.SaveChangesAsync(cancellationToken);
             await unitOfWork.CommitAsync(cancellationToken);

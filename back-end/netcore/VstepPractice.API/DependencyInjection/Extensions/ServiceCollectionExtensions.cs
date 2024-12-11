@@ -37,10 +37,10 @@ public static class ServiceCollectionExtensions
             sp.GetRequiredService<EssayScoringBackgroundService>());
 
         // Speaking Assessment Background Service
-        services.AddSingleton<SpeakingAssessmentBackgroundService>();
+        services.AddSingleton<HybridSpeakingAssessmentBackgroundService>();
         services.AddSingleton<ISpeakingAssessmentQueue>(sp =>
-            sp.GetRequiredService<SpeakingAssessmentBackgroundService>());
+            sp.GetRequiredService<HybridSpeakingAssessmentBackgroundService>());
         services.AddHostedService(sp =>
-            sp.GetRequiredService<SpeakingAssessmentBackgroundService>());
+            sp.GetRequiredService<HybridSpeakingAssessmentBackgroundService>());
     }
 }

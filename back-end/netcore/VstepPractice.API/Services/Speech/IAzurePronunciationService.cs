@@ -5,7 +5,7 @@ namespace VstepPractice.API.Services.Speech;
 
 public interface IAzurePronunciationService
 {
-    Task<PronunciationAssessmentResponse> AssessAudioAsync(
+    Task<SpeakingAssessmentResponse> AssessAudioAsync(
         Stream audioStream,
         string topic, // For content assessment 
         CancellationToken cancellationToken = default);

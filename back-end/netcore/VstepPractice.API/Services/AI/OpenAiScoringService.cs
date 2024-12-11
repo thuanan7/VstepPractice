@@ -8,7 +8,6 @@ using System.Text.Json;
 using VstepPractice.API.Common.Enums;
 using VstepPractice.API.Common.Utils;
 using VstepPractice.API.Models.DTOs.AI;
-using static VstepPractice.API.Common.Utils.ScoreUtils;
 
 namespace VstepPractice.API.Services.AI;
 

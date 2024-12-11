@@ -5,6 +5,7 @@ using Microsoft.Extensions.Options;
 using System.Text.Json;
 using VstepPractice.API.Common.Utils;
 using VstepPractice.API.Models.DTOs.AI;
+using VstepPractice.API.Models.Entities;
 
 namespace VstepPractice.API.Services.Speech;
 
@@ -24,41 +25,42 @@ public class AzurePronunciationService : IAzurePronunciationService
         _speechConfig.SpeechRecognitionLanguage = "en-US";
     }
 
-    public async Task<PronunciationAssessmentResponse> AssessAudioAsync(
-        Stream audioStream,
-        string topic,
-        CancellationToken cancellationToken = default)
+    public async Task<SpeakingAssessmentResponse> AssessAudioAsync(
+    Stream audioStream,
+    string topic,
+    CancellationToken cancellationToken = default)
     {
+        var assessmentResult = new SpeakingAssessmentResponse();
+        PushAudioInputStream? pushStream = null;
+        SpeechRecognizer? recognizer = null;
+
         try
         {
             using var wavStream = await AudioUtils.ConvertM4aToWav(audioStream);
-
             _logger.LogInformation(
-                "Converted audio stream - Length: {Length}, Position: {Position}",
-                wavStream.Length,
-                wavStream.Position);
+                "Converted audio stream - Length: {Length}",
+                wavStream.Length);
 
-            using var pushStream = AudioInputStream.CreatePushStream(
+            // Create resources
+            pushStream = AudioInputStream.CreatePushStream(
                 AudioStreamFormat.GetWaveFormatPCM(16000, 16, 1));
-            using var audioInput = AudioConfig.FromStreamInput(pushStream);
-            using var recognizer = new SpeechRecognizer(_speechConfig, audioInput);
-
-            var referenceText = $"This is a response about {topic}";
+            var audioInput = AudioConfig.FromStreamInput(pushStream);
+            recognizer = new SpeechRecognizer(_speechConfig, audioInput);
 
             var pronConfig = new PronunciationAssessmentConfig(
-                referenceText, // Empty reference text
+                "",
                 GradingSystem.HundredMark,
-                Granularity.Phoneme,
+                Granularity.Word,
                 enableMiscue: false);
 
             pronConfig.EnableProsodyAssessment();
             pronConfig.EnableContentAssessmentWithTopic(topic);
             pronConfig.ApplyTo(recognizer);
 
-            var assessmentResult = new PronunciationAssessmentResponse();
             var recognizedTexts = new List<string>();
             var taskCompletionSource = new TaskCompletionSource<bool>();
 
+            // Setup handlers...
             recognizer.Recognized += (s, e) => {
                 if (e.Result.Reason == ResultReason.RecognizedSpeech && !string.IsNullOrEmpty(e.Result.Text))
                 {
@@ -74,43 +76,33 @@ public class AzurePronunciationService : IAzurePronunciationService
 
                         if (pronResult != null)
                         {
-                            // Update scores
-                            assessmentResult.AccuracyScore = (decimal)pronResult.AccuracyScore;
-                            assessmentResult.FluencyScore = (decimal)pronResult.FluencyScore;
-                            assessmentResult.PronScore = (decimal)pronResult.PronunciationScore;
-                            assessmentResult.ProsodyScore = (decimal)pronResult.ProsodyScore;
+                            assessmentResult.AccuracyScore = (decimal)pronResult.AccuracyScore * 0.1m;
+                            assessmentResult.FluencyScore = (decimal)pronResult.FluencyScore * 0.1m;
+                            assessmentResult.PronScore = (decimal)pronResult.PronunciationScore * 0.1m;
+                            assessmentResult.ProsodyScore = (decimal)pronResult.ProsodyScore * 0.1m;
 
-                            // Content scores
-                            var contentResult = pronResult.ContentAssessmentResult;
-                            if (contentResult != null)
-                            {
-                                assessmentResult.GrammarScore = (decimal)contentResult.GrammarScore;
-                                assessmentResult.VocabularyScore = (decimal)contentResult.VocabularyScore;
-                                assessmentResult.TopicScore = (decimal)contentResult.TopicScore;
-                            }
-
-                            // Word assessments
+                            // Add word-level assessment
                             foreach (var word in pronResult.Words)
                             {
-                                var wordAssessment = new WordAssessmentResult
+                                var wordDetail = new WordDetail
                                 {
                                     Word = word.Word,
-                                    AccuracyScore = (decimal)word.AccuracyScore,
+                                    AccuracyScore = (decimal)word.AccuracyScore * 0.1m, // Convert to 0-10 scale
                                     ErrorType = word.ErrorType,
                                 };
 
-                                // Add phoneme details if available
                                 if (word.Phonemes != null)
                                 {
-                                    wordAssessment.Phonemes = word.Phonemes.Select(p =>
-                                        new PhonemeAssessment
-                                        {
-                                            Phoneme = p.Phoneme,
-                                            AccuracyScore = (decimal)p.AccuracyScore
-                                        }).ToList();
+                                    wordDetail.Phonemes = word.Phonemes.Select(p => new PhonemeDetail
+                                    {
+                                        Phoneme = p.Phoneme,
+                                        AccuracyScore = (decimal)p.AccuracyScore,
+                                        Offset = p.Offset,
+                                        Duration = p.Duration
+                                    }).ToList();
                                 }
 
-                                assessmentResult.Words.Add(wordAssessment);
+                                assessmentResult.Words.Add(wordDetail);
                             }
                         }
                     }
@@ -121,13 +113,15 @@ public class AzurePronunciationService : IAzurePronunciationService
                 }
             };
 
+
             recognizer.Recognizing += (s, e) => {
                 _logger.LogDebug(
                     "Recognizing speech... Partial text: {Text}",
                     e.Result.Text);
             };
 
-            recognizer.Canceled += (s, e) => {
+            recognizer.Canceled += (s, e) =>
+            {
                 if (e.Reason == CancellationReason.Error)
                 {
                     _logger.LogError(
@@ -143,77 +137,88 @@ public class AzurePronunciationService : IAzurePronunciationService
                 }
             };
 
-            recognizer.SessionStopped += (s, e) => {
+            recognizer.SessionStopped += (s, e) =>
+            {
                 _logger.LogInformation("Assessment session stopped");
                 taskCompletionSource.TrySetResult(true);
             };
 
-            await recognizer.StartContinuousRecognitionAsync();
+            // Start recognition
+            await recognizer.StartContinuousRecognitionAsync()
+                .ConfigureAwait(false);
 
-            // Write audio data
+            // Write audio data with proper cancellation handling
             byte[] buffer = new byte[8192];
             int bytesRead;
             var totalBytesWritten = 0;
 
-            while ((bytesRead = await wavStream.ReadAsync(buffer, 0, buffer.Length, cancellationToken)) > 0)
+            try
             {
-                pushStream.Write(buffer, bytesRead);
-                totalBytesWritten += bytesRead;
-                _logger.LogDebug("Wrote {BytesRead} bytes. Total: {Total}", bytesRead, totalBytesWritten);
+                while (!cancellationToken.IsCancellationRequested &&
+                       (bytesRead = await wavStream.ReadAsync(buffer, 0, buffer.Length, cancellationToken)) > 0)
+                {
+                    pushStream.Write(buffer[..bytesRead]);
+                    totalBytesWritten += bytesRead;
+                    _logger.LogDebug("Wrote {BytesRead} bytes. Total: {Total}", bytesRead, totalBytesWritten);
+                }
+
+                _logger.LogInformation("Finished writing audio data. Total: {TotalBytes}", totalBytesWritten);
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogWarning("Audio processing was cancelled");
+                throw;
+            }
+            finally
+            {
+                // Always close the push stream when done
+                pushStream.Close();
+                _logger.LogInformation("Push stream closed");
             }
 
-            _logger.LogInformation("Finished writing audio data. Total: {TotalBytes}", totalBytesWritten);
-            pushStream.Close();
+            // Wait for recognition to complete with timeout
+            using var timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(300));
+            using var linkedCts = CancellationTokenSource
+                .CreateLinkedTokenSource(timeoutCts.Token, cancellationToken);
 
-            // Wait for completion with timeout
-            using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            cts.CancelAfter(TimeSpan.FromSeconds(300));
-
-            await taskCompletionSource.Task.WaitAsync(cts.Token);
-            await recognizer.StopContinuousRecognitionAsync();
-
-            // Set final results
-            assessmentResult.RecognizedText = string.Join(" ", recognizedTexts);
-
-            // Create detailed JSON result
-            var jsonResponse = new
+            try
             {
-                RecognizedText = assessmentResult.RecognizedText,
-                Scores = new
-                {
-                    Pronunciation = assessmentResult.PronScore,
-                    Accuracy = assessmentResult.AccuracyScore,
-                    Fluency = assessmentResult.FluencyScore,
-                    Prosody = assessmentResult.ProsodyScore,
-                    Grammar = assessmentResult.GrammarScore,
-                    Vocabulary = assessmentResult.VocabularyScore,
-                    Topic = assessmentResult.TopicScore
-                },
-                Words = assessmentResult.Words.Select(w => new
-                {
-                    w.Word,
-                    w.AccuracyScore,
-                    w.ErrorType,
-                    Phonemes = w.Phonemes?.Select(p => new
-                    {
-                        p.Phoneme,
-                        p.AccuracyScore,
-                        Offset = p.Offset,
-                        Duration = p.Duration
-                    })
-                })
-            };
+                await taskCompletionSource.Task
+                    .WaitAsync(linkedCts.Token)
+                    .ConfigureAwait(false);
+            }
+            catch (TimeoutException)
+            {
+                _logger.LogWarning("Recognition timed out after 300 seconds");
+                throw;
+            }
 
-            assessmentResult.DetailedResultJson = JsonSerializer.Serialize(
-                jsonResponse,
-                new JsonSerializerOptions { WriteIndented = true });
-
+            assessmentResult.RecognizedText = string.Join(" ", recognizedTexts);
             return assessmentResult;
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not OperationCanceledException)
         {
             _logger.LogError(ex, "Error during pronunciation assessment");
             throw;
+        }
+        finally
+        {
+            // Cleanup resources
+            if (recognizer != null)
+            {
+                try
+                {
+                    await recognizer.StopContinuousRecognitionAsync()
+                        .ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error stopping recognition");
+                }
+                recognizer.Dispose();
+            }
+
+            pushStream?.Dispose();
         }
     }
 }
