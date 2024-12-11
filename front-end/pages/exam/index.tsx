@@ -17,8 +17,8 @@ interface Exam {
   id: string
   title: string
   description: string
-  date: string // ngày thi
-  status: 'upcoming' | 'ongoing' | 'completed' // trạng thái bài thi
+  date: string
+  status: 'upcoming' | 'ongoing' | 'completed'
 }
 
 const examList: Exam[] = [

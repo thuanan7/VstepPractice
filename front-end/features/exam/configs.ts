@@ -16,13 +16,10 @@ export const questionPathConfigs = {
   updateQuestion: 'questions/{questionId}',
   updateOptions: 'questions/{questionId}/options',
 }
-
-export enum SectionPartType {
-  listening = 0,
-  reading = 1,
-  writing = 2,
-  speaking = 3,
+export const attemptConfigs = {
+  getAttemptByExamId: 'attempt/{examId}',
 }
+
 export enum SessionType {
   Listening = 1,
   Reading = 2,
@@ -41,9 +38,3 @@ export enum SectionPartTypes {
   Part = 2,
   Passage = 3,
 }
-
-export const sectionPartTypeOptions = [
-  { label: 'Section', value: SectionPartTypes.Section },
-  { label: 'Part', value: SectionPartTypes.Part },
-  { label: 'Passage', value: SectionPartTypes.Passage },
-]

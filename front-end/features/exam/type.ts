@@ -4,7 +4,6 @@ export interface IExam {
   createdAt: string
   description: string
 }
-// Interface cho một câu hỏi
 export interface Question {
   orderNum: number
   point: number
@@ -60,11 +59,6 @@ export interface ReadingQuestions extends BaseQuestion {
   questions: MultipleChoiceQuestion[]
 }
 
-export type QuestionType =
-  | MultipleChoiceQuestion
-  | EssayQuestion
-  | SpeakingQuestion
-  | AudioQuestion
 export enum SectionType {
   Listening = 1,
   Reading = 2,
@@ -105,8 +99,6 @@ export interface VSTEPExam {
   sections: Section[]
 }
 
-export interface SectionListening extends Section {}
-
 //ROMIO
 interface ISessionPartBase {
   title: string
@@ -135,4 +127,30 @@ export interface IQuestion {
   questionText: string
   point: number
   options: IOption[]
+}
+
+export interface IAttemptExam {
+  id: number
+  title: string
+  instructions?: string
+  sectionType: number
+  parts: IAttemptPart[]
+}
+
+export interface IAttemptPart {
+  id: number
+  content?: string
+  instructions?: string
+  questions: IAttemptQuestion[]
+}
+
+export interface IAttemptQuestion {
+  id: number
+  questionText: string
+  options: IAttemptOption[]
+}
+
+export interface IAttemptOption {
+  id: number
+  content: string
 }

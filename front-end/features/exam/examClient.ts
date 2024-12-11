@@ -21,8 +21,4 @@ export default class ExamClient extends APIClient {
         return undefined
       })
   }
-  sectionParts() {}
-  updateSectionPart(id: number, section: ISectionPartParams) {}
-  createSectionPart(section: ISectionPartParams) {}
-  deleteSectionPart(id: number) {}
 }

@@ -60,7 +60,7 @@ const CreateOrUpdateSection = (props: CreateOrUpdateParentSectionProps) => {
         width: '100%',
       }}
     >
-      Tạo mới section
+      Tạo mới kỹ năng
     </Button>
   )
   if (id) {

@@ -1,9 +1,7 @@
 const express = require('express')
 const questionController = require('../controllers/questionController')
 const questionOptionController = require('../controllers/questionOptionController')
-
 const router = express.Router()
-
 router.post('/', questionController.createEmptyQuestion)
 router.delete('/:id', questionController.removeQuestion)
 router.put('/:id', questionController.updateQuestion)

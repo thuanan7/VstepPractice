@@ -21,6 +21,7 @@ module.exports = (sequelize, DataTypes) => {
       })
       SectionPart.hasMany(models.Question, {
         foreignKey: 'passageId',
+        as: 'questions',
       })
     }
   }

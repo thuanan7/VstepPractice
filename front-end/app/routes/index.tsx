@@ -4,7 +4,6 @@ import {
   LoginPage,
   ExamPage,
   QuestionPage,
-  AdminPage,
   StudentExamAttemptPage,
   StudentExamResultPage,
   StudentExamSubmitPage,
@@ -27,7 +26,7 @@ export const routes: RouteObject[] = [
         index: true,
         element: (
           <PrivateRoute>
-            <AdminPage />
+            <ExamPage />
           </PrivateRoute>
         ),
       },

@@ -1,23 +1,16 @@
-import {
-  Box,
-  Typography,
-  RadioGroup,
-  FormControlLabel,
-  Radio,
-} from '@mui/material'
-import { AudioQuestion } from '@/features/exam/type'
+import { Typography } from '@mui/material'
+import { IAttemptPart } from '@/features/exam/type'
+import withQuestion from '../hoc/withQuestion'
 
+const baseApiUrl = `${import.meta.env.VITE_BASE_URL || ''}/api`
 interface ListeningSectionProps {
-  currentPart: AudioQuestion
+  part: IAttemptPart
   answers: Record<string, string>
-  handleAnswerChange: (questionId: string, answer: string) => void
+  onAnswer: (questionId: number, answer: number) => void
 }
 
-const ListeningSection: React.FC<ListeningSectionProps> = ({
-  currentPart,
-  answers,
-  handleAnswerChange,
-}) => {
+const ListeningSection = (props: ListeningSectionProps) => {
+  const { part } = props
   return (
     <>
       <Typography variant="h6" gutterBottom>
@@ -25,31 +18,11 @@ const ListeningSection: React.FC<ListeningSectionProps> = ({
       </Typography>
       <audio
         controls
-        src="../../../../../public/Con Mua Ngang Qua (Part.2).mp3"
+        src={`${baseApiUrl}/${part.content}`}
         style={{ width: '100%', marginBottom: 16 }}
       />
-      {currentPart.questions.map((question) => (
-        <Box key={question.id} sx={{ mt: 2 }}>
-          <Typography variant="body2" gutterBottom>
-            {question.questionText}
-          </Typography>
-          <RadioGroup
-            value={answers[question.id] || ''}
-            onChange={(e) => handleAnswerChange(question.id, e.target.value)}
-          >
-            {question.options?.map((option, index) => (
-              <FormControlLabel
-                key={index}
-                value={option}
-                control={<Radio />}
-                label={option}
-              />
-            ))}
-          </RadioGroup>
-        </Box>
-      ))}
     </>
   )
 }
 
-export default ListeningSection
+export default withQuestion(ListeningSection)

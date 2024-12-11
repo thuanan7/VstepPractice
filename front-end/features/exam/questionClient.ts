@@ -76,13 +76,4 @@ export default class QuestionClient extends APIClient {
       return r?.success || false
     })
   }
-
-  getQuestions() {}
-  createQuestion() {}
-
-  getOptions() {}
-
-  createOption() {}
-
-  updateOption() {}
 }
