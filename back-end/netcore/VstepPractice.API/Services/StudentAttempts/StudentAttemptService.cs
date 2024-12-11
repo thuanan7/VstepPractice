@@ -352,15 +352,7 @@ public class StudentAttemptService : IStudentAttemptService
 
                 if (speakingAssessment != null)
                 {
-                    answerResponse.SpeakingScore = new SpeakingScoreDetails
-                    {
-                        Pronunciation = speakingAssessment.PronunciationScore,
-                        Fluency = speakingAssessment.FluencyScore,
-                        Vocabulary = speakingAssessment.Vocabulary,
-                        Grammar = speakingAssessment.Grammar,
-                        AudioUrl = speakingAssessment.AudioUrl,
-                        TranscribedText = speakingAssessment.TranscribedText
-                    };
+                    answerResponse.SpeakingScore = _mapper.Map<SpeakingScoreDetails>(speakingAssessment);
                 }
             }
 

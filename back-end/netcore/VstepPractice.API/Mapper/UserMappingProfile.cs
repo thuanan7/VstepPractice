@@ -110,11 +110,13 @@ public class AutoMapperProfile : Profile
             .ForMember(dest => dest.SpeakingScore, opt => opt.Ignore()); ; // We'll set this separately when needed
 
 
+        CreateMap<SpeakingAssessment, SpeakingScoreDetails>();
+
         CreateMap<SpeakingAssessmentResponse, SpeakingAssessment>()
-            .ForMember(dest => dest.PronunciationScore, opt => opt.MapFrom(src => src.PronScore))
-            .ForMember(dest => dest.FluencyScore, opt => opt.MapFrom(src => src.FluencyScore))
-            .ForMember(dest => dest.AccuracyScore, opt => opt.MapFrom(src => src.AccuracyScore))
-            .ForMember(dest => dest.ProsodyScore, opt => opt.MapFrom(src => src.ProsodyScore))
+            .ForMember(dest => dest.Pronunciation, opt => opt.MapFrom(src => src.PronScore))
+            .ForMember(dest => dest.Fluency, opt => opt.MapFrom(src => src.FluencyScore))
+            .ForMember(dest => dest.Accuracy, opt => opt.MapFrom(src => src.AccuracyScore))
+            .ForMember(dest => dest.Prosody, opt => opt.MapFrom(src => src.ProsodyScore))
             .ForMember(dest => dest.Vocabulary, opt => opt.MapFrom(src => src.VocabularyScore))
             .ForMember(dest => dest.Grammar, opt => opt.MapFrom(src => src.GrammarScore))
             .ForMember(dest => dest.TopicScore, opt => opt.MapFrom(src => src.TopicScore))

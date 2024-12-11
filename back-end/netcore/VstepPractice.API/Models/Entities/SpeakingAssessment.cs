@@ -10,16 +10,16 @@ public class SpeakingAssessment : BaseEntity
 
     // Core pronunciation scores from Azure (0-10)
     [Column("pronunciation", TypeName = "decimal(4,2)")]
-    public decimal PronunciationScore { get; set; }  // Overall pronunciation score
+    public decimal Pronunciation { get; set; }  // Overall pronunciation score
 
     [Column("fluency", TypeName = "decimal(4,2)")]
-    public decimal FluencyScore { get; set; }  // Speech fluency/smoothness
+    public decimal Fluency { get; set; }  // Speech fluency/smoothness
 
     [Column("accuracy", TypeName = "decimal(4,2)")]
-    public decimal AccuracyScore { get; set; }  // Pronunciation accuracy
+    public decimal Accuracy { get; set; }  // Pronunciation accuracy
 
     [Column("prosody", TypeName = "decimal(4,2)")]
-    public decimal ProsodyScore { get; set; }  // Intonation and stress patterns
+    public decimal Prosody { get; set; }  // Intonation and stress patterns
 
     // Content assessment scores from OpenAI (0-10)
     [Column("vocabulary", TypeName = "decimal(4,2)")]
@@ -52,9 +52,9 @@ public class SpeakingAssessment : BaseEntity
     // Calculated total score (0-10 scale for VSTEP compatibility)
     [NotMapped]
     public decimal TotalScore => Math.Round(
-        (PronunciationScore + AccuracyScore + FluencyScore + ProsodyScore
+        (Pronunciation + Accuracy + Fluency + Prosody
         + Grammar + Vocabulary + TopicScore) / 7,
-        1);  // Convert 100-scale to 10-scale
+        1);
 
     // Navigation property
     [ForeignKey(nameof(AnswerId))]

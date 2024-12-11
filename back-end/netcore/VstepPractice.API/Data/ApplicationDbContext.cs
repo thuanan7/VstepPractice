@@ -159,10 +159,10 @@ public class ApplicationDbContext : DbContext
             entity.ToTable("SpeakingAssessments");
 
             // Score columns with precision(5,2) for 0-100 range
-            entity.Property(e => e.PronunciationScore).HasColumnType("decimal(4,2)");
-            entity.Property(e => e.FluencyScore).HasColumnType("decimal(4,2)");
-            entity.Property(e => e.AccuracyScore).HasColumnType("decimal(4,2)");
-            entity.Property(e => e.ProsodyScore).HasColumnType("decimal(4,2)");
+            entity.Property(e => e.Pronunciation).HasColumnType("decimal(4,2)");
+            entity.Property(e => e.Fluency).HasColumnType("decimal(4,2)");
+            entity.Property(e => e.Accuracy).HasColumnType("decimal(4,2)");
+            entity.Property(e => e.Prosody).HasColumnType("decimal(4,2)");
             entity.Property(e => e.Vocabulary).HasColumnType("decimal(4,2)");
             entity.Property(e => e.Grammar).HasColumnType("decimal(4,2)");
             entity.Property(e => e.TopicScore).HasColumnType("decimal(4,2)");

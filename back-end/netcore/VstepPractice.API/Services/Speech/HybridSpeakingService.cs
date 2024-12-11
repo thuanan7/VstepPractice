@@ -150,6 +150,7 @@ Student's Response: {pronResult.RecognizedText}
                 }
 
                 var responseContent = completionResult.Choices.First().Message.Content;
+                responseContent = CleanJsonResponse(responseContent);
                 var aiResult = JsonSerializer.Deserialize<JsonDocument>(responseContent)?.RootElement;
 
                 if (aiResult == null)
@@ -219,5 +220,19 @@ Student's Response: {pronResult.RecognizedText}
         }
 
         return feedback.ToString();
+    }
+
+    private static string CleanJsonResponse(string response)
+    {
+        // Remove markdown code block if present
+        if (response.StartsWith("```json"))
+        {
+            response = response.Replace("```json", "").Replace("```", "").Trim();
+        }
+        else if (response.StartsWith("```"))
+        {
+            response = response.Replace("```", "").Trim();
+        }
+        return response;
     }
 }
