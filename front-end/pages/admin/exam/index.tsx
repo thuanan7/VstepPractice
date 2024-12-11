@@ -18,7 +18,6 @@ import {
 } from '@mui/material'
 import DeleteIcon from '@mui/icons-material/Delete'
 import EditIcon from '@mui/icons-material/Edit'
-import AddIcon from '@mui/icons-material/Add'
 import { examRequest } from '@/app/api'
 import { IExam } from '@/features/exam/type'
 import { Quiz } from '@mui/icons-material'

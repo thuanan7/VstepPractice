@@ -1,27 +1,27 @@
-import React, { useEffect, useState, useMemo } from 'react'
-import { Box, Button, Grid, Paper } from '@mui/material'
-import AttemptTabs from '@/pages/exam/attempt/components/AttemptTabs'
-import TableQuestion from '@/pages/exam/attempt/components/TableQuestion'
-import SpeakingSection from '@/pages/exam/attempt/components/SpeakingSection'
-import WritingSection from '@/pages/exam/attempt/components/WritingSection'
-import ReadingSection from '@/pages/exam/attempt/components/ReadingSection'
-import ListeningSection from '@/pages/exam/attempt/components/ListeningSection'
-import { useNavigate, useParams } from 'react-router-dom'
-
-import { attemptRequest } from '@/app/api'
+import { useEffect, useState } from 'react'
 import { toast } from 'react-hot-toast'
+import { attemptRequest } from '@/app/api'
+import { useNavigate, useParams } from 'react-router-dom'
 import { IAttemptExam } from '@/features/exam/type.ts'
-import { SessionType } from '@/features/exam/configs.ts'
+import {
+  Box,
+  Button,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Typography,
+  Container,
+} from '@mui/material'
 
-const ExamPage: React.FC = () => {
+const AttemptStudent = () => {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const [examConfig, setExamConfig] = useState<IAttemptExam[]>([])
+  const [examTest, setExamTest] = useState<IAttemptExam[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [fetchError, setFetchError] = useState<string | null>(null)
-  const [currentSectionIndex, setCurrentSectionIndex] = useState(0)
-  const [currentPartIndex, setCurrentPartIndex] = useState(0)
-  const [answers, setAnswers] = useState<Record<string, string>>({})
 
   useEffect(() => {
     if (!id || isNaN(Number(id))) {
@@ -29,232 +29,124 @@ const ExamPage: React.FC = () => {
       navigate('/exam')
       return
     }
-    const checkExamId = async () => {
-      try {
-        setIsLoading(true)
-        const response = await attemptRequest.getAttemptByExamId(id)
-        if (!response) {
-          toast.error('Invalid exam ID!')
-          navigate('/exam')
-          return
-        } else {
-          setExamConfig(response)
-        }
-      } catch (error) {
-        toast.error('Không tìm thấy đề thi')
-        navigate('/exam')
-      } finally {
-        setIsLoading(false)
-      }
-    }
-    void checkExamId()
+    void getExamTest()
   }, [id, navigate])
-
-  const [crrSection, crrPart] = useMemo(() => {
-    if (
-      currentSectionIndex >= 0 &&
-      currentPartIndex >= 0 &&
-      examConfig.length
-    ) {
-      if (currentSectionIndex > examConfig.length) {
-        setCurrentSectionIndex(0)
+  const getExamTest = async () => {
+    try {
+      setIsLoading(true)
+      const response = await attemptRequest.getAttemptByExamId(id)
+      if (!response) {
+        toast.error('Invalid exam ID!')
+        navigate('/exam')
+        return
       } else {
-        const section = examConfig[currentSectionIndex]
-        if (!section || currentPartIndex > section.parts.length) {
-          setCurrentPartIndex(0)
-        }
-        return [section, section.parts[currentPartIndex]]
+        setExamTest(response)
       }
-    } else {
-      setCurrentSectionIndex(0)
-      setCurrentPartIndex(0)
+    } catch (error) {
+      toast.error('Không tìm thấy đề thi')
+      navigate('/exam')
+    } finally {
+      setIsLoading(false)
     }
-    return [undefined, undefined]
-  }, [examConfig, currentSectionIndex, currentPartIndex])
-  console.log('dsadsa')
-  //
-  // const flatQuestions = useMemo(() => {
-  //   if (!examConfig.sections || examConfig.sections.length === 0) return []
-  //   return examConfig.sections.flatMap((section, sectionIndex) =>
-  //     section.sectionPart.map((part, partIndex) => ({
-  //       ...part,
-  //       sectionIndex,
-  //       partIndex,
-  //     })),
-  //   )
-  // }, [examConfig.sections])
-  // useEffect(() => {
-  //   if (currentPart) {
-  //     setCurrentSectionIndex(currentPart.sectionIndex)
-  //   }
-  //   document.body.style.overflow = 'hidden'
-  //   return () => {
-  //     document.body.style.overflow = 'auto'
-  //   }
-  // }, [currentPartIndex])
-
-  // useEffect(() => {
-  //   if (flatQuestions.length > 0 && currentPartIndex >= flatQuestions.length) {
-  //     setCurrentPartIndex(0)
-  //   }
-  // }, [flatQuestions, currentPartIndex])
-  //
-  // const currentPart =
-  //   flatQuestions &&
-  //   currentPartIndex >= 0 &&
-  //   currentPartIndex < flatQuestions.length
-  //     ? flatQuestions[currentPartIndex]
-  //     : null
-
-  if (isLoading) {
-    return <div>Loading...</div>
   }
-
-  if (fetchError) {
-    return <div>Error: {fetchError}</div>
-  }
-
-  if (!crrSection || !crrPart) {
-    return <div>No data available for this section.</div>
-  }
-  //
-  // const findFirstPartIndexOfSection = (sectionIndex: number) => {
-  //   return flatQuestions.findIndex((q) => q.sectionIndex === sectionIndex)
-  // }
-  //
-  const handleAnswer = (questionId: number, option: number) => {
-    // setAnswers((prev) => ({
-    //   ...prev,
-    //   [questionId]: answer,
-    // }))
-  }
-  //
-  // const handleNextQuestion = () => {
-  //   if (currentPartIndex < flatQuestions.length - 1) {
-  //     setCurrentPartIndex((prev) => prev + 1)
-  //   }
-  // }
-  //
-  // const handlePreviousQuestion = () => {
-  //   if (currentPartIndex > 0) {
-  //     setCurrentPartIndex((prev) => prev - 1)
-  //   }
-  // }
-  //
-  const handleSectionChange = (sectionIndex: number) => {
-    setCurrentSectionIndex(sectionIndex)
-    setCurrentPartIndex(0)
-  }
-  //
-  // const handlePartClick = (partIndex: number) => {
-  //   setCurrentPartIndex(partIndex)
-  //   // Chi hien thi cac part tong section nen ko can
-  //   //setCurrentSectionIndex(flatQuestions[partIndex].sectionIndex)
-  //   // console.log("handleQuestionClick-questionIndex: "+questionIndex)
-  //   // console.log("handleQuestionClick - flatQuestions[questionIndex].sectionIndex: "+flatQuestions[questionIndex].sectionIndex);
-  // }
-  //
-  // const handleSubmit = () => {
-  //   navigate('/exam/1/submit')
-  // }
-
   return (
-    <Grid container spacing={2} sx={{ height: '100vh', padding: 2 }}>
-      <AttemptTabs
-        tabs={examConfig.map((x) => x.title)}
-        active={currentSectionIndex}
-        onChoose={handleSectionChange}
-      />
-      <Grid item xs={8} sx={{ position: 'relative' }}>
-        <Paper
-          elevation={3}
-          sx={{
-            padding: 3,
-            paddingBottom: 10,
-            overflowY: 'auto',
-            height: 'calc(100vh - 100px)',
-          }}
+    <Container
+      sx={{
+        margin: '0 auto',
+        padding: 4,
+      }}
+    >
+      {/* Tên bài thi */}
+      <Typography variant="h4" fontWeight="bold" gutterBottom>
+        {data.quizName}
+      </Typography>
+
+      {/* Mô tả */}
+      <Typography variant="body1" color="textSecondary" gutterBottom>
+        {data.description}
+      </Typography>
+      <Box mt={4}>
+        <Typography variant="h5" gutterBottom>
+          Tổng quan các lần làm bài trước của bạn
+        </Typography>
+        <TableContainer component={Paper}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell align="center">Làm lại</TableCell>
+                <TableCell align="center">Trạng thái</TableCell>
+                <TableCell align="center">Điểm</TableCell>
+                <TableCell align="center">Xem lại</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {data.attempts.map((attempt) => (
+                <TableRow key={attempt.attemptNumber}>
+                  <TableCell align="center">{attempt.attemptNumber}</TableCell>
+                  <TableCell align="center">{attempt.status}</TableCell>
+                  <TableCell align="center">{attempt.score}</TableCell>
+                  <TableCell align="center">
+                    <Button variant="text">{attempt.reviewLink}</Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Box>
+
+      <Box mt={4} display="flex" justifyContent="space-between" gap={2}>
+        <Button
+          variant="contained"
+          color="primary"
+          fullWidth
+          onClick={() => console.log('Start Quiz clicked')}
         >
-          {crrSection.sectionType === SessionType.Listening && (
-            <ListeningSection
-              part={crrPart}
-              answers={answers}
-              onAnswer={handleAnswer}
-            />
-          )}
-          {crrSection.sectionType === SessionType.Reading && (
-            <ReadingSection
-              part={crrPart}
-              answers={answers}
-              onAnswer={handleAnswer}
-            />
-          )}
-          {/*{currentSection.type === 'writing' &&*/}
-          {/*  currentPart.type === 'essay' && (*/}
-          {/*    <WritingSection*/}
-          {/*      currentPart={currentPart}*/}
-          {/*      answers={answers}*/}
-          {/*      handleAnswerChange={handleAnswerChange}*/}
-          {/*    />*/}
-          {/*  )}*/}
-          {crrSection.sectionType === SessionType.Speaking && (
-            <SpeakingSection part={crrPart} />
-          )}
-        </Paper>
-        {/*<Box*/}
-        {/*  sx={{*/}
-        {/*    position: 'fixed',*/}
-        {/*    bottom: 0,*/}
-        {/*    left: '16%',*/}
-        {/*    right: '16%',*/}
-        {/*    backgroundColor: 'white',*/}
-        {/*    padding: 2,*/}
-        {/*    boxShadow: '0 -2px 5px rgba(0,0,0,0.1)',*/}
-        {/*    display: 'flex',*/}
-        {/*    justifyContent: 'space-between',*/}
-        {/*  }}*/}
-        {/*>*/}
-        {/*  <Button*/}
-        {/*    variant="outlined"*/}
-        {/*    disabled={currentPartIndex === 0}*/}
-        {/*    onClick={handlePreviousQuestion}*/}
-        {/*  >*/}
-        {/*    Previous Part*/}
-        {/*  </Button>*/}
-        {/*  {currentPartIndex === flatQuestions.length - 1 ? (*/}
-        {/*    <Button variant="contained" color="success" onClick={handleSubmit}>*/}
-        {/*      Submit Exam*/}
-        {/*    </Button>*/}
-        {/*  ) : (*/}
-        {/*    <Button variant="contained" onClick={handleNextQuestion}>*/}
-        {/*      Next Part*/}
-        {/*    </Button>*/}
-        {/*  )}*/}
-        {/*</Box>*/}
-      </Grid>
-      {/*<TableQuestion*/}
-      {/*  data={flatQuestions.map((item, index) =>*/}
-      {/*    item.sectionIndex === currentSectionIndex ? index : -1,*/}
-      {/*  )}*/}
-      {/*  onChoose={handlePartClick}*/}
-      {/*  onAutoSubmit={handleSubmit}*/}
-      {/*  active={currentPartIndex}*/}
-      {/*  currentSectionIndex={currentSectionIndex}*/}
-      {/*  totalAnswerOnPart={*/}
-      {/*    Object.keys(answers).filter((obj) =>*/}
-      {/*      obj.includes(flatQuestions[currentPartIndex].id),*/}
-      {/*    ).length || 0*/}
-      {/*  }*/}
-      {/*  totalQuestions={(() => {*/}
-      {/*    try {*/}
-      {/*      return flatQuestions[currentPartIndex].questions.length*/}
-      {/*    } catch {*/}
-      {/*      return 0*/}
-      {/*    }*/}
-      {/*  })()}*/}
-      {/*/>*/}
-    </Grid>
+          {data.buttons.startQuiz}
+        </Button>
+        <Button
+          variant="outlined"
+          color="secondary"
+          fullWidth
+          onClick={() => console.log('Start new bài test clicked')}
+        >
+          {data.buttons.startNewTest}
+        </Button>
+      </Box>
+    </Container>
   )
 }
 
-export default ExamPage
+export default AttemptStudent
+const data = {
+  quizName: 'VSTEP B2 Exams',
+  description:
+    'Bạn sắp bắt đầu bài kiểm tra VSTEP B2. Bài kiểm tra bao gồm các phần Reading, Writing, và Speaking. Thời gian làm bài là 120 phút.',
+  attempts: [
+    {
+      attemptNumber: 1,
+      status: 'Đã xong',
+      submittedAt: 'Wednesday, 9 October 2024, 7:49 AM',
+      score: '20,00 / 25,00',
+      reviewLink: 'Xem lại',
+    },
+    {
+      attemptNumber: 2,
+      status: 'Đã xong',
+      submittedAt: 'Wednesday, 30 October 2024, 8:47 AM',
+      score: '23,00 / 25,00',
+      reviewLink: 'Xem lại',
+    },
+    {
+      attemptNumber: 3,
+      status: 'Đã xong',
+      submittedAt: 'Sunday, 10 November 2024, 12:40 PM',
+      score: '25,00 / 25,00',
+      reviewLink: 'Xem lại',
+    },
+  ],
+  buttons: {
+    startQuiz: 'Start Quiz',
+    startNewTest: 'Start new bài test',
+  },
+}
