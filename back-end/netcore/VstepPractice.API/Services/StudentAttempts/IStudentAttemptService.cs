@@ -32,4 +32,16 @@ public interface IStudentAttemptService
         int userId,
         int attemptId,
         CancellationToken cancellationToken = default);
+
+    Task<Result<BatchSubmitResponse>> BatchSubmitAnswersAsync(
+        int userId,
+        int attemptId,
+        BatchSubmitAnswersRequest request,
+        CancellationToken cancellationToken = default);
+
+    Task<Result<BatchSubmitResponse>> BatchSubmitSpeakingAsync(
+    int userId,
+    int attemptId,
+    BatchSubmitSpeakingRequest request,
+    CancellationToken cancellationToken = default);
 }
