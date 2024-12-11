@@ -23,6 +23,7 @@ import { examRequest } from '@/app/api'
 import { IExam } from '@/features/exam/type'
 import { Quiz } from '@mui/icons-material'
 import { useNavigate } from 'react-router-dom'
+import AddCircleIcon from '@mui/icons-material/AddCircle'
 
 const ExamManagement: React.FC = () => {
   const [exams, setExams] = useState<IExam[]>([])
@@ -39,7 +40,6 @@ const ExamManagement: React.FC = () => {
       setExams(data)
     }
   }
-  // Xử lý mở/đóng dialog
   const handleOpenDialog = (exam?: IExam) => {
     if (exam) setEditExam(exam)
     setOpenDialog(true)
@@ -77,14 +77,24 @@ const ExamManagement: React.FC = () => {
 
   return (
     <Box sx={{ p: 3 }}>
-      <Button
-        variant="contained"
-        color="primary"
-        startIcon={<AddIcon />}
-        onClick={() => handleOpenDialog()}
-      >
-        Add New Exam
-      </Button>
+      <Box display={'flex'} justifyContent={'flex-end'}>
+        <Button
+          variant="outlined"
+          color="primary"
+          startIcon={<AddCircleIcon />}
+          onClick={() => handleOpenDialog()}
+          sx={{
+            border: '2px dashed',
+            color: 'text.secondary',
+            borderColor: 'text.secondary',
+            borderRadius: '4px',
+            padding: '8px',
+            transition: 'background-color 0.3s',
+          }}
+        >
+          Tạo mới đề thi
+        </Button>
+      </Box>
 
       <TableContainer sx={{ mt: 3 }}>
         <Table>
@@ -109,7 +119,7 @@ const ExamManagement: React.FC = () => {
                       onClick={() => handleManageQuestions(exam.id)}
                       sx={{ mb: 1 }}
                     >
-                      Manage Questions
+                      Câu hỏi
                     </Button>
                   </Tooltip>
                 </TableCell>

@@ -1,6 +1,5 @@
 import { useNavigate } from 'react-router-dom'
 import { List, ListItemButton, ListItemIcon, ListItemText } from '@mui/material'
-import DashboardIcon from '@mui/icons-material/Dashboard'
 import AssignmentIcon from '@mui/icons-material/Assignment'
 
 const AdminDefaultMenu = () => {
@@ -10,14 +9,10 @@ const AdminDefaultMenu = () => {
   }
   return (
     <List>
-      <ListItemButton onClick={() => handleAccessToPage('/admin')}>
-        <ListItemIcon>
-          <DashboardIcon />
-        </ListItemIcon>
-        <ListItemText primary="Trang chủ" />
-      </ListItemButton>
-
-      <ListItemButton onClick={() => handleAccessToPage('/admin/exams')}>
+      <ListItemButton
+        sx={{ bgcolor: 'rgba(216,191,216, 0.5)' }}
+        onClick={() => handleAccessToPage('/admin/exams')}
+      >
         <ListItemIcon>
           <AssignmentIcon />
         </ListItemIcon>
