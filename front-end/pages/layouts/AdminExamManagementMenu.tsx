@@ -4,6 +4,7 @@ import { useDispatch } from 'react-redux'
 import { resetExam } from '@/features/exam/examSlice.ts'
 import {
   Avatar,
+  Button,
   Divider,
   List,
   ListItemButton,
@@ -14,7 +15,7 @@ import {
 import AssignmentIcon from '@mui/icons-material/Assignment'
 import CreateOrUpdateSection from '@/pages/admin/question/components/section-part/CreateOrUpdateSection'
 import AdminPathManagementMenu from './AdminPathManagementMenu'
-
+import PreviewIcon from '@mui/icons-material/Preview'
 interface AdminExamManagementMenuProps {
   exam: IExam
 }
@@ -79,6 +80,32 @@ const AdminExamManagementMenu = (props: AdminExamManagementMenuProps) => {
         </ListItemText>
       </ListItemButton>
       <Divider />
+      <ListItemButton>
+        <Button
+          variant="contained"
+          startIcon={<PreviewIcon />}
+          onClick={() => navigate(`/exam/${exam.id}/attempt`)}
+          sx={{
+            backgroundColor: '#1976d2',
+            color: 'white',
+            textTransform: 'none',
+            borderRadius: '12px',
+            padding: '12px 16px',
+            margin: '8px 0',
+            boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
+            '&:hover': {
+              backgroundColor: '#1565c0',
+            },
+            width: '100%',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            gap: '8px',
+          }}
+        >
+          Preview đề thi
+        </Button>
+      </ListItemButton>
       <ListItemButton>
         <CreateOrUpdateSection
           examId={`${exam.id}`}

@@ -49,12 +49,14 @@ const SessionGeneral = (props: SessionGeneralProps) => {
   }
   return (
     <Box
+      position={'relative'}
       flex={1}
       sx={{
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
       }}
+      pt={4}
     >
       <Box
         flex={1}
@@ -78,7 +80,14 @@ const SessionGeneral = (props: SessionGeneralProps) => {
           onSubmit={handleSubmitUpdateSection}
         />
       </Box>
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end' }} gap={2} mt={2}>
+      <Box
+        sx={{ display: 'flex', justifyContent: 'flex-end' }}
+        position={'absolute'}
+        right={0}
+        top={0}
+        gap={2}
+        mt={2}
+      >
         <Button
           variant="outlined"
           color="warning"

@@ -79,12 +79,12 @@ const SessionForm = forwardRef((props: SessionFormProps, ref: any) => {
             {data ? (
               <Box>
                 <Typography fontWeight={'bold'} color={'text.secondary'}>
-                  Loai section: {sectionTypeLabel}
+                  Loại kỹ năng: {sectionTypeLabel}
                 </Typography>
               </Box>
             ) : (
               <>
-                <InputLabel>Loại session</InputLabel>
+                <InputLabel>Loại kỹ năng</InputLabel>
                 <Controller
                   name="sectionType"
                   control={control}

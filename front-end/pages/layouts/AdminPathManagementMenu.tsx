@@ -81,7 +81,7 @@ const AdminPathManagementMenu = (props: PathManagementMenuProps) => {
             width: '100%',
             borderBottom: '1px solid rgba(0,0,0,0.12)',
           }}
-          label="Quản lý section"
+          label="Quản lý kỹ năng"
           id="vertical-tab-0"
           aria-controls="vertical-tabpanel-0"
         />
