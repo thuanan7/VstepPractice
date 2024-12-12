@@ -58,7 +58,7 @@ const StudentHeader: React.FC = () => {
             </Typography>
             <IconButton onClick={handleMenuOpen} size="small" sx={{ ml: 2 }}>
               <Avatar sx={{ bgcolor: 'primary.main' }}>
-                {user.fullName?.charAt(0).toUpperCase()}
+                {user.lastName?.charAt(0).toUpperCase()}
               </Avatar>
             </IconButton>
           </Box>

@@ -7,7 +7,8 @@ import axios, {
 import { isAxiosError, throwException } from './AxiosException'
 import { ApiOutputModel } from './type.ts'
 import { storePathConfigs } from '@/features/auth/configs'
-
+import { store } from '@/app/store'
+import { clearCredentials } from '@/features/auth/authSlice'
 export function getUrlGet(url: string, data: unknown): string {
   let rs = `${url}`
   if (data) {
@@ -97,31 +98,38 @@ export default class AxiosClient {
       .then((response: AxiosResponse) => {
         const status = response.status
         const _headers: { [key: string]: any } = {}
-        if (response.headers && typeof response.headers === 'object') {
-          for (const k in response.headers) {
-            if (Object.prototype.hasOwnProperty.call(response.headers, k)) {
-              _headers[k] = response.headers[k]
+        if (status === 401) {
+          store.dispatch(clearCredentials())
+          setTimeout(() => {
+            window.location.href = '/users/login'
+          })
+          return Promise.resolve(null)
+        } else {
+          if (response.headers && typeof response.headers === 'object') {
+            for (const k in response.headers) {
+              if (Object.prototype.hasOwnProperty.call(response.headers, k)) {
+                _headers[k] = response.headers[k]
+              }
             }
           }
-        }
 
-        if (status === 200 || status === 201)
-          return ApiOutputModel.fromJS(response)
-        else if (status !== 200 && status !== 204) {
-          const _responseText =
-            response?.data?.error?.message ||
-            (response as any)?.response?.data?.message
-          const errorResponse: ApiOutputModel = {
-            success: false,
-            message: _responseText,
-            init: function (): void {
-              throw new Error('Function not implemented.')
-            },
+          if (status === 200 || status === 201)
+            return ApiOutputModel.fromJS(response)
+          else if (status !== 200 && status !== 204) {
+            const _responseText =
+              response?.data?.error?.message ||
+              (response as any)?.response?.data?.message
+            const errorResponse: ApiOutputModel = {
+              success: false,
+              message: _responseText,
+              init: function (): void {
+                throw new Error('Function not implemented.')
+              },
+            }
+            return ApiOutputModel.fromJS({ data: errorResponse })
           }
-          return ApiOutputModel.fromJS({ data: errorResponse })
+          return Promise.resolve(null)
         }
-
-        return Promise.resolve(null)
       })
   }
 
