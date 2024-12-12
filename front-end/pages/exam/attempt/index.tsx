@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
 import { toast } from 'react-hot-toast'
 import { attemptRequest } from '@/app/api'
-import { useNavigate, useParams } from 'react-router-dom'
-import { IAttemptExam } from '@/features/exam/type.ts'
+import { useNavigate, useLocation, useParams } from 'react-router-dom'
+import { IAttemptExam, IStartStudentAttempt } from '@/features/exam/type'
+import { AttemptStatusType } from '@/features/exam/configs'
+
 import {
   Box,
   Button,
@@ -20,7 +22,9 @@ import {
 const AttemptStudent = () => {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const [examTest, setExamTest] = useState<IAttemptExam[]>([])
+  const location = useLocation();
+  const [examConfigs, setExamConfigs] = useState<IAttemptExam[]>([])
+  const [examAttempt, setExamAttempt] = useState<IStartStudentAttempt | undefined>(undefined)
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
@@ -29,26 +33,61 @@ const AttemptStudent = () => {
       navigate('/exam')
       return
     }
-    void getExamTest()
+    function getDataStudentExam() {
+      if (id) {
+        setIsLoading(true)
+        Promise.allSettled([attemptRequest.getAttemptByExamId(id), attemptRequest.startAttempt(id)]).then(rs => {
+          const [rsExam, rsAttempt] = rs;
+          if (rsExam.status === 'fulfilled') {
+            handleExamConfig(rsExam.value)
+          }
+          if (rsAttempt.status === 'fulfilled') {
+            handleExamAttempt(rsAttempt.value);
+          }
+        }).finally(() => {
+          setIsLoading(false)
+        });
+      }
+
+    }
+    getDataStudentExam();
   }, [id, navigate])
-  const getExamTest = async () => {
+  const navigateToStart = () => {
+    const currentPath = location.pathname;
+    const newPath = `${currentPath}/start`;
+    navigate(newPath);
+  };
+  const handleExamConfig = (response: IAttemptExam[] | undefined) => {
     try {
-      setIsLoading(true)
-      const response = await attemptRequest.getAttemptByExamId(id)
       if (!response) {
         toast.error('Invalid exam ID!')
         navigate('/exam')
         return
       } else {
-        setExamTest(response)
+        setExamConfigs(response)
       }
     } catch (error) {
       toast.error('Không tìm thấy đề thi')
       navigate('/exam')
-    } finally {
-      setIsLoading(false)
     }
   }
+
+  const handleExamAttempt = (response: IStartStudentAttempt | undefined) => {
+    try {
+      if (!response) {
+        toast.error('Không tạo được bài thi')
+        navigate('/exam')
+        return
+      } else {
+        setExamAttempt(response)
+      }
+    } catch (error) {
+      toast.error('Không tìm thấy đề thi')
+      navigate('/exam')
+    }
+  }
+  if (isLoading) return <Box>Loading...</Box>
+  if (!examAttempt) return <Box>Không tạo được bài thi</Box>
   return (
     <Container
       sx={{
@@ -56,14 +95,11 @@ const AttemptStudent = () => {
         padding: 4,
       }}
     >
-      {/* Tên bài thi */}
       <Typography variant="h4" fontWeight="bold" gutterBottom>
-        {data.quizName}
+        {examAttempt.title}
       </Typography>
-
-      {/* Mô tả */}
       <Typography variant="body1" color="textSecondary" gutterBottom>
-        {data.description}
+        {examAttempt.description}
       </Typography>
       <Box mt={4}>
         <Typography variant="h5" gutterBottom>
@@ -95,22 +131,25 @@ const AttemptStudent = () => {
         </TableContainer>
       </Box>
 
-      <Box mt={4} display="flex" justifyContent="space-between" gap={2}>
-        <Button
-          variant="contained"
-          color="primary"
-          fullWidth
-          onClick={() => console.log('Start Quiz clicked')}
-        >
-          {data.buttons.startQuiz}
-        </Button>
+      <Box mt={4} display="flex" justifyContent="center" alignItems={'center'} gap={2}>
+        {
+          examAttempt.status === AttemptStatusType.Started && <Button
+            variant="contained"
+            color="primary"
+            fullWidth
+            onClick={navigateToStart}
+          >
+            Tiếp tục làm bài thi
+          </Button>
+        }
+
         <Button
           variant="outlined"
-          color="secondary"
+          color="primary"
           fullWidth
-          onClick={() => console.log('Start new bài test clicked')}
+          onClick={navigateToStart}
         >
-          {data.buttons.startNewTest}
+          Bắt đầu mới bài thi
         </Button>
       </Box>
     </Container>
@@ -119,9 +158,6 @@ const AttemptStudent = () => {
 
 export default AttemptStudent
 const data = {
-  quizName: 'VSTEP B2 Exams',
-  description:
-    'Bạn sắp bắt đầu bài kiểm tra VSTEP B2. Bài kiểm tra bao gồm các phần Reading, Writing, và Speaking. Thời gian làm bài là 120 phút.',
   attempts: [
     {
       attemptNumber: 1,
@@ -144,9 +180,5 @@ const data = {
       score: '25,00 / 25,00',
       reviewLink: 'Xem lại',
     },
-  ],
-  buttons: {
-    startQuiz: 'Start Quiz',
-    startNewTest: 'Start new bài test',
-  },
+  ]
 }

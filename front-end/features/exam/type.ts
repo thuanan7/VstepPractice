@@ -1,3 +1,4 @@
+import { AttemptStatusType } from './configs'
 export interface IExam {
   id: number
   title: string
@@ -90,10 +91,10 @@ export interface Section {
   orderNum?: number
   questions: Question[] | ListeningQuestion[]
   sectionPart:
-    | Question[]
-    | ListeningQuestion[]
-    | ReadingQuestion[]
-    | SpeakingQuestion
+  | Question[]
+  | ListeningQuestion[]
+  | ReadingQuestion[]
+  | SpeakingQuestion
 }
 export interface VSTEPExam {
   sections: Section[]
@@ -153,4 +154,12 @@ export interface IAttemptQuestion {
 export interface IAttemptOption {
   id: number
   content: string
+}
+
+export interface IStartStudentAttempt {
+  attempId: number
+  examId: number
+  title: string
+  description: string
+  status: AttemptStatusType
 }

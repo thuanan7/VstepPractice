@@ -18,6 +18,7 @@ export const questionPathConfigs = {
 }
 export const attemptConfigs = {
   getAttemptByExamId: 'attempt/{examId}',
+  startAttempt: 'ai/start',
 }
 
 export enum SessionType {
@@ -37,4 +38,11 @@ export enum SectionPartTypes {
   Section = 1,
   Part = 2,
   Passage = 3,
+}
+
+
+export enum AttemptStatusType {
+  Started = -1,
+  InProgress = 0,
+  Completed = 1
 }

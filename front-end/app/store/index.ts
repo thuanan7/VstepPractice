@@ -8,9 +8,9 @@ import {
   REHYDRATE,
   persistStore,
 } from 'redux-persist'
-import { rootReducer } from './reducers'
+import { persistedReducer } from './reducers'
 export const store = configureStore({
-  reducer: rootReducer,
+  reducer: persistedReducer,
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: {

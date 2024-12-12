@@ -25,6 +25,19 @@ public class StudentAttemptRepository : RepositoryBase<StudentAttempt, int>, ISt
                 cancellationToken);
     }
 
+    
+    public async Task<StudentAttempt?> FindAttemptInProgress(
+        int userId,
+        int examId,
+        CancellationToken cancellationToken = default)
+    {
+        return await _context.StudentAttempts
+            .FirstOrDefaultAsync(a =>
+                    a.UserId == userId &&
+                    a.ExamId == examId &&
+                    a.Status == AttemptStatus.InProgress,
+                cancellationToken);
+    }
     public async Task<StudentAttempt?> GetAttemptWithDetailsAsync(
     int attemptId,
     CancellationToken cancellationToken = default)

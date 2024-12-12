@@ -1,15 +1,19 @@
 import { combineReducers } from 'redux'
-import { authSlice } from '@/features/auth/authSlice'
+import { authReducer } from '@/features/auth/authSlice'
 import { persistReducer } from 'redux-persist'
 import storage from 'redux-persist/lib/storage'
-import authTransform from './authTransform'
 import { examAdminReducer } from '@/features/exam/examSlice'
+import { examStudentReducer } from '@/features/exam/attemptSlice'
+
 const persistConfig = {
   key: 'root',
   storage,
-  transforms: [authTransform],
+  whitelist: ['examStudent', 'auth']
 }
 export const rootReducer = combineReducers({
-  auth: persistReducer(persistConfig, authSlice.reducer),
+  auth: authReducer,
   examAdmin: examAdminReducer,
+  examStudent: examStudentReducer
 })
+
+export const persistedReducer = persistReducer(persistConfig, rootReducer);

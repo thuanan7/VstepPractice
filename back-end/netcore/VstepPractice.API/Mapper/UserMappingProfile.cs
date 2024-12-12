@@ -63,6 +63,8 @@ public class AutoMapperProfile : Profile
         CreateMap<StudentAttempt, AttemptResponse>()
             .ForMember(dest => dest.ExamTitle,
                 opt => opt.MapFrom(src => src.Exam.Title ?? string.Empty))
+            .ForMember(dest => dest.ExamDescription,
+                opt => opt.MapFrom(src => src.Exam.Description ?? string.Empty))
             .ForMember(dest => dest.Status,
                 opt => opt.MapFrom(src => src.Status))
             .ForMember(dest => dest.Answers,

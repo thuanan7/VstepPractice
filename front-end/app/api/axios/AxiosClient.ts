@@ -86,7 +86,6 @@ export default class AxiosClient {
     if (data !== null) {
       options_.data = JSON.stringify(data)
     }
-    // Bug: 49050 and 52096
     if (url == storePathConfigs.login) {
       delete this.instance.defaults.headers.common['Authorization']
     }

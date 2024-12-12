@@ -1,6 +1,7 @@
 import axios from 'axios';
 import i18next from 'i18next';
-import {AXIOS_TIMEOUT} from './configs.ts';
+import { store, } from '@/app/store';
+import { AXIOS_TIMEOUT } from './configs';
 
 declare module 'axios' {
     export interface AxiosInstance {
@@ -21,10 +22,10 @@ declare module 'axios' {
 }
 axiosInstance.interceptors.request.use(
     async config => {
-        // const tokenValue = getData<string>(keyLs.accessToken);
-        // if (tokenValue) {
-        //     config.headers.Authorization = `Bearer ${tokenValue}`;
-        // }
+        const tokenValue = store.getState().auth.accessToken;
+        if (tokenValue) {
+            config.headers.Authorization = `Bearer ${tokenValue}`;
+        }
         return config;
     },
     error => {

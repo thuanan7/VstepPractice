@@ -9,6 +9,11 @@ public interface IStudentAttemptRepository : IRepositoryBase<StudentAttempt, int
         int examId,
         CancellationToken cancellationToken = default);
 
+    Task<StudentAttempt?> FindAttemptInProgress(
+        int userId,
+        int examId,
+        CancellationToken cancellationToken = default);
+
     Task<StudentAttempt?> GetAttemptWithDetailsAsync(
         int attemptId,
         CancellationToken cancellationToken = default);

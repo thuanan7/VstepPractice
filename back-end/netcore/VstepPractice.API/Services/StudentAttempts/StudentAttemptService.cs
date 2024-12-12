@@ -52,16 +52,25 @@ public class StudentAttemptService : IStudentAttemptService
             return Result.Failure<AttemptResponse>(Error.NotFound);
 
         // Check if user has any in-progress attempts
-        var hasInProgressAttempt = await _unitOfWork.StudentAttemptRepository
-            .HasInProgressAttempt(userId, request.ExamId, cancellationToken);
-
-        if (hasInProgressAttempt)
-            return Result.Failure<AttemptResponse>(
-                new Error("Attempt.InProgress", "You have an in-progress attempt for this exam."));
+        var inProgressAttempt = await _unitOfWork.StudentAttemptRepository
+            .FindAttemptInProgress(userId, request.ExamId, cancellationToken);
+        if (inProgressAttempt != null)
+        {
+            return Result.Success(_mapper.Map<AttemptResponse>(new StudentAttempt
+            {
+                UserId = userId,
+                ExamId = request.ExamId,
+                Exam = exam,
+                Id = inProgressAttempt.Id,
+                StartTime = DateTime.UtcNow,
+                Status = AttemptStatus.Started
+            }));
+        }
 
         var attempt = new StudentAttempt
         {
             UserId = userId,
+            Exam = exam,
             ExamId = request.ExamId,
             StartTime = DateTime.UtcNow,
             Status = AttemptStatus.InProgress
@@ -75,10 +84,10 @@ public class StudentAttemptService : IStudentAttemptService
     }
 
     public async Task<Result<AnswerResponse>> SubmitAnswerAsync(
-    int userId,
-    int attemptId,
-    SubmitAnswerRequest request,
-    CancellationToken cancellationToken = default)
+        int userId,
+        int attemptId,
+        SubmitAnswerRequest request,
+        CancellationToken cancellationToken = default)
     {
         var attempt = await _unitOfWork.StudentAttemptRepository
             .FindByIdAsync(attemptId, cancellationToken);
@@ -101,8 +110,8 @@ public class StudentAttemptService : IStudentAttemptService
         // Check if answer already exists
         var existingAnswer = await _unitOfWork.AnswerRepository
             .FindSingleAsync(a =>
-                a.AttemptId == attemptId &&
-                a.QuestionId == request.QuestionId,
+                    a.AttemptId == attemptId &&
+                    a.QuestionId == request.QuestionId,
                 cancellationToken);
 
         Answer answer;
@@ -208,10 +217,10 @@ public class StudentAttemptService : IStudentAttemptService
     }
 
     public async Task<Result<AnswerResponse>> SubmitSpeakingAnswerAsync(
-    int userId,
-    int attemptId,
-    SubmitSpeakingAnswerRequest request,
-    CancellationToken cancellationToken)
+        int userId,
+        int attemptId,
+        SubmitSpeakingAnswerRequest request,
+        CancellationToken cancellationToken)
     {
         var attempt = await _unitOfWork.StudentAttemptRepository
             .FindByIdAsync(attemptId, cancellationToken);
@@ -238,8 +247,8 @@ public class StudentAttemptService : IStudentAttemptService
             // Get existing answer and its speaking assessment
             var answer = await _unitOfWork.AnswerRepository
                 .FindSingleAsync(a =>
-                    a.AttemptId == attemptId &&
-                    a.QuestionId == request.QuestionId,
+                        a.AttemptId == attemptId &&
+                        a.QuestionId == request.QuestionId,
                     cancellationToken);
 
             if (answer != null)
@@ -310,10 +319,10 @@ public class StudentAttemptService : IStudentAttemptService
     }
 
     public async Task<Result<BatchSubmitResponse>> BatchSubmitSpeakingAsync(
-    int userId,
-    int attemptId,
-    BatchSubmitSpeakingRequest request,
-    CancellationToken cancellationToken)
+        int userId,
+        int attemptId,
+        BatchSubmitSpeakingRequest request,
+        CancellationToken cancellationToken)
     {
         var attempt = await _unitOfWork.StudentAttemptRepository
             .FindByIdAsync(attemptId, cancellationToken);
@@ -328,10 +337,10 @@ public class StudentAttemptService : IStudentAttemptService
         try
         {
             var duplicateQuestions = request.Answers
-            .GroupBy(a => a.QuestionId)
-            .Where(g => g.Count() > 1)
-            .Select(g => g.Key)
-            .ToList();
+                .GroupBy(a => a.QuestionId)
+                .Where(g => g.Count() > 1)
+                .Select(g => g.Key)
+                .ToList();
 
             if (duplicateQuestions.Any())
             {
@@ -522,10 +531,10 @@ public class StudentAttemptService : IStudentAttemptService
 
 
     public async Task<Result<BatchSubmitResponse>> BatchSubmitAnswersAsync(
-    int userId,
-    int attemptId,
-    BatchSubmitAnswersRequest request,
-    CancellationToken cancellationToken)
+        int userId,
+        int attemptId,
+        BatchSubmitAnswersRequest request,
+        CancellationToken cancellationToken)
     {
         var attempt = await _unitOfWork.StudentAttemptRepository
             .FindByIdAsync(attemptId, cancellationToken);
@@ -540,10 +549,10 @@ public class StudentAttemptService : IStudentAttemptService
         try
         {
             var duplicateQuestions = request.Answers
-            .GroupBy(a => a.QuestionId)
-            .Where(g => g.Count() > 1)
-            .Select(g => g.Key)
-            .ToList();
+                .GroupBy(a => a.QuestionId)
+                .Where(g => g.Count() > 1)
+                .Select(g => g.Key)
+                .ToList();
 
             if (duplicateQuestions.Any())
             {
@@ -700,9 +709,9 @@ public class StudentAttemptService : IStudentAttemptService
     }
 
     public async Task<Result<AttemptResultResponse>> GetAttemptResultAsync(
-    int userId,
-    int attemptId,
-    CancellationToken cancellationToken = default)
+        int userId,
+        int attemptId,
+        CancellationToken cancellationToken = default)
     {
         var attempt = await _unitOfWork.StudentAttemptRepository
             .GetAttemptWithDetailsAsync(attemptId, cancellationToken);
@@ -803,9 +812,9 @@ public class StudentAttemptService : IStudentAttemptService
     }
 
     private async Task<(Answer? Answer, AnswerValidationError? ValidationError)> ProcessAnswer(
-    int attemptId,
-    AnswerSubmission submission,
-    CancellationToken cancellationToken)
+        int attemptId,
+        AnswerSubmission submission,
+        CancellationToken cancellationToken)
     {
         // Get question with details
         var question = await _unitOfWork.QuestionRepository
@@ -823,8 +832,8 @@ public class StudentAttemptService : IStudentAttemptService
         // Get or create answer
         var answer = await _unitOfWork.AnswerRepository
             .FindSingleAsync(a =>
-                a.AttemptId == attemptId &&
-                a.QuestionId == submission.QuestionId,
+                    a.AttemptId == attemptId &&
+                    a.QuestionId == submission.QuestionId,
                 cancellationToken);
 
         var isNewAnswer = false;
@@ -850,6 +859,7 @@ public class StudentAttemptService : IStudentAttemptService
                         Message = "Essay answer is required"
                     });
                 }
+
                 answer.EssayAnswer = submission.EssayAnswer;
                 answer.QuestionOptionId = null;
                 answer.Score = null;
@@ -903,9 +913,9 @@ public class StudentAttemptService : IStudentAttemptService
     }
 
     private async Task<Dictionary<string, decimal>> CalculatePartialScores(
-    List<Answer> answers,
-    SectionTypes sectionType,
-    CancellationToken cancellationToken)
+        List<Answer> answers,
+        SectionTypes sectionType,
+        CancellationToken cancellationToken)
     {
         var scores = new Dictionary<string, decimal>();
 
@@ -953,8 +963,8 @@ public class StudentAttemptService : IStudentAttemptService
     {
         var answer = await _unitOfWork.AnswerRepository
             .FindSingleAsync(a =>
-                a.AttemptId == attemptId &&
-                a.QuestionId == questionId,
+                    a.AttemptId == attemptId &&
+                    a.QuestionId == questionId,
                 cancellationToken);
 
         if (answer == null)
