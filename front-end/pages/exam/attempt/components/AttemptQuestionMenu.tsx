@@ -1,36 +1,19 @@
-import React, { useState } from 'react'
 import { Box, Typography, Button, Divider } from '@mui/material'
+import { useSearchParams, useNavigate } from 'react-router-dom'
+import { selectPartsBySectionId } from '@/features/exam/attemptSelector.ts'
+import { useSelector } from 'react-redux'
+import QuizIcon from '@mui/icons-material/Quiz'
 
-// Dữ liệu mẫu
-const mockParts = [
-  {
-    id: 1,
-    title: 'Part 1',
-    questions: [
-      { id: 1, status: 'completed' },
-      { id: 2, status: 'completed' },
-      { id: 3, status: 'incomplete' },
-      { id: 4, status: 'not-started' },
-    ],
-  },
-  {
-    id: 2,
-    title: 'Part 2',
-    questions: [
-      { id: 5, status: 'incomplete' },
-      { id: 6, status: 'completed' },
-      { id: 7, status: 'not-started' },
-      { id: 8, status: 'completed' },
-    ],
-  },
-]
+const AttemptQuestionMenu = () => {
+  const [searchParams] = useSearchParams()
+  const navigate = useNavigate()
+  const sectionId = searchParams.get('sectionId') || ''
+  const parts = useSelector(selectPartsBySectionId(sectionId))
 
-const QuestionNavigation = () => {
-  const [selectedQuestion, setSelectedQuestion] = useState<number | null>(null)
-
-  const handleQuestionClick = (questionId: number) => {
-    setSelectedQuestion(questionId)
-    console.log(`Question ${questionId} selected`)
+  const handlePartClick = (partId: number) => {
+    const newSearchParams = new URLSearchParams(searchParams)
+    newSearchParams.set('partId', String(partId))
+    navigate(`?${newSearchParams.toString()}`)
   }
 
   return (
@@ -48,20 +31,40 @@ const QuestionNavigation = () => {
         Bảng câu hỏi
       </Typography>
       <Divider sx={{ marginBottom: 2 }} />
-      {mockParts.map((part) => (
+      {parts.map((part) => (
         <Box key={part.id} sx={{ marginBottom: 3 }}>
-          <Typography
-            variant="subtitle1"
-            color="text.secondary"
-            sx={{ marginBottom: 1 }}
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              marginBottom: 1,
+              cursor: 'pointer',
+            }}
+            onClick={() => handlePartClick(part.id)} // Xử lý khi bấm vào tiêu đề part
           >
-            {part.title}
-          </Typography>
+            <QuizIcon sx={{ marginRight: 1, color: 'text.secondary' }} />
+            <Typography
+              color="text.secondary"
+              component="a"
+              fontWeight={'bold'}
+              sx={{
+                textDecoration: 'none',
+                fontWeight: 'bold',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                maxWidth: '100%',
+                '&:hover': { textDecoration: 'underline' },
+              }}
+            >
+              {part.title}
+            </Typography>
+          </Box>
           <Box
             sx={{
               display: 'flex',
               flexWrap: 'wrap',
-              gap: 1, // Khoảng cách giữa các nút
+              gap: 1,
             }}
           >
             {part.questions.map((question) => (
@@ -69,22 +72,20 @@ const QuestionNavigation = () => {
                 key={question.id}
                 variant="contained"
                 size="small"
-                onClick={() => handleQuestionClick(question.id)}
+                onClick={() => {}}
                 sx={{
-                  backgroundColor:
-                    question.status === 'completed'
-                      ? '#4caf50'
-                      : question.status === 'incomplete'
-                        ? '#f44336'
-                        : '#9e9e9e', // Màu cho "not-started"
+                  backgroundColor: question.completed
+                    ? '#4caf50'
+                    : question.completed
+                      ? '#f44336'
+                      : '#9e9e9e',
                   color: '#fff',
                   '&:hover': {
-                    backgroundColor:
-                      question.status === 'completed'
-                        ? '#388e3c'
-                        : question.status === 'incomplete'
-                          ? '#d32f2f'
-                          : '#757575', // Hover cho "not-started"
+                    backgroundColor: question.completed
+                      ? '#388e3c'
+                      : question.completed
+                        ? '#d32f2f'
+                        : '#757575',
                   },
                   borderRadius: '4px',
                   minWidth: '40px',
@@ -101,4 +102,4 @@ const QuestionNavigation = () => {
   )
 }
 
-export default QuestionNavigation
+export default AttemptQuestionMenu

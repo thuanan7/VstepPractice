@@ -61,23 +61,27 @@ const AttemptStudent = () => {
     getDataStudentExam()
   }, [id, navigate])
   const navigateToStart = () => {
-    const currentPath = location.pathname
-    const newPath = `${currentPath}/start`
-    dispatch(setAttempt({ attempt: examAttempt, sections: examConfigs }))
-    navigate(newPath)
+    if (examAttempt) {
+      const currentPath = location.pathname
+      const newPath = `${currentPath}/start`
+      dispatch(setAttempt({ attempt: examAttempt, sections: examConfigs }))
+      navigate(newPath)
+    } else {
+      toast.error('Hiện tại đang thiếu thông tin để start bài thi')
+    }
   }
   const handleExamConfig = (response: IAttemptExam[] | undefined) => {
     try {
       if (!response) {
         toast.error('Invalid exam ID!')
-        navigate('/exam')
+        // navigate('/exam')
         return
       } else {
         setExamConfigs(response)
       }
     } catch (error) {
       toast.error('Không tìm thấy đề thi')
-      navigate('/exam')
+      // navigate('/exam')
     }
   }
 
@@ -85,14 +89,14 @@ const AttemptStudent = () => {
     try {
       if (!response) {
         toast.error('Không tạo được bài thi')
-        navigate('/exam')
+        // navigate('/exam')
         return
       } else {
         setExamAttempt(response)
       }
     } catch (error) {
       toast.error('Không tìm thấy đề thi')
-      navigate('/exam')
+      // navigate('/exam')
     }
   }
   if (isLoading) return <Box>Loading...</Box>

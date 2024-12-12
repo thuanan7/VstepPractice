@@ -28,7 +28,7 @@ const getAttemptByExamId = async (req, res) => {
         {
           model: SectionPart,
           as: 'children',
-          attributes: ['id', 'content', 'instructions'],
+          attributes: ['id', 'content', 'instructions', 'title'],
           order: [['orderNum', 'ASC']],
           include: [
             {

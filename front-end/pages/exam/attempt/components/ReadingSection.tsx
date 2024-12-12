@@ -1,11 +1,8 @@
 import { Typography } from '@mui/material'
 import { IAttemptPart } from '@/features/exam/type'
-import withQuestion from '../hoc/withQuestion'
 
 interface ReadingSectionProps {
   part: IAttemptPart
-  answers: Record<string, string>
-  onAnswer: (questionId: number, answer: number) => void
 }
 
 const ReadingSection = (props: ReadingSectionProps) => {
@@ -17,4 +14,4 @@ const ReadingSection = (props: ReadingSectionProps) => {
   )
 }
 
-export default withQuestion(ReadingSection)
+export default ReadingSection

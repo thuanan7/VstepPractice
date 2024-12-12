@@ -140,6 +140,7 @@ export interface IAttemptExam {
 
 export interface IAttemptPart {
   id: number
+  title: string
   content?: string
   instructions?: string
   questions: IAttemptQuestion[]

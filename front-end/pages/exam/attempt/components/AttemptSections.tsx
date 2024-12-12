@@ -1,31 +1,36 @@
-import React, { useState } from 'react'
-import {
-  Box,
-  List,
-  ListItem,
-  ListItemButton,
-  ListItemText,
-  Typography,
-} from '@mui/material'
+import { useState, useEffect } from 'react'
+import { Box, List, ListItem, ListItemButton, Typography } from '@mui/material'
+import { useSelector } from 'react-redux'
+import { selectSections } from '@/features/exam/attemptSelector'
+import { useSearchParams, useNavigate } from 'react-router-dom'
 
-// Dữ liệu mẫu
-const mockSkills = [
-  'Hướng dẫn cài đặt NodeJS',
-  'Hướng dẫn cài đặt Visual Studio Code',
-  'Hướng dẫn cài đặt PostgreSQL',
-  'BackEnd Web Developer Roadmap',
-  'JavaScript - Phần 1',
-  'Quiz - JavaScript',
-  'Lab JavaScript cơ bản',
-  'Debug NodeJS Visual Studio Code',
-  'Global Object',
-]
-
-const EnhancedUI = () => {
+const AttemptSections = () => {
+  const sections = useSelector(selectSections)
   const [activeSkill, setActiveSkill] = useState<number | null>(null)
+  const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
 
+  useEffect(() => {
+    if (!searchParams.has('sectionId') && sections.length > 0) {
+      const firstSectionId = sections[0].id
+      setSearchParams({ sectionId: String(firstSectionId) })
+      setActiveSkill(0)
+    } else {
+      const currentSectionId = Number(searchParams.get('sectionId'))
+      const activeIndex = sections.findIndex(
+        (section) => section.id === currentSectionId,
+      )
+      if (activeIndex !== -1) {
+        setActiveSkill(activeIndex)
+      } else {
+        navigate('/404')
+      }
+    }
+  }, [sections, searchParams, setSearchParams])
   const handleSkillClick = (index: number) => {
+    const selectedSectionId = sections[index].id
     setActiveSkill(index)
+    setSearchParams({ sectionId: String(selectedSectionId) })
   }
 
   return (
@@ -46,13 +51,13 @@ const EnhancedUI = () => {
           Danh sách kỹ năng
         </Typography>
         <List>
-          {mockSkills.map((skill, index) => (
+          {sections.map((section, index) => (
             <ListItem key={index} disablePadding>
               <ListItemButton
                 onClick={() => handleSkillClick(index)}
                 sx={{
                   backgroundColor:
-                    activeSkill === index ? 'text.secondary' : 'inherit', // Màu nền xanh khi active
+                    activeSkill === index ? 'text.secondary' : 'inherit',
                   borderRadius: '8px',
                   '&:hover': {
                     backgroundColor: '#D8BFD8',
@@ -68,7 +73,7 @@ const EnhancedUI = () => {
                     fontWeight: activeSkill === index ? 'bold' : 'normal',
                   }}
                 >
-                  {skill}
+                  {section.title}
                 </Typography>
               </ListItemButton>
             </ListItem>
@@ -79,4 +84,4 @@ const EnhancedUI = () => {
   )
 }
 
-export default EnhancedUI
+export default AttemptSections
