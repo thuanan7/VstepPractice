@@ -158,19 +158,24 @@ public class ApplicationDbContext : DbContext
         {
             entity.ToTable("SpeakingAssessments");
 
-            entity.Property(e => e.Pronunciation)
-                .HasColumnType("decimal(4,2)");
-            entity.Property(e => e.Fluency)
-                .HasColumnType("decimal(4,2)");
-            entity.Property(e => e.Vocabulary)
-                .HasColumnType("decimal(4,2)");
-            entity.Property(e => e.Grammar)
-                .HasColumnType("decimal(4,2)");
+            // Score columns with precision(5,2) for 0-100 range
+            entity.Property(e => e.Pronunciation).HasColumnType("decimal(4,2)");
+            entity.Property(e => e.Fluency).HasColumnType("decimal(4,2)");
+            entity.Property(e => e.Accuracy).HasColumnType("decimal(4,2)");
+            entity.Property(e => e.Prosody).HasColumnType("decimal(4,2)");
+            entity.Property(e => e.Vocabulary).HasColumnType("decimal(4,2)");
+            entity.Property(e => e.Grammar).HasColumnType("decimal(4,2)");
+            entity.Property(e => e.TopicScore).HasColumnType("decimal(4,2)");
+
+            // Text columns
             entity.Property(e => e.DetailedFeedback);
             entity.Property(e => e.TranscribedText);
-            entity.Property(e => e.AudioUrl)
-                .HasMaxLength(255);
+            entity.Property(e => e.AudioUrl).HasMaxLength(255);
 
+            // Word details as JSONB
+            entity.Property(e => e.WordDetails).HasColumnType("jsonb");
+
+            // Relationship
             entity.HasOne(w => w.Answer)
                 .WithMany()
                 .HasForeignKey(w => w.AnswerId)

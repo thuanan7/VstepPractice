@@ -1,5 +1,6 @@
 using MicroElements.Swashbuckle.FluentValidation.AspNetCore;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 using System.Reflection;
 using VstepPractice.API.Data;
 using VstepPractice.API.DependencyInjection.Extensions;
@@ -14,9 +15,13 @@ builder.Configuration.LoadEnv();
 builder.Services.AddAiBackGroundServices();
 builder.Services.AddOpenAiServices(builder.Configuration);
 
+
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+NpgsqlConnection.GlobalTypeMapper.EnableDynamicJson();
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    // options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
-    options.UseNpgsql(builder.Configuration.GetConnectionString("PostgresConnection")));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("PostgresConnection"))
+);
 
 builder.Services.AddAutoMapper(Assembly.GetAssembly(typeof(Program)));
 

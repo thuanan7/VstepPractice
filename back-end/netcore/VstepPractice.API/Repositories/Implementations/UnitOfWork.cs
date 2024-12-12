@@ -19,6 +19,7 @@ public class UnitOfWork : IUnitOfWork
     private IQuestionRepository? _questionRepository;
     private IWritingAssessmentRepository? _writingAssessmentRepository;
     private ISpeakingAssessmentRepository? _speakingAssessmentRepository;
+    private ISectionPartRepository? _sectionPartRepository;
 
     public UnitOfWork(
         ApplicationDbContext context) // Inject các dependencies cần thiết
@@ -45,6 +46,8 @@ public class UnitOfWork : IUnitOfWork
 
     public ISpeakingAssessmentRepository SpeakingAssessmentRepository =>
         _speakingAssessmentRepository ??= new SpeakingAssessmentRepository(_context);
+
+    public ISectionPartRepository SectionPartRepository => _sectionPartRepository ??= new SectionPartRepository(_context);
     public async Task BeginTransactionAsync(CancellationToken cancellationToken = default)
     {
         if (_transaction != null)

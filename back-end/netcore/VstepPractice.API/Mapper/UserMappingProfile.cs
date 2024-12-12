@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using VstepPractice.API.Common.Enums;
+using VstepPractice.API.Models.DTOs.AI;
 using VstepPractice.API.Models.DTOs.Exams.Responses;
 using VstepPractice.API.Models.DTOs.Questions.Responses;
 using VstepPractice.API.Models.DTOs.SectionParts.Responses;
@@ -107,5 +108,33 @@ public class AutoMapperProfile : Profile
             .ForMember(dest => dest.WritingScore,
                 opt => opt.Ignore())
             .ForMember(dest => dest.SpeakingScore, opt => opt.Ignore()); ; // We'll set this separately when needed
+
+
+        CreateMap<SpeakingAssessment, SpeakingScoreDetails>();
+
+        CreateMap<SpeakingAssessmentResponse, SpeakingAssessment>()
+            .ForMember(dest => dest.Pronunciation, opt => opt.MapFrom(src => src.PronScore))
+            .ForMember(dest => dest.Fluency, opt => opt.MapFrom(src => src.FluencyScore))
+            .ForMember(dest => dest.Accuracy, opt => opt.MapFrom(src => src.AccuracyScore))
+            .ForMember(dest => dest.Prosody, opt => opt.MapFrom(src => src.ProsodyScore))
+            .ForMember(dest => dest.Vocabulary, opt => opt.MapFrom(src => src.VocabularyScore))
+            .ForMember(dest => dest.Grammar, opt => opt.MapFrom(src => src.GrammarScore))
+            .ForMember(dest => dest.TopicScore, opt => opt.MapFrom(src => src.TopicScore))
+            .ForMember(dest => dest.DetailedFeedback, opt => opt.MapFrom(src => src.DetailedFeedback))
+            .ForMember(dest => dest.TranscribedText, opt => opt.MapFrom(src => src.RecognizedText))
+            .ForMember(dest => dest.WordDetails, opt => opt.MapFrom(src => src.Words))
+            .ForMember(dest => dest.AssessedAt, opt => opt.MapFrom(src => DateTime.UtcNow));
+
+        // Add mappings for WordDetail if needed
+        CreateMap<WordDetail, WordDetail>();
+        CreateMap<PhonemeDetail, PhonemeDetail>();
+
+        CreateMap<WritingAssessmentResponse, WritingAssessment>()
+            .ForMember(dest => dest.TaskAchievement, opt => opt.MapFrom(src => src.TaskAchievement))
+            .ForMember(dest => dest.CoherenceCohesion, opt => opt.MapFrom(src => src.CoherenceCohesion))
+            .ForMember(dest => dest.LexicalResource, opt => opt.MapFrom(src => src.LexicalResource))
+            .ForMember(dest => dest.GrammarAccuracy, opt => opt.MapFrom(src => src.GrammarAccuracy))
+            .ForMember(dest => dest.DetailedFeedback, opt => opt.MapFrom(src => src.DetailedFeedback))
+            .ForMember(dest => dest.AssessedAt, opt => opt.MapFrom(src => DateTime.UtcNow));
     }
 }

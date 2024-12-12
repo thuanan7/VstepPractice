@@ -9,6 +9,7 @@ public interface IUnitOfWork : IDisposable
     IQuestionRepository QuestionRepository { get; }
     IWritingAssessmentRepository WritingAssessmentRepository { get; }
     ISpeakingAssessmentRepository SpeakingAssessmentRepository { get; }
+    ISectionPartRepository SectionPartRepository { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     Task BeginTransactionAsync(CancellationToken cancellationToken = default);

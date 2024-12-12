@@ -102,6 +102,54 @@ public class StudentAttemptController : ApiController
         return Ok(result.Value);
     }
 
+
+    [HttpPost("{attemptId}/submit-speaking-section")]
+    public async Task<IActionResult> BatchSubmitSpeaking(
+    int attemptId,
+    [FromForm] BatchSubmitSpeakingRequest request, // Note: FromForm for file upload
+    CancellationToken cancellationToken)
+    {
+        var result = await _studentAttemptService.BatchSubmitSpeakingAsync(
+            request.UserId,
+            attemptId,
+            request,
+            cancellationToken);
+
+        if (!result.IsSuccess)
+            return result.Error == Error.NotFound ? NotFound(result.Error) : BadRequest(result.Error);
+
+        return Ok(result.Value);
+    }
+
+    /// <summary>
+    /// Submit multiple answers in a single request
+    /// </summary>
+    [HttpPost("{attemptId}/submit-section")]
+    [ProducesResponseType(typeof(BatchSubmitResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Error), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(Error), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> BatchSubmitAnswers(
+        int attemptId,
+        [FromBody] BatchSubmitAnswersRequest request,
+        CancellationToken cancellationToken)
+    {
+        var result = await _studentAttemptService.BatchSubmitAnswersAsync(
+            request.UserId,
+            attemptId,
+            request,
+            cancellationToken);
+
+        if (!result.IsSuccess)
+            return result.Error == Error.NotFound ? NotFound(result.Error) : BadRequest(result.Error);
+
+        // If there are validation errors, return BadRequest
+        if (result.Value.ValidationErrors?.Any() == true)
+            return BadRequest(result.Value);
+
+        return Ok(result.Value);
+    }
+
     /// <summary>
     /// Finish an exam attempt
     /// </summary>
