@@ -91,10 +91,10 @@ export interface Section {
   orderNum?: number
   questions: Question[] | ListeningQuestion[]
   sectionPart:
-  | Question[]
-  | ListeningQuestion[]
-  | ReadingQuestion[]
-  | SpeakingQuestion
+    | Question[]
+    | ListeningQuestion[]
+    | ReadingQuestion[]
+    | SpeakingQuestion
 }
 export interface VSTEPExam {
   sections: Section[]
@@ -162,4 +162,8 @@ export interface IStartStudentAttempt {
   title: string
   description: string
   status: AttemptStatusType
+}
+export interface IAttemptAnswer {
+  questionId: number
+  selectedOptionId: number
 }

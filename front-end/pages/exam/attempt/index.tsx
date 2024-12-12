@@ -4,7 +4,8 @@ import { attemptRequest } from '@/app/api'
 import { useNavigate, useLocation, useParams } from 'react-router-dom'
 import { IAttemptExam, IStartStudentAttempt } from '@/features/exam/type'
 import { AttemptStatusType } from '@/features/exam/configs'
-
+import { useDispatch } from 'react-redux'
+import { setAttempt } from '@/features/exam/attemptSlice'
 import {
   Box,
   Button,
@@ -20,11 +21,14 @@ import {
 } from '@mui/material'
 
 const AttemptStudent = () => {
+  const dispatch = useDispatch()
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const location = useLocation();
+  const location = useLocation()
   const [examConfigs, setExamConfigs] = useState<IAttemptExam[]>([])
-  const [examAttempt, setExamAttempt] = useState<IStartStudentAttempt | undefined>(undefined)
+  const [examAttempt, setExamAttempt] = useState<
+    IStartStudentAttempt | undefined
+  >(undefined)
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
@@ -36,27 +40,32 @@ const AttemptStudent = () => {
     function getDataStudentExam() {
       if (id) {
         setIsLoading(true)
-        Promise.allSettled([attemptRequest.getAttemptByExamId(id), attemptRequest.startAttempt(id)]).then(rs => {
-          const [rsExam, rsAttempt] = rs;
-          if (rsExam.status === 'fulfilled') {
-            handleExamConfig(rsExam.value)
-          }
-          if (rsAttempt.status === 'fulfilled') {
-            handleExamAttempt(rsAttempt.value);
-          }
-        }).finally(() => {
-          setIsLoading(false)
-        });
+        Promise.allSettled([
+          attemptRequest.getAttemptByExamId(id),
+          attemptRequest.startAttempt(id),
+        ])
+          .then((rs) => {
+            const [rsExam, rsAttempt] = rs
+            if (rsExam.status === 'fulfilled') {
+              handleExamConfig(rsExam.value)
+            }
+            if (rsAttempt.status === 'fulfilled') {
+              handleExamAttempt(rsAttempt.value)
+            }
+          })
+          .finally(() => {
+            setIsLoading(false)
+          })
       }
-
     }
-    getDataStudentExam();
+    getDataStudentExam()
   }, [id, navigate])
   const navigateToStart = () => {
-    const currentPath = location.pathname;
-    const newPath = `${currentPath}/start`;
-    navigate(newPath);
-  };
+    const currentPath = location.pathname
+    const newPath = `${currentPath}/start`
+    dispatch(setAttempt({ attempt: examAttempt, sections: examConfigs }))
+    navigate(newPath)
+  }
   const handleExamConfig = (response: IAttemptExam[] | undefined) => {
     try {
       if (!response) {
@@ -131,9 +140,15 @@ const AttemptStudent = () => {
         </TableContainer>
       </Box>
 
-      <Box mt={4} display="flex" justifyContent="center" alignItems={'center'} gap={2}>
-        {
-          examAttempt.status === AttemptStatusType.Started && <Button
+      <Box
+        mt={4}
+        display="flex"
+        justifyContent="center"
+        alignItems={'center'}
+        gap={2}
+      >
+        {examAttempt.status === AttemptStatusType.Started && (
+          <Button
             variant="contained"
             color="primary"
             fullWidth
@@ -141,7 +156,7 @@ const AttemptStudent = () => {
           >
             Tiếp tục làm bài thi
           </Button>
-        }
+        )}
 
         <Button
           variant="outlined"
@@ -180,5 +195,5 @@ const data = {
       score: '25,00 / 25,00',
       reviewLink: 'Xem lại',
     },
-  ]
+  ],
 }
