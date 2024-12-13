@@ -65,7 +65,13 @@ const AttemptStudent = () => {
     if (examAttempt) {
       const currentPath = location.pathname
       const newPath = `${currentPath}/start`
-      dispatch(setAttempt({ attempt: examAttempt, sections: examConfigs }))
+      dispatch(
+        setAttempt({
+          examId: parseInt(`${id}`),
+          attempt: examAttempt,
+          sections: examConfigs,
+        }),
+      )
       navigate(newPath)
     } else {
       toast.error('Hiện tại đang thiếu thông tin để start bài thi')

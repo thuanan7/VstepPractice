@@ -19,6 +19,7 @@ export const questionPathConfigs = {
 export const attemptConfigs = {
   getAttemptByExamId: 'attempt/{examId}',
   startAttempt: 'ai/start',
+  finishAttempt: 'ai/{id}/finish',
   getExams: 'ai/exams',
 }
 

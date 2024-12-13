@@ -130,7 +130,7 @@ export interface IQuestion {
   options: IOption[]
 }
 
-export interface IAttemptExam {
+export interface ISumaryAttemptExam {
   id: string
   title: string
   description?: string

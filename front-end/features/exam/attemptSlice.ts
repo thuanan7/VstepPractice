@@ -1,6 +1,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { IAttemptExam, IStartStudentAttempt } from './type'
 export interface IAttempExam {
+  examId?: number
   sections?: IAttemptExam[]
   attempt?: IStartStudentAttempt
 }
@@ -12,11 +13,13 @@ export const ExamStudentSlice = createSlice({
     setAttempt(
       state,
       action: PayloadAction<{
+        examId: number
         attempt: IStartStudentAttempt
         sections: IAttemptExam[]
       }>,
     ) {
-      const { sections, attempt } = action.payload
+      const { examId, sections, attempt } = action.payload
+      state.examId = examId
       state.attempt = attempt
       state.sections = sections
     },

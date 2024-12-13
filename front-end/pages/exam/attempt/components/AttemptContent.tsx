@@ -110,7 +110,7 @@ const QuestionList = () => {
           sx={{
             marginBottom: 3,
             padding: 2,
-            backgroundColor: '#F0E6FA',
+            backgroundColor: '#E3F2FD',
             borderRadius: '8px',
           }}
         >
@@ -137,7 +137,6 @@ const QuestionList = () => {
           justifyContent: 'space-between',
           marginTop: 2,
           padding: 1,
-          backgroundColor: '#F0F0F0',
           borderRadius: '8px',
         }}
       >

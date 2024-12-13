@@ -781,6 +781,8 @@ public class StudentAttemptService : IStudentAttemptService
             answers.Add(answerResponse);
         }
 
+        
+        
         var result = new AttemptResultResponse
         {
             Id = attempt.Id,
@@ -793,7 +795,11 @@ public class StudentAttemptService : IStudentAttemptService
                 kvp => kvp.Value.Score),
             FinalScore = score.FinalScore
         };
-
+        
+        attempt.FinalCore = score.FinalScore; // Assuming FinalScore is a decimal value
+        _unitOfWork.StudentAttemptRepository.Update(attempt);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        
         return Result.Success(result);
     }
 

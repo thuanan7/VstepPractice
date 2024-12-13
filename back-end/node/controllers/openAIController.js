@@ -115,16 +115,21 @@ openAIController.finishStudentAnswer = async (req, res) => {
       const response = await axios({
         method: req.method,
         url: host,
-        data: req.body,
+        data: { ...req.body, userId: req.user.id },
         headers: {
           Authorization: `Bearer ${token}`,
         },
       })
-      res.status(response.status).json(response.data)
+      res.status(response.status).json({
+        data: response.data,
+        success: true,
+        message: 'Finish attempt successfully',
+      })
     } else {
       res.status(500).json({ error: 'Please send your attemptId' })
     }
   } catch (error) {
+    console.log('dsadsa')
     console.error('Error calling .NET Core API:', error.message)
     res
       .status(error.response ? error.response.status : 500)

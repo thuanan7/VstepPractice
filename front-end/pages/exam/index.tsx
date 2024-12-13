@@ -12,11 +12,11 @@ import {
 } from '@mui/material'
 import { useNavigate } from 'react-router-dom'
 import { attemptRequest } from '@/app/api'
-import { IAttemptExam } from '@/features/exam/type.ts'
+import { ISumaryAttemptExam } from '@/features/exam/type.ts'
 
 const ExamList: React.FC = () => {
   const navigate = useNavigate()
-  const [exams, setExams] = useState<IAttemptExam[]>([])
+  const [exams, setExams] = useState<ISumaryAttemptExam[]>([])
   useEffect(() => {
     void fetchStudentExam()
   }, [])
