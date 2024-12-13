@@ -80,6 +80,7 @@ const QuestionList = () => {
       currentParams.set('partId', `${previousPart.partId}`)
       currentParams.set('sectionId', `${previousPart.sectionId}`)
       setSearchParams(currentParams)
+      setSearchParams(currentParams)
     }
   }
   if (loading) return <Box>Loading...</Box>
@@ -148,12 +149,16 @@ const QuestionList = () => {
           justifyContent: 'space-between',
           marginTop: 2,
           padding: 1,
-          borderRadius: '8px',
+          position: 'sticky',
+          bottom: 0,
+          backgroundColor: '#fff',
+          zIndex: 1,
+          boxShadow: '0px -2px 8px rgba(0, 0, 0, 0.1)', // Tạo hiệu ứng nổi
         }}
       >
         <Button
-          variant="contained"
-          color="primary"
+          variant="outlined"
+          color="success"
           onClick={handlePrevious}
           disabled={!previousPart}
           startIcon={<ArrowBackIcon />}
@@ -161,7 +166,6 @@ const QuestionList = () => {
             padding: '10px 20px',
             fontSize: '16px',
             fontWeight: 'bold',
-            // opacity: currentQuestionIndex === 0 ? 0.6 : 1, // Hiệu ứng khi disabled
           }}
         >
           Trở về trước
@@ -169,11 +173,10 @@ const QuestionList = () => {
         {nextPart && (
           <Button
             variant="contained"
-            color="primary"
+            color="success"
             onClick={handleNext}
             endIcon={<ArrowForwardIcon />}
             sx={{
-              backgroundColor: '#6C3483',
               padding: '10px 20px',
               fontSize: '16px',
               fontWeight: 'bold',
