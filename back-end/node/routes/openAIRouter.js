@@ -60,7 +60,11 @@ router.get('/test', authMiddleware, openAIController.testConnection)
  *         description: Unauthorized
  */
 router.post('/start', authMiddleware, openAIController.startStudentAttempt)
-
+router.post(
+  '/:attemptId/submit',
+  authMiddleware,
+  openAIController.submitStudentSection,
+)
 /**
  * @swagger
  * /ai/{attemptId}/submit-answer:

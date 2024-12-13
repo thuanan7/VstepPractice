@@ -4,7 +4,7 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
 import SingleQuestionSection from './SingleQuestionSection'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import {
   selectPartBySectionAndPartId,
   selectPartsBySectionId,
@@ -15,8 +15,10 @@ import TextQuestionSection from './TextQuestionSection'
 import SpeakingQuestionSection from './SpeakingQuestionSection'
 import ListeningSection from './ListeningSection'
 import ReadingSection from './ReadingSection'
+import { startDoPart } from '@/features/exam/attemptSlice.ts'
 
 const QuestionList = () => {
+  const dispatch = useDispatch()
   const [searchParams, setSearchParams] = useSearchParams()
   const navigate = useNavigate()
   const sectionId = Number(searchParams.get('sectionId'))
@@ -42,6 +44,7 @@ const QuestionList = () => {
         partId: String(sections[0].id),
       })
     } else {
+      dispatch(startDoPart({ partId, sectionType }))
       setLoading(false)
     }
   }, [sectionId, partId, part, setSearchParams])
@@ -49,7 +52,6 @@ const QuestionList = () => {
   const [isSingleQuestion, isTextQuestion, isSpeakingQuestion] = useMemo(() => {
     let single = false
     let text = false
-
     let speaking = false
     if (part && part.questions && part.questions.length > 0) {
       if (

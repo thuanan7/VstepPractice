@@ -180,8 +180,8 @@ export interface ISummaryStudentAttempt {
   attempts: ISummaryAttempt[]
 }
 export interface IAttemptAnswer {
-  questionId: number
-  selectedOptionId: number
+  id: number
+  answer: number
 }
 
 export interface ISummaryAttempt {
@@ -189,4 +189,9 @@ export interface ISummaryAttempt {
   startTime: string
   endTime?: string
   finalCore: number
+}
+export interface IAttemptStudentAnswer {
+  section: SectionType
+  partId: number
+  questions: IAttemptAnswer[]
 }

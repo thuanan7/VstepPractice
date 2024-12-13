@@ -1,5 +1,11 @@
 const axios = require('axios')
 const { getGatewayJwtToken } = require('../configs/jwt')
+
+const {
+  hostStudentSection,
+  typeSections,
+  fnParseData,
+} = require('../configs/enums')
 const openAIController = {}
 
 openAIController.testConnection = async (req, res) => {
@@ -182,6 +188,57 @@ openAIController.resultStudentAnswer = async (req, res) => {
       res.status(response.status).json(response.data)
     } else {
       res.status(500).json({ error: 'Please send your attemptId and userId' })
+    }
+  } catch (error) {
+    console.error('Error calling .NET Core API:', error.message)
+    res
+      .status(error.response ? error.response.status : 500)
+      .json({ error: 'Error calling .NET Core API' })
+  }
+}
+
+openAIController.submitStudentSection = async (req, res) => {
+  try {
+    const { section = '0', partId = '0', questions } = req.body
+    let id = isNaN(req.params.attemptId)
+      ? 0
+      : parseInt(`${req.params.attemptId}`)
+    console.log('aaaa', id)
+    const token = getGatewayJwtToken()
+    let typeSection = isNaN(section)
+      ? typeSections.listening
+      : parseInt(`${section}`)
+
+    let sectionPartId = isNaN(partId) ? 0 : parseInt(`${partId}`)
+
+    if (sectionPartId === 0 || !questions || questions.length === 0)
+      return res.status(500).json({
+        message: 'Need partId, TypeSection, Options',
+        success: false,
+      })
+
+    if (id > 0) {
+      const host = `http://localhost:${process.env.NETCORE_PORT}/api/v1/StudentAttempt/${id}/${hostStudentSection[typeSection]}`
+      const userId = req.user.id
+      const data = {
+        userId: userId,
+        scope: {
+          type: 2,
+          sectionPartId: sectionPartId,
+        },
+        answers: fnParseData[typeSection](questions),
+      }
+      const response = await axios({
+        method: req.method,
+        url: host,
+        data: data,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      res.status(response.status).json(response.data)
+    } else {
+      res.status(500).json({ error: 'Please send your attemptId' })
     }
   } catch (error) {
     console.error('Error calling .NET Core API:', error.message)

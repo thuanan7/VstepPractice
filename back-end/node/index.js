@@ -17,7 +17,7 @@ const basePath = path.resolve(__dirname, '../..')
 app.use(cors())
 app.use(express.static(basePath + '/dist'))
 app.use(express.json())
-app.use(express.urlencoded({ extended: false }))
+app.use(express.urlencoded({ extended: true }))
 
 app.use(
   session({

@@ -10,4 +10,35 @@ const typeSectionPart = {
   passage: 3,
 }
 
-module.exports = { typeSections, typeSectionPart }
+const hostStudentSection = {
+  [`${typeSections.listening}`]: 'submit-section',
+  [`${typeSections.reading}`]: 'submit-section',
+  [`${typeSections.writing}`]: 'submit-section',
+  [`${typeSections.speaking}`]: 'submit-speaking-section',
+}
+
+const fnParseData = {
+  [`${typeSections.listening}`]: function (questions) {
+    return parseQuestionFromReadingListening(questions)
+  },
+  [`${typeSections.reading}`]: function (questions) {
+    return parseQuestionFromReadingListening(questions)
+  },
+  [`${typeSections.writing}`]: 'submit-section',
+  [`${typeSections.speaking}`]: 'submit-speaking-section',
+}
+module.exports = {
+  typeSections,
+  typeSectionPart,
+  hostStudentSection,
+  fnParseData,
+}
+
+function parseQuestionFromReadingListening(questions) {
+  return questions.map((x) => {
+    return {
+      questionId: x.id,
+      selectedOptionId: x.answer,
+    }
+  })
+}
