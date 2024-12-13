@@ -1,11 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react'
-import { Box, Button, Grid, Paper } from '@mui/material'
-import AttemptTabs from '@/pages/exam/attempt/components/AttemptTabs'
-import TableQuestion from '@/pages/exam/attempt/components/TableQuestion'
+import { Grid, Paper } from '@mui/material'
 import SpeakingSection from '@/pages/exam/attempt/components/SpeakingSection'
-import WritingSection from '@/pages/exam/attempt/components/WritingSection'
-import ReadingSection from '@/pages/exam/attempt/components/ReadingSection'
-import ListeningSection from '@/pages/exam/attempt/components/ListeningSection'
 import { useNavigate, useParams } from 'react-router-dom'
 
 import { attemptRequest } from '@/app/api'
@@ -160,11 +155,6 @@ const ExamPage: React.FC = () => {
 
   return (
     <Grid container spacing={2} sx={{ height: '100vh', padding: 2 }}>
-      <AttemptTabs
-        tabs={examConfig.map((x) => x.title)}
-        active={currentSectionIndex}
-        onChoose={handleSectionChange}
-      />
       <Grid item xs={8} sx={{ position: 'relative' }}>
         <Paper
           elevation={3}
@@ -175,20 +165,6 @@ const ExamPage: React.FC = () => {
             height: 'calc(100vh - 100px)',
           }}
         >
-          {crrSection.sectionType === SessionType.Listening && (
-            <ListeningSection
-              part={crrPart}
-              answers={answers}
-              onAnswer={handleAnswer}
-            />
-          )}
-          {crrSection.sectionType === SessionType.Reading && (
-            <ReadingSection
-              part={crrPart}
-              answers={answers}
-              onAnswer={handleAnswer}
-            />
-          )}
           {/*{currentSection.type === 'writing' &&*/}
           {/*  currentPart.type === 'essay' && (*/}
           {/*    <WritingSection*/}

@@ -70,14 +70,14 @@ router.post(
  * /ai/{attemptId}/submit-answer:
  *   post:
  *     summary: Start Student Attempt
- *     description: Submit an answer for a specific student attempt
+ *     description: Submit an answer for a specific student attempts
  *     parameters:
  *       - in: path
  *         name: attemptId
  *         schema:
  *           type: integer
  *         required: true
- *         description: ID of the attempt
+ *         description: ID of the attempts
  *     requestBody:
  *       required: true
  *       content:
@@ -131,7 +131,7 @@ router.post(
  *         schema:
  *           type: integer
  *         required: true
- *         description: ID of the attempt
+ *         description: ID of the attempts
  *     requestBody:
  *       required: true
  *       content:
@@ -169,7 +169,7 @@ router.post(
  *         schema:
  *           type: integer
  *         required: true
- *         description: ID of the attempt
+ *         description: ID of the attempts
  *       - in: query
  *         name: userId
  *         schema:
@@ -189,7 +189,7 @@ router.post(
  *               properties:
  *                 result:
  *                   type: string
- *                   description: The result of the student attempt
+ *                   description: The result of the student attempts
  *       401:
  *         description: Unauthorized
  */

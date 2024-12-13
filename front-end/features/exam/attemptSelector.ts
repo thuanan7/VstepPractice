@@ -1,5 +1,5 @@
 import { createSelector } from '@reduxjs/toolkit'
-import { IAttemptExam } from '@/features/exam/type'
+import { IAttemptExam, IAttemptQuestion } from '@/features/exam/type'
 
 import { RootState } from '@/app/store'
 
@@ -44,23 +44,29 @@ export const selectPartBySectionAndPartId = (
   partId: number | null,
 ) =>
   createSelector(
-    [(state: RootState) => state.examStudent?.sections],
-    (sections) => {
+    [
+      (state: RootState) => state.examStudent?.attempt,
+      (state: RootState) => state.examStudent?.sections,
+    ],
+    (attempt, sections) => {
       if (!sections || !sectionId || sections.length === 0)
         return {
           part: null,
           sectionType: 0,
+          attemptId: 0,
         }
       const section = sections.find((sec) => sec.id === sectionId)
       if (!section)
         return {
           part: null,
           sectionType: 0,
+          attemptId: 0,
         }
       const part = partId ? section.parts.find((p) => p.id === partId) : null
       return {
         part: part || null,
         sectionType: section.sectionType,
+        attemptId: attempt?.attempId,
       }
     },
   )
@@ -123,3 +129,32 @@ export const selectPreviousNextPart = (
       return { previousPart, nextPart }
     },
   )
+
+export const selectQuestionsWithAnswers = (questions: IAttemptQuestion[]) =>
+  createSelector(
+    [(state: RootState) => state.examStudent?.answer?.questions],
+    (answers) => {
+      return questions.map((question) => {
+        const savedAnswer = (answers || []).find(
+          (answer) => answer.id === question.id,
+        )
+        const options = question.options?.map((op) => {
+          if (op.id === savedAnswer?.answer) {
+            return { ...op, chosen: true }
+          }
+          return { ...op, chosen: false }
+        })
+        return {
+          ...question,
+          options: options,
+        }
+      })
+    },
+  )
+
+export const selectStudentAnswer = createSelector(
+  [(state: RootState) => state.examStudent?.answer],
+  (answer) => {
+    return answer
+  },
+)

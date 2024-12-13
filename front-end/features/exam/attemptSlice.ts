@@ -42,15 +42,27 @@ export const ExamStudentSlice = createSlice({
       }>,
     ) {
       const { partId, sectionType } = action.payload
-
-      state.answer = {
-        section: sectionType,
-        partId: partId,
-        questions: [],
+      if (state.answer && state.answer.partId !== partId) {
+        state.answer = {
+          section: sectionType,
+          partId: partId,
+          questions: [],
+        }
+      }
+    },
+    saveAnswer(state, action: PayloadAction<IAttemptAnswer>) {
+      const { id, answer } = action.payload
+      const existingAnswerIndex = state.answer!.questions.findIndex(
+        (a) => a.id === id,
+      )
+      if (existingAnswerIndex !== -1) {
+        state.answer!.questions[existingAnswerIndex].answer = answer
+      } else {
+        state.answer!.questions.push({ id, answer })
       }
     },
   },
 })
-export const { setAttempt, startDoPart, resetAttempt } =
+export const { setAttempt, saveAnswer, startDoPart, resetAttempt } =
   ExamStudentSlice.actions
 export const examStudentReducer = ExamStudentSlice.reducer

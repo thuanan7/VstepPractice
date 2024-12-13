@@ -37,7 +37,7 @@ app.use('/api/users', require('./routes/authRouter'))
 app.use('/api/exams', require('./routes/examRouter'))
 app.use('/api/section-parts', require('./routes/sectionPartRouter'))
 app.use('/api/questions', require('./routes/questionRouter'))
-app.use('/api/attempt', require('./routes/attemptRouter'))
+app.use('/api/attempts', require('./routes/attemptRouter'))
 app.use('/api/ai', require('./routes/openAIRouter'))
 app.use(errorHandler)
 app.listen(port, () => {

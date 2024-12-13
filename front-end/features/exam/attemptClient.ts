@@ -2,11 +2,11 @@ import APIClient, { getUrlGet } from '@/app/api/axios/AxiosClient'
 import { attemptConfigs } from './configs'
 import {
   IAttemptExam,
+  IAttemptStudentAnswer,
   IStartStudentAttempt,
   ISumaryAttemptExam,
   ISummaryStudentAttempt,
 } from '@/features/exam/type'
-import { formatDateTime } from './utils'
 export default class AttemptClient extends APIClient {
   getExams(cancelToken?: any): Promise<ISumaryAttemptExam[] | undefined> {
     return super
@@ -62,7 +62,21 @@ export default class AttemptClient extends APIClient {
         return undefined
       })
   }
-
+  sendSubmitAttempt(
+    attemptId: number,
+    data: IAttemptStudentAnswer,
+    cancelToken?: any,
+  ): Promise<IStartStudentAttempt | undefined> {
+    const subParams = getUrlGet(attemptConfigs.sendSubmit, {
+      id: attemptId,
+    })
+    return super.post(subParams, data, cancelToken).then((r) => {
+      if (r?.success) {
+        return r?.data
+      }
+      return undefined
+    })
+  }
   finishAttempt(
     attemptId: number,
     cancelToken?: any,

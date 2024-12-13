@@ -45,7 +45,7 @@ openAIController.allAttempts = async (req, res) => {
     res.status(response.status).json({
       data: response.data,
       success: true,
-      message: 'Get attempt successfully',
+      message: 'Get attempts successfully',
     })
   } catch (error) {
     console.error('Error', error.message)
@@ -96,7 +96,7 @@ openAIController.startStudentAttempt = async (req, res) => {
     res.status(response.status).json({
       data: response.data,
       success: true,
-      message: 'Start attempt successfully',
+      message: 'Start attempts successfully',
     })
   } catch (error) {
     console.error('Error calling .NET Core API:', error.message)
@@ -154,7 +154,7 @@ openAIController.finishStudentAnswer = async (req, res) => {
       res.status(response.status).json({
         data: response.data,
         success: true,
-        message: 'Finish attempt successfully',
+        message: 'Finish attempts successfully',
       })
     } else {
       res.status(500).json({ error: 'Please send your attemptId' })

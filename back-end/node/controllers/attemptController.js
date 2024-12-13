@@ -76,7 +76,7 @@ const getAttemptByExamId = async (req, res) => {
           parts: updatedChildren,
         }
       }),
-      message: 'Get attempt successfully',
+      message: 'Get attempts successfully',
     })
   } catch (err) {
     console.error(err)

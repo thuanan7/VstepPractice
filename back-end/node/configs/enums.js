@@ -1,8 +1,8 @@
 const typeSections = {
-  listening: 0,
-  reading: 1,
-  writing: 2,
-  speaking: 3,
+  listening: 1,
+  reading: 2,
+  writing: 3,
+  speaking: 4,
 }
 const typeSectionPart = {
   section: 1,

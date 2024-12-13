@@ -2,32 +2,35 @@ import { useEffect, useMemo, useState } from 'react'
 import { Box, Typography, Button } from '@mui/material'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
-import SingleQuestionSection from './SingleQuestionSection'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import SingleQuestionSection from '../questions/SingleQuestionSection'
+import { useSearchParams } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import {
   selectPartBySectionAndPartId,
   selectPartsBySectionId,
   selectPreviousNextPart,
+  selectStudentAnswer,
 } from '@/features/exam/attemptSelector'
-import { SectionType } from '@/features/exam/type.ts'
-import TextQuestionSection from './TextQuestionSection'
-import SpeakingQuestionSection from './SpeakingQuestionSection'
-import ListeningSection from './ListeningSection'
-import ReadingSection from './ReadingSection'
+import { IAttemptStudentAnswer, SectionType } from '@/features/exam/type.ts'
+import TextQuestionSection from '../questions/TextQuestionSection'
+import SpeakingQuestionSection from '../questions/SpeakingQuestionSection'
+import ListeningSection from '../instructions/ListeningSection'
+import ReadingSection from '../instructions/ReadingSection'
 import { startDoPart } from '@/features/exam/attemptSlice.ts'
+import { attemptRequest } from '@/app/api'
+import { toast } from 'react-hot-toast'
 
-const QuestionList = () => {
+const AttemptContent = () => {
   const dispatch = useDispatch()
   const [searchParams, setSearchParams] = useSearchParams()
-  const navigate = useNavigate()
   const sectionId = Number(searchParams.get('sectionId'))
   const partId = searchParams.get('partId')
     ? Number(searchParams.get('partId'))
     : null
-  const { part, sectionType } = useSelector(
+  const { part, attemptId, sectionType } = useSelector(
     selectPartBySectionAndPartId(sectionId, partId),
   )
+  const answer = useSelector(selectStudentAnswer)
   const sections = useSelector(selectPartsBySectionId(`${sectionId}`))
   const { previousPart, nextPart } = useSelector(
     selectPreviousNextPart(sectionId, partId),
@@ -44,7 +47,7 @@ const QuestionList = () => {
         partId: String(sections[0].id),
       })
     } else {
-      dispatch(startDoPart({ partId, sectionType }))
+      dispatch(startDoPart({ partId: part?.id || 0, sectionType }))
       setLoading(false)
     }
   }, [sectionId, partId, part, setSearchParams])
@@ -67,12 +70,30 @@ const QuestionList = () => {
     }
     return [single, text, speaking]
   }, [part, sectionType])
-  const handleNext = () => {
-    if (nextPart) {
-      const currentParams = new URLSearchParams(searchParams)
-      currentParams.set('partId', `${nextPart.partId}`)
-      currentParams.set('sectionId', `${nextPart.sectionId}`)
-      setSearchParams(currentParams)
+  const handleNext = async () => {
+    if (nextPart && attemptId && answer) {
+      setLoading(true)
+      const submiSection = await handleSendSubmit(attemptId, answer)
+      if (submiSection) {
+        const currentParams = new URLSearchParams(searchParams)
+        currentParams.set('partId', `${nextPart.partId}`)
+        currentParams.set('sectionId', `${nextPart.sectionId}`)
+        setSearchParams(currentParams)
+      } else {
+        toast.error('Không thể submit câu trả lời')
+      }
+      setLoading(false)
+    }
+  }
+  const handleSendSubmit = async (
+    _attemptId: number,
+    _answer: IAttemptStudentAnswer,
+  ) => {
+    try {
+      const rs = await attemptRequest.sendSubmitAttempt(_attemptId, _answer)
+      return !rs
+    } catch (e) {
+      return false
     }
   }
 
@@ -155,7 +176,7 @@ const QuestionList = () => {
           bottom: 0,
           backgroundColor: '#fff',
           zIndex: 1,
-          boxShadow: '0px -2px 8px rgba(0, 0, 0, 0.1)', // Tạo hiệu ứng nổi
+          boxShadow: '0px -2px 8px rgba(0, 0, 0, 0.1)',
         }}
       >
         <Button
@@ -192,4 +213,4 @@ const QuestionList = () => {
   )
 }
 
-export default QuestionList
+export default AttemptContent

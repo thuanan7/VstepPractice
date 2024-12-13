@@ -162,6 +162,7 @@ export interface IAttemptQuestion {
 export interface IAttemptOption {
   id: number
   content: string
+  chosen?: boolean
 }
 
 export interface IStartStudentAttempt {
@@ -181,7 +182,7 @@ export interface ISummaryStudentAttempt {
 }
 export interface IAttemptAnswer {
   id: number
-  answer: number
+  answer: number | string
 }
 
 export interface ISummaryAttempt {

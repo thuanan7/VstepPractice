@@ -1,18 +1,18 @@
 import { useEffect } from 'react'
 import { Box, Grid } from '@mui/material'
-import { useDispatch, useSelector } from 'react-redux'
+import { useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'react-hot-toast'
 import { RootState } from '@/app/store'
-import AttemptSections from './components/AttemptSections'
-import AttemptQuestionMenu from './components/AttemptQuestionMenu'
-import AttemptContent from './components/AttemptContent'
-import AttemptTimer from './components/AttemptTimmer'
+import AttemptSections from './components/attempts/AttemptSections'
+import AttemptQuestionMenu from './components/attempts/AttemptQuestionMenu'
+import AttemptContent from './components/attempts/AttemptContent'
+import AttemptTimer from './components/attempts/AttemptTimmer'
 import { attemptRequest } from '@/app/api'
 
 const AttemptStart = () => {
   const navigate = useNavigate()
-  const { examId, attempt, sections } = useSelector(
+  const { attempt, sections } = useSelector(
     (state: RootState) => state.examStudent,
   )
 

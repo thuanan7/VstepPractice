@@ -17,10 +17,11 @@ export const questionPathConfigs = {
   updateOptions: 'questions/{questionId}/options',
 }
 export const attemptConfigs = {
-  getAttemptByExamId: 'attempt/{examId}',
+  getAttemptByExamId: 'attempts/{examId}',
   startAttempt: 'ai/start',
   finishAttempt: 'ai/{id}/finish',
   getAttempts: 'ai/{id}/attempts',
+  sendSubmit: 'ai/{id}/submit',
   getExams: 'ai/exams',
 }
 

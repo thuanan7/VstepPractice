@@ -80,7 +80,7 @@ export const routes: RouteObject[] = [
         ),
       },
       {
-        path: ':id/attempt',
+        path: ':id/attempts',
         element: (
           <PrivateRoute>
             <StudentExamAttemptPage />
@@ -88,7 +88,7 @@ export const routes: RouteObject[] = [
         ),
       },
       {
-        path: ':id/attempt/start',
+        path: ':id/attempts/start',
         element: (
           <PrivateRoute>
             <StudentStartAttemptPage />
@@ -126,8 +126,8 @@ export const routes: RouteObject[] = [
 export const allowedRoutes = {
   [Role.STUDENT]: [
     '/exam',
-    '/exam/:id/attempt',
-    '/exam/:id/attempt/start',
+    '/exam/:id/attempts',
+    '/exam/:id/attempts/start',
     '/exam/:id/submit',
     '/exam/:id/result',
   ],
