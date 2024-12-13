@@ -131,6 +131,13 @@ export interface IQuestion {
 }
 
 export interface IAttemptExam {
+  id: string
+  title: string
+  description?: string
+  date: string
+}
+
+export interface IAttemptExam {
   id: number
   title: string
   instructions?: string

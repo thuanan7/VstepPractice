@@ -3,6 +3,16 @@ import { attemptConfigs } from './configs'
 import { IAttemptExam, IStartStudentAttempt } from '@/features/exam/type'
 import { formatDateTime } from './utils'
 export default class AttemptClient extends APIClient {
+  getExams(cancelToken?: any): Promise<IAttemptExam[] | undefined> {
+    return super
+      .get(attemptConfigs.getExams, undefined, cancelToken)
+      .then((r) => {
+        if (r?.success) {
+          return r?.data as IAttemptExam[]
+        }
+        return undefined
+      })
+  }
   getAttemptByExamId(
     examId: string,
     cancelToken?: any,

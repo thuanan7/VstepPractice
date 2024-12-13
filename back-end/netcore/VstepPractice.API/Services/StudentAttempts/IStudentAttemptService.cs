@@ -6,6 +6,8 @@ namespace VstepPractice.API.Services.StudentAttempts;
 
 public interface IStudentAttemptService
 {
+    Task<Result<List<ExamStudentResponse>>> GetExamAsync(
+        CancellationToken cancellationToken = default);
     Task<Result<AttemptResponse>> StartAttemptAsync(
         int userId,
         StartAttemptRequest request,

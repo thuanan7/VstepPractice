@@ -19,6 +19,7 @@ import {
   Typography,
   Container,
 } from '@mui/material'
+import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 
 const AttemptStudent = () => {
   const dispatch = useDispatch()
@@ -99,7 +100,7 @@ const AttemptStudent = () => {
       // navigate('/exam')
     }
   }
-  if (isLoading) return <Box>Loading...</Box>
+  if (isLoading) return <Box></Box>
   if (!examAttempt) return <Box>Không tạo được bài thi</Box>
   return (
     <Container
@@ -108,9 +109,19 @@ const AttemptStudent = () => {
         padding: 4,
       }}
     >
-      <Typography variant="h4" fontWeight="bold" gutterBottom>
-        {examAttempt.title}
-      </Typography>
+      <Box display="flex" alignItems="center">
+        <Button
+          variant="text"
+          color="darkColor"
+          onClick={() => navigate('/exam')}
+          startIcon={<ArrowBackIcon />}
+          sx={{ textTransform: 'none', mr: 2 }}
+        />
+        <Typography variant="h4" fontWeight="bold" gutterBottom>
+          {examAttempt.title}
+        </Typography>
+      </Box>
+
       <Typography variant="body1" color="textSecondary" gutterBottom>
         {examAttempt.description}
       </Typography>
@@ -171,7 +182,7 @@ const AttemptStudent = () => {
             </Button>
             <Button
               variant="outlined"
-              color="error"
+              color="success"
               fullWidth
               onClick={() => toast.success('Bài làm đã kết thúc!')}
             >

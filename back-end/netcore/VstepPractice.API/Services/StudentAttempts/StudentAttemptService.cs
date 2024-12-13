@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using VstepPractice.API.Common.Enums;
 using VstepPractice.API.Common.Utils;
 using VstepPractice.API.Models.DTOs.AI;
@@ -38,6 +39,12 @@ public class StudentAttemptService : IStudentAttemptService
         _logger = logger;
         _scoreCalculator = scoreCalculator;
         _storageService = storageService;
+    }
+
+    public async Task<Result<List<ExamStudentResponse>>> GetExamAsync(CancellationToken cancellationToken = default)
+    {
+        var exam = await _unitOfWork.ExamRepository.FindAll().ToListAsync(cancellationToken);
+        return Result.Success(exam.Select(_mapper.Map<ExamStudentResponse>).ToList());
     }
 
     public async Task<Result<AttemptResponse>> StartAttemptAsync(

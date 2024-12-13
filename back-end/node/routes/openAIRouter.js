@@ -3,13 +3,14 @@ const express = require('express')
 const router = express.Router()
 const openAIController = require('../controllers/openAIController')
 const authMiddleware = require('../middlewares/authMiddleware')
+
+router.get('/exams', authMiddleware, openAIController.allExams)
 /**
  * @swagger
  * tags:
  *   name: AI
  *   description: Call AI API from .NetCore
  */
-
 /**
  * @swagger
  * /ai/test:

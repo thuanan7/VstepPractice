@@ -24,6 +24,12 @@ public class AutoMapperProfile : Profile
                 opt => opt.MapFrom(src => src.SectionParts.Where(sp => sp.ParentId == null)
                     .OrderBy(sp => sp.OrderNum)));
 
+        CreateMap<Exam, ExamStudentResponse>()
+            .ForMember(dest => dest.Title,
+                opt => opt.MapFrom(src => src.Title ?? string.Empty))
+            .ForMember(dest => dest.Description,
+                opt => opt.MapFrom(src => src.Description ?? string.Empty));
+
         // SectionPart mappings
         CreateMap<SectionPart, SectionPartResponse>()
             .ForMember(dest => dest.Title,

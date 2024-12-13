@@ -25,6 +25,23 @@ public class StudentAttemptController : ApiController
     {
         return Ok("You connected to .NetServer");
     }
+    
+    /// <summary>
+    /// Get all exam for user make attempt
+    /// </summary>
+    [HttpGet("exams")]
+    [ProducesResponseType(typeof(ExamStudentResponse), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(Error), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> GetAllExams(
+        CancellationToken cancellationToken)
+    {
+        var result = await _studentAttemptService.GetExamAsync(cancellationToken);
+        
+        if (!result.IsSuccess)
+            return BadRequest(result.Error);
+        return Ok(result.Value);
+    }
     /// <summary>
     /// Start a new exam attempt
     /// </summary>
@@ -48,6 +65,7 @@ public class StudentAttemptController : ApiController
             new { attemptId = result.Value.Id },
             result.Value);
     }
+    
 
     /// <summary>
     /// Submit an answer for a question
