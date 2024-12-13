@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { toast } from 'react-hot-toast'
 import { attemptRequest } from '@/app/api'
 import { useNavigate, useLocation, useParams } from 'react-router-dom'
-import { IAttemptExam, IStartStudentAttempt } from '@/features/exam/type'
+import { IAttemptExam, ISummaryStudentAttempt } from '@/features/exam/type'
 import { AttemptStatusType } from '@/features/exam/configs'
 import { useDispatch } from 'react-redux'
 import { setAttempt } from '@/features/exam/attemptSlice'
@@ -28,7 +28,7 @@ const AttemptStudent = () => {
   const location = useLocation()
   const [examConfigs, setExamConfigs] = useState<IAttemptExam[]>([])
   const [examAttempt, setExamAttempt] = useState<
-    IStartStudentAttempt | undefined
+    ISummaryStudentAttempt | undefined
   >(undefined)
   const [isLoading, setIsLoading] = useState(true)
 
@@ -43,7 +43,7 @@ const AttemptStudent = () => {
         setIsLoading(true)
         Promise.allSettled([
           attemptRequest.getAttemptByExamId(id),
-          attemptRequest.startAttempt(id),
+          attemptRequest.getSummaryAttemptsByExamId(id),
         ])
           .then((rs) => {
             const [rsExam, rsAttempt] = rs
@@ -61,18 +61,23 @@ const AttemptStudent = () => {
     }
     getDataStudentExam()
   }, [id, navigate])
-  const navigateToStart = () => {
+  const navigateToStart = async () => {
     if (examAttempt) {
-      const currentPath = location.pathname
-      const newPath = `${currentPath}/start`
-      dispatch(
-        setAttempt({
-          examId: parseInt(`${id}`),
-          attempt: examAttempt,
-          sections: examConfigs,
-        }),
-      )
-      navigate(newPath)
+      const rsStart = await attemptRequest.startAttempt(`${id}`)
+      if (rsStart) {
+        const currentPath = location.pathname
+        const newPath = `${currentPath}/start`
+        dispatch(
+          setAttempt({
+            examId: parseInt(`${id}`),
+            attempt: rsStart,
+            sections: examConfigs,
+          }),
+        )
+        navigate(newPath)
+      } else {
+        toast.error('Không thể tạo bài thi. Thử lại nhé')
+      }
     } else {
       toast.error('Hiện tại đang thiếu thông tin để start bài thi')
     }
@@ -92,7 +97,7 @@ const AttemptStudent = () => {
     }
   }
 
-  const handleExamAttempt = (response: IStartStudentAttempt | undefined) => {
+  const handleExamAttempt = (response: ISummaryStudentAttempt | undefined) => {
     try {
       if (!response) {
         toast.error('Không tạo được bài thi')
@@ -124,19 +129,24 @@ const AttemptStudent = () => {
           sx={{ textTransform: 'none', mr: 2 }}
         />
         <Typography variant="h4" fontWeight="bold" gutterBottom>
-          {examAttempt.title}
+          {examAttempt.examTitle}
         </Typography>
       </Box>
 
       <Typography variant="body1" color="textSecondary" gutterBottom>
-        {examAttempt.description}
+        {examAttempt.examDescription}
       </Typography>
       <Box mt={4}>
         <Typography variant="h5" gutterBottom>
           Tổng quan các lần làm bài trước của bạn
         </Typography>
-        <TableContainer component={Paper}>
-          <Table>
+        <TableContainer
+          component={Paper}
+          sx={{
+            maxHeight: 400,
+          }}
+        >
+          <Table stickyHeader>
             <TableHead>
               <TableRow>
                 <TableCell align="center">Lần làm</TableCell>
@@ -176,7 +186,7 @@ const AttemptStudent = () => {
         alignItems="center"
         gap={2}
       >
-        {examAttempt.status === AttemptStatusType.Started ? (
+        {examAttempt?.inprocess?.status === AttemptStatusType.Started ? (
           <>
             <Button
               variant="contained"

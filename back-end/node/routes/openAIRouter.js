@@ -5,6 +5,8 @@ const openAIController = require('../controllers/openAIController')
 const authMiddleware = require('../middlewares/authMiddleware')
 
 router.get('/exams', authMiddleware, openAIController.allExams)
+
+router.get('/:examId/attempts', authMiddleware, openAIController.allAttempts)
 /**
  * @swagger
  * tags:

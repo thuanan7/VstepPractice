@@ -170,6 +170,13 @@ export interface IStartStudentAttempt {
   title: string
   description: string
   status: AttemptStatusType
+}
+
+export interface ISummaryStudentAttempt {
+  examId: number
+  examTitle?: string
+  examDescription?: string
+  inprocess: IStartStudentAttempt
   attempts: ISummaryAttempt[]
 }
 export interface IAttemptAnswer {

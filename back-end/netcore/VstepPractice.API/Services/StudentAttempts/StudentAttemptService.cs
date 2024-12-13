@@ -79,7 +79,6 @@ public class StudentAttemptService : IStudentAttemptService
                 StartTime = DateTime.UtcNow,
                 Status = AttemptStatus.Started
             });
-            r.Attempts = summaryAttemptResponses;
             return Result.Success(r);
         }
 
@@ -96,8 +95,41 @@ public class StudentAttemptService : IStudentAttemptService
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         var response = _mapper.Map<AttemptResponse>(attempt);
-        response.Attempts = summaryAttemptResponses;
         return Result.Success(response);
+    }
+
+    public async Task<Result<AttemptStudentSummaryResponse>> ListAllAttemptAsync(int userId, StartAttemptRequest request, CancellationToken cancellationToken = default)
+    {
+        var exam = await _unitOfWork.ExamRepository.FindByIdAsync(
+            request.ExamId, cancellationToken);
+
+        if (exam == null)
+            return Result.Failure<AttemptStudentSummaryResponse>(Error.NotFound);
+        var inProgressAttempt = await _unitOfWork.StudentAttemptRepository
+            .FindAttemptInProgress(userId, request.ExamId, cancellationToken);
+        var completedAttempts = await _unitOfWork.StudentAttemptRepository
+            .FindAllAttemptCompleted(userId, request.ExamId, cancellationToken);
+        
+        var summaryAttemptResponses = completedAttempts?.Any() == true
+            ? completedAttempts.Select(_mapper.Map<SummaryAttemptResponse>).ToList()
+            : new List<SummaryAttemptResponse>();
+
+        return Result.Success(new AttemptStudentSummaryResponse()
+        {
+            ExamId = exam.Id,
+            ExamTitle = exam.Title,
+            ExamDescription = exam.Description,
+            Inprocess = inProgressAttempt!=null?_mapper.Map<AttemptResponse>(new StudentAttempt
+            {
+                UserId = userId,
+                ExamId = request.ExamId,
+                Exam = exam,
+                Id = inProgressAttempt.Id,
+                StartTime = DateTime.UtcNow,
+                Status = AttemptStatus.Started
+            }):null,
+            Attempts = summaryAttemptResponses
+        });
     }
 
     public async Task<Result<AnswerResponse>> SubmitAnswerAsync(

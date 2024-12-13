@@ -12,7 +12,10 @@ public interface IStudentAttemptService
         int userId,
         StartAttemptRequest request,
         CancellationToken cancellationToken = default);
-
+    Task<Result<AttemptStudentSummaryResponse>> ListAllAttemptAsync(
+        int userId,
+        StartAttemptRequest request,
+        CancellationToken cancellationToken = default);
     Task<Result<AnswerResponse>> SubmitAnswerAsync(
         int userId,
         int attemptId,

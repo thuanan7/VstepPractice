@@ -4,6 +4,7 @@ import {
   IAttemptExam,
   IStartStudentAttempt,
   ISumaryAttemptExam,
+  ISummaryStudentAttempt,
 } from '@/features/exam/type'
 import { formatDateTime } from './utils'
 export default class AttemptClient extends APIClient {
@@ -16,6 +17,19 @@ export default class AttemptClient extends APIClient {
         }
         return undefined
       })
+  }
+
+  getSummaryAttemptsByExamId(
+    examId: string,
+    cancelToken?: any,
+  ): Promise<ISummaryStudentAttempt | undefined> {
+    const subParams = getUrlGet(attemptConfigs.getAttempts, { id: examId })
+    return super.get(subParams, undefined, cancelToken).then((r) => {
+      if (r?.success) {
+        return r?.data as ISummaryStudentAttempt
+      }
+      return undefined
+    })
   }
   getAttemptByExamId(
     examId: string,
@@ -43,14 +57,6 @@ export default class AttemptClient extends APIClient {
             title: r?.data?.examTitle,
             description: r?.data?.examDescription,
             status: r?.data?.status,
-            attempts: r?.data?.attempts.map((x: any) => {
-              return {
-                id: x.id,
-                startTime: formatDateTime(x.startTime),
-                endTime: formatDateTime(x.endTime),
-                finalCore: x.finalCore,
-              }
-            }),
           }
         }
         return undefined

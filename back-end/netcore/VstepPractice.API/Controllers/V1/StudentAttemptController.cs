@@ -1,6 +1,7 @@
 ﻿using Asp.Versioning;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Http.HttpResults;
 using VstepPractice.API.Common.Utils;
 using VstepPractice.API.Models.DTOs.StudentAttempts.Requests;
 using VstepPractice.API.Models.DTOs.StudentAttempts.Responses;
@@ -30,7 +31,7 @@ public class StudentAttemptController : ApiController
     /// Get all exam for user make attempt
     /// </summary>
     [HttpGet("exams")]
-    [ProducesResponseType(typeof(ExamStudentResponse), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ExamStudentResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(Error), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> GetAllExams(
@@ -40,6 +41,25 @@ public class StudentAttemptController : ApiController
         
         if (!result.IsSuccess)
             return BadRequest(result.Error);
+        return Ok(result.Value);
+    }
+    
+    
+    [HttpGet("attempts")]
+    [ProducesResponseType(typeof(AttemptStudentSummaryResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Error), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> Attempts(
+        [FromBody] StartAttemptRequest request,
+        CancellationToken cancellationToken)
+    {
+        var userId = request.UserId;
+        var result = await _studentAttemptService.ListAllAttemptAsync(
+            userId, request, cancellationToken);
+
+        if (!result.IsSuccess)
+            return BadRequest(result.Error);
+
         return Ok(result.Value);
     }
     /// <summary>

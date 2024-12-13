@@ -20,6 +20,7 @@ export const attemptConfigs = {
   getAttemptByExamId: 'attempt/{examId}',
   startAttempt: 'ai/start',
   finishAttempt: 'ai/{id}/finish',
+  getAttempts: 'ai/{id}/attempts',
   getExams: 'ai/exams',
 }
 
