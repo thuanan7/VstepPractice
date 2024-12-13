@@ -29,7 +29,7 @@ const ExamList: React.FC = () => {
     }
   }
   const handleStartExam = (id: string) => {
-    navigate(`/exam/${id}/attempt`)
+    navigate(`/exam/${id}/attempts`)
   }
   return (
     <Container maxWidth="lg">

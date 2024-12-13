@@ -67,6 +67,7 @@ const AttemptStudent = () => {
       if (rsStart) {
         const currentPath = location.pathname
         const newPath = `${currentPath}/start`
+        console.log('aaaa', newPath)
         dispatch(
           setAttempt({
             examId: parseInt(`${id}`),

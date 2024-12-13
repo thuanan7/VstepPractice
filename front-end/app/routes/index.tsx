@@ -5,8 +5,6 @@ import {
   ExamPage,
   QuestionPage,
   StudentExamAttemptPage,
-  StudentExamResultPage,
-  StudentExamSubmitPage,
   StudentStartAttemptPage,
   StudentExamPage,
   NotFoundPage,
@@ -92,22 +90,6 @@ export const routes: RouteObject[] = [
         element: (
           <PrivateRoute>
             <StudentStartAttemptPage />
-          </PrivateRoute>
-        ),
-      },
-      {
-        path: ':id/result',
-        element: (
-          <PrivateRoute>
-            <StudentExamResultPage />
-          </PrivateRoute>
-        ),
-      },
-      {
-        path: ':id/submit',
-        element: (
-          <PrivateRoute>
-            <StudentExamSubmitPage />
           </PrivateRoute>
         ),
       },
