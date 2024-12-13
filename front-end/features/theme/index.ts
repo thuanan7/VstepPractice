@@ -18,6 +18,18 @@ const theme = createTheme({
       primary: '#2C3E50',
       secondary: '#6C3483',
     },
+    success: {
+      main: '#4CAF50', // Màu xanh lá cây cho success
+      contrastText: '#FFFFFF',
+    },
+    warning: {
+      main: '#FFC107', // Màu vàng cho warning
+      contrastText: '#FFFFFF',
+    },
+    error: {
+      main: '#F44336', // Màu đỏ cho error
+      contrastText: '#FFFFFF',
+    },
   },
   typography: {
     fontFamily: 'Roboto, sans-serif',

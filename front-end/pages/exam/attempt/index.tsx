@@ -122,23 +122,31 @@ const AttemptStudent = () => {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell align="center">Làm lại</TableCell>
+                <TableCell align="center">Lần làm</TableCell>
                 <TableCell align="center">Trạng thái</TableCell>
                 <TableCell align="center">Điểm</TableCell>
                 <TableCell align="center">Xem lại</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {data.attempts.map((attempt) => (
-                <TableRow key={attempt.attemptNumber}>
-                  <TableCell align="center">{attempt.attemptNumber}</TableCell>
-                  <TableCell align="center">{attempt.status}</TableCell>
-                  <TableCell align="center">{attempt.score}</TableCell>
-                  <TableCell align="center">
-                    <Button variant="text">{attempt.reviewLink}</Button>
+              {examAttempt.attempts.length > 0 ? (
+                examAttempt.attempts.map((attempt, index) => (
+                  <TableRow key={index}>
+                    <TableCell align="center">{index + 1}</TableCell>
+                    <TableCell align="center">Kết thúc</TableCell>
+                    <TableCell align="center">{attempt.finalCore}/10</TableCell>
+                    <TableCell align="center">
+                      <Button variant="text">Xem lại</Button>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell align="center" colSpan={4}>
+                    Bạn chưa có kết quả nào
                   </TableCell>
                 </TableRow>
-              ))}
+              )}
             </TableBody>
           </Table>
         </TableContainer>
@@ -148,56 +156,41 @@ const AttemptStudent = () => {
         mt={4}
         display="flex"
         justifyContent="center"
-        alignItems={'center'}
+        alignItems="center"
         gap={2}
       >
-        {examAttempt.status === AttemptStatusType.Started && (
+        {examAttempt.status === AttemptStatusType.Started ? (
+          <>
+            <Button
+              variant="contained"
+              color="warning"
+              fullWidth
+              onClick={navigateToStart}
+            >
+              Tiếp tục làm bài thi
+            </Button>
+            <Button
+              variant="outlined"
+              color="error"
+              fullWidth
+              onClick={() => toast.success('Bài làm đã kết thúc!')}
+            >
+              Kết thúc bài làm
+            </Button>
+          </>
+        ) : (
           <Button
             variant="contained"
-            color="primary"
+            color="success"
             fullWidth
             onClick={navigateToStart}
           >
-            Tiếp tục làm bài thi
+            Bắt đầu mới bài thi
           </Button>
         )}
-
-        <Button
-          variant="outlined"
-          color="primary"
-          fullWidth
-          onClick={navigateToStart}
-        >
-          Bắt đầu mới bài thi
-        </Button>
       </Box>
     </Container>
   )
 }
 
 export default AttemptStudent
-const data = {
-  attempts: [
-    {
-      attemptNumber: 1,
-      status: 'Đã xong',
-      submittedAt: 'Wednesday, 9 October 2024, 7:49 AM',
-      score: '20,00 / 25,00',
-      reviewLink: 'Xem lại',
-    },
-    {
-      attemptNumber: 2,
-      status: 'Đã xong',
-      submittedAt: 'Wednesday, 30 October 2024, 8:47 AM',
-      score: '23,00 / 25,00',
-      reviewLink: 'Xem lại',
-    },
-    {
-      attemptNumber: 3,
-      status: 'Đã xong',
-      submittedAt: 'Sunday, 10 November 2024, 12:40 PM',
-      score: '25,00 / 25,00',
-      reviewLink: 'Xem lại',
-    },
-  ],
-}

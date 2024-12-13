@@ -163,8 +163,16 @@ export interface IStartStudentAttempt {
   title: string
   description: string
   status: AttemptStatusType
+  attempts: ISummaryAttempt[]
 }
 export interface IAttemptAnswer {
   questionId: number
   selectedOptionId: number
+}
+
+export interface ISummaryAttempt {
+  id: number
+  startTime: string
+  endTime?: string
+  finalCore: number
 }

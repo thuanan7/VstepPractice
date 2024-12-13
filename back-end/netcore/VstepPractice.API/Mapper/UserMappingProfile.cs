@@ -69,7 +69,18 @@ public class AutoMapperProfile : Profile
                 opt => opt.MapFrom(src => src.Status))
             .ForMember(dest => dest.Answers,
                 opt => opt.MapFrom(src => src.Answers.OrderBy(a => a.Question.OrderNum)));
-
+        // StudentAttempt mappings to SummaryAttemptResponse
+        CreateMap<StudentAttempt, SummaryAttemptResponse>()
+            .ForMember(dest => dest.Id,
+                opt => opt.MapFrom(src => src.Id))
+            .ForMember(dest => dest.FinalCore,
+                opt => opt.MapFrom(src => src.FinalCore))
+            .ForMember(dest => dest.StartTime,
+                opt => opt.MapFrom(src => src.StartTime))
+            .ForMember(dest => dest.EndTime,
+                opt => opt.MapFrom(src => src.EndTime!.Value));
+        
+        
         CreateMap<StudentAttempt, AttemptResultResponse>()
             .ForMember(dest => dest.ExamTitle,
                 opt => opt.MapFrom(src => src.Exam.Title ?? string.Empty))

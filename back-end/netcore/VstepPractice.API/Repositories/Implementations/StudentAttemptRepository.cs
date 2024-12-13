@@ -38,6 +38,16 @@ public class StudentAttemptRepository : RepositoryBase<StudentAttempt, int>, ISt
                     a.Status == AttemptStatus.InProgress,
                 cancellationToken);
     }
+
+    public async Task<List<StudentAttempt>?> FindAllAttemptCompleted(int userId, int examId, CancellationToken cancellationToken = default)
+    {
+        return await _context.StudentAttempts.Where(a =>
+                a.UserId == userId &&
+                a.ExamId == examId && 
+                (a.Status == AttemptStatus.Completed || a.EndTime != null))
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<StudentAttempt?> GetAttemptWithDetailsAsync(
     int attemptId,
     CancellationToken cancellationToken = default)

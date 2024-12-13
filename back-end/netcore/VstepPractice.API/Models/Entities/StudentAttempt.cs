@@ -15,6 +15,9 @@ public class StudentAttempt : BaseEntity
     public DateTime? EndTime { get; set; }
     [Column("status")]
     public AttemptStatus? Status { get; set; } = AttemptStatus.InProgress;
+    
+    [Column("finalCore", TypeName = "decimal(4,2)")]
+    public decimal FinalCore { get; set; } = 0;
     // Navigation properties
     [ForeignKey(nameof(ExamId))]
     public virtual Exam Exam { get; set; } = default!;

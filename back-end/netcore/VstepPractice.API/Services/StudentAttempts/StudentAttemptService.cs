@@ -54,9 +54,16 @@ public class StudentAttemptService : IStudentAttemptService
         // Check if user has any in-progress attempts
         var inProgressAttempt = await _unitOfWork.StudentAttemptRepository
             .FindAttemptInProgress(userId, request.ExamId, cancellationToken);
+        var completedAttempts = await _unitOfWork.StudentAttemptRepository
+            .FindAllAttemptCompleted(userId, request.ExamId, cancellationToken);
+        
+        var summaryAttemptResponses = completedAttempts?.Any() == true
+            ? completedAttempts.Select(_mapper.Map<SummaryAttemptResponse>).ToList()
+            : new List<SummaryAttemptResponse>();
+
         if (inProgressAttempt != null)
         {
-            return Result.Success(_mapper.Map<AttemptResponse>(new StudentAttempt
+            var r = _mapper.Map<AttemptResponse>(new StudentAttempt
             {
                 UserId = userId,
                 ExamId = request.ExamId,
@@ -64,7 +71,9 @@ public class StudentAttemptService : IStudentAttemptService
                 Id = inProgressAttempt.Id,
                 StartTime = DateTime.UtcNow,
                 Status = AttemptStatus.Started
-            }));
+            });
+            r.Attempts = summaryAttemptResponses;
+            return Result.Success(r);
         }
 
         var attempt = new StudentAttempt
@@ -80,6 +89,7 @@ public class StudentAttemptService : IStudentAttemptService
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         var response = _mapper.Map<AttemptResponse>(attempt);
+        response.Attempts = summaryAttemptResponses;
         return Result.Success(response);
     }
 

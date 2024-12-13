@@ -38,9 +38,25 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.INTEGER,
         allowNull: true,
       },
+      wordDetails: {
+        type: DataTypes.JSONB,
+        allowNull: true,
+      },
       detailedFeedback: {
         type: DataTypes.TEXT,
         allowNull: true,
+      },
+      accuracy: {
+        type: DataTypes.DECIMAL(4, 2),
+        allowNull: false,
+      },
+      topicScore: {
+        type: DataTypes.DECIMAL(4, 2),
+        allowNull: false,
+      },
+      prosody: {
+        type: DataTypes.DECIMAL(4, 2),
+        allowNull: false,
       },
       transcribedFeedback: {
         type: DataTypes.TEXT,
