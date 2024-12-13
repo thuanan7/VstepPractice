@@ -10,11 +10,8 @@ import AttemptContent from './components/AttemptContent'
 import AttemptTimer from './components/AttemptTimmer'
 import { attemptRequest } from '@/app/api'
 
-import { resetAttempt } from '@/features/exam/attemptSlice'
 const AttemptStart = () => {
   const navigate = useNavigate()
-
-  const dispatch = useDispatch()
   const { examId, attempt, sections } = useSelector(
     (state: RootState) => state.examStudent,
   )

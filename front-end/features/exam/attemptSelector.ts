@@ -64,3 +64,62 @@ export const selectPartBySectionAndPartId = (
       }
     },
   )
+export const selectPreviousNextPart = (
+  currentSectionId: number,
+  currentPartId: number | null,
+) =>
+  createSelector(
+    [(state: RootState) => state.examStudent.sections],
+    (sections) => {
+      if (
+        !sections ||
+        sections.length === 0 ||
+        !currentSectionId ||
+        !currentPartId
+      )
+        return { previousPart: null, nextPart: null }
+      const currentSectionIndex = sections.findIndex(
+        (section) => section.id === currentSectionId,
+      )
+      if (currentSectionIndex === -1)
+        return { previousPart: null, nextPart: null }
+
+      const currentSection = sections[currentSectionIndex]
+      const currentPartIndex = currentSection.parts.findIndex(
+        (part) => part.id === currentPartId,
+      )
+      if (currentPartIndex === -1) return { previousPart: null, nextPart: null }
+      let previousPart = null
+      if (currentPartIndex > 0) {
+        previousPart = {
+          sectionId: currentSection.id,
+          partId: currentSection.parts[currentPartIndex - 1].id,
+        }
+      } else if (currentSectionIndex > 0) {
+        const previousSection = sections[currentSectionIndex - 1]
+        if (previousSection.parts.length > 0) {
+          previousPart = {
+            sectionId: previousSection.id,
+            partId: previousSection.parts[previousSection.parts.length - 1].id,
+          }
+        }
+      }
+
+      let nextPart = null
+      if (currentPartIndex + 1 < currentSection.parts.length) {
+        nextPart = {
+          sectionId: currentSection.id,
+          partId: currentSection.parts[currentPartIndex + 1].id,
+        }
+      } else if (currentSectionIndex + 1 < sections.length) {
+        const nextSection = sections[currentSectionIndex + 1]
+        if (nextSection.parts.length > 0) {
+          nextPart = {
+            sectionId: nextSection.id,
+            partId: nextSection.parts[0].id,
+          }
+        }
+      }
+      return { previousPart, nextPart }
+    },
+  )

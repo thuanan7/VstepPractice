@@ -8,6 +8,7 @@ import { useSelector } from 'react-redux'
 import {
   selectPartBySectionAndPartId,
   selectPartsBySectionId,
+  selectPreviousNextPart,
 } from '@/features/exam/attemptSelector'
 import { SectionType } from '@/features/exam/type.ts'
 import TextQuestionSection from './TextQuestionSection'
@@ -26,6 +27,10 @@ const QuestionList = () => {
     selectPartBySectionAndPartId(sectionId, partId),
   )
   const sections = useSelector(selectPartsBySectionId(`${sectionId}`))
+  const { previousPart, nextPart } = useSelector(
+    selectPreviousNextPart(sectionId, partId),
+  )
+
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -61,15 +66,21 @@ const QuestionList = () => {
     return [single, text, speaking]
   }, [part, sectionType])
   const handleNext = () => {
-    // if (currentQuestionIndex < mockQuestions.length - 1) {
-    //   setCurrentQuestionIndex(currentQuestionIndex + 1)
-    // }
+    if (nextPart) {
+      const currentParams = new URLSearchParams(searchParams)
+      currentParams.set('partId', `${nextPart.partId}`)
+      currentParams.set('sectionId', `${nextPart.sectionId}`)
+      setSearchParams(currentParams)
+    }
   }
 
   const handlePrevious = () => {
-    // if (currentQuestionIndex > 0) {
-    //   setCurrentQuestionIndex(currentQuestionIndex - 1)
-    // }
+    if (previousPart) {
+      const currentParams = new URLSearchParams(searchParams)
+      currentParams.set('partId', `${previousPart.partId}`)
+      currentParams.set('sectionId', `${previousPart.sectionId}`)
+      setSearchParams(currentParams)
+    }
   }
   if (loading) return <Box>Loading...</Box>
   if (!part) return <Box>Không tìm thấy bài thi</Box>
@@ -144,7 +155,7 @@ const QuestionList = () => {
           variant="contained"
           color="primary"
           onClick={handlePrevious}
-          // disabled={currentQuestionIndex === 0}
+          disabled={!previousPart}
           startIcon={<ArrowBackIcon />}
           sx={{
             padding: '10px 20px',
@@ -155,20 +166,22 @@ const QuestionList = () => {
         >
           Trở về trước
         </Button>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={handleNext}
-          endIcon={<ArrowForwardIcon />}
-          sx={{
-            backgroundColor: '#6C3483',
-            padding: '10px 20px',
-            fontSize: '16px',
-            fontWeight: 'bold',
-          }}
-        >
-          Tiếp theo
-        </Button>
+        {nextPart && (
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleNext}
+            endIcon={<ArrowForwardIcon />}
+            sx={{
+              backgroundColor: '#6C3483',
+              padding: '10px 20px',
+              fontSize: '16px',
+              fontWeight: 'bold',
+            }}
+          >
+            Tiếp theo
+          </Button>
+        )}
       </Box>
     </>
   )
