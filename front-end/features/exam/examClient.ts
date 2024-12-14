@@ -1,4 +1,4 @@
-import APIClient from '@/app/api/axios/AxiosClient'
+import APIClient, { getUrlGet } from '@/app/api/axios/AxiosClient'
 import { examPathConfigs } from './configs'
 import { IExam, SectionType } from '@/features/exam/type.ts'
 
@@ -28,5 +28,16 @@ export default class ExamClient extends APIClient {
         }
         return undefined
       })
+  }
+  updateExam(id: number, data: IExam, cancelToken?: any) {
+    const subParams = getUrlGet(examPathConfigs.updateExam, {
+      id: id,
+    })
+    return super.put(subParams, data, cancelToken).then((r) => {
+      if (r?.success) {
+        return r?.data as IExam
+      }
+      return undefined
+    })
   }
 }

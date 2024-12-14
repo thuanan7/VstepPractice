@@ -2,7 +2,7 @@ import { AttemptStatusType, SectionPartTypes } from './configs'
 export interface IExam {
   id: number
   title: string
-  createdAt: string
+  createdAt?: string
   description: string
 }
 export interface Question {

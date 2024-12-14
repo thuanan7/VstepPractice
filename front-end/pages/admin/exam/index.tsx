@@ -2,17 +2,12 @@ import React, { useEffect, useState } from 'react'
 import {
   Box,
   Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
-  TextField,
   IconButton,
   Tooltip,
 } from '@mui/material'
@@ -24,15 +19,13 @@ import { Quiz } from '@mui/icons-material'
 import { useNavigate } from 'react-router-dom'
 import AddCircleIcon from '@mui/icons-material/AddCircle'
 import { toast } from 'react-hot-toast'
+import EditExamDialog from './components/EditExamDialog'
 
 const ExamManagement: React.FC = () => {
   const [exams, setExams] = useState<IExam[]>([])
   const [openDialog, setOpenDialog] = useState(false)
   const [editExam, setEditExam] = useState<IExam | null>(null)
-  const [newExam, setNewExam] = useState({
-    title: '',
-    description: '',
-  })
+
   const navigate = useNavigate()
   useEffect(() => {
     void handleGetExams()
@@ -51,25 +44,27 @@ const ExamManagement: React.FC = () => {
   const handleCloseDialog = () => {
     setEditExam(null)
     setOpenDialog(false)
-    setNewExam({ title: '', date: '', duration: 0 })
   }
 
-  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = event.target
-    if (editExam) {
-      setEditExam({ ...editExam, [name]: name === 'duration' ? +value : value })
-    } else {
-      setNewExam({ ...newExam, [name]: name === 'duration' ? +value : value })
-    }
-  }
-  const handleSaveExam = () => {
-    if (editExam) {
-      setExams(exams.map((exam) => (exam.id === editExam.id ? editExam : exam)))
-    } else {
-      // const newId = exams.length ? exams[exams.length - 1].id + 1 : 1;
-      // setExams([...exams, {...newExam, id: newId}]);
-    }
-    handleCloseDialog()
+  const handleSaveExam = async (editedExam: IExam) => {
+    try {
+      const updatedExam = await examRequest.updateExam(
+        editedExam.id,
+        editedExam,
+      )
+      if (updatedExam) {
+        toast.success('Cập nhật đề thi thành công')
+        setExams((prevExams) =>
+          prevExams.map((exam) =>
+            exam.id === updatedExam.id ? updatedExam : exam,
+          ),
+        )
+
+        handleCloseDialog()
+      } else {
+        toast.error('Cập nhật đề thi thất bại')
+      }
+    } catch (e) {}
   }
   const handleDeleteExam = (id: number) => {
     setExams(exams.filter((exam) => exam.id !== id))
@@ -157,42 +152,14 @@ const ExamManagement: React.FC = () => {
           </TableBody>
         </Table>
       </TableContainer>
-
-      <Dialog open={openDialog} onClose={handleCloseDialog}>
-        <DialogTitle>
-          {editExam ? 'Sửa thông tin đề thi' : 'Thêm mới đề thi'}
-        </DialogTitle>
-        <DialogContent>
-          <TextField
-            autoFocus
-            margin="dense"
-            label="Tên đề thi"
-            name="title"
-            value={editExam ? editExam.title : newExam.title}
-            onChange={handleInputChange}
-            fullWidth
-            variant="outlined"
-          />
-          <TextField
-            autoFocus
-            margin="dense"
-            label="Mô tả"
-            name="description"
-            value={editExam ? editExam.description : newExam.description}
-            onChange={handleInputChange}
-            fullWidth
-            variant="outlined"
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDialog} color="secondary">
-            Cancel
-          </Button>
-          <Button onClick={handleSaveExam} color="primary">
-            {editExam ? 'Update' : 'Save'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+      {openDialog && editExam && (
+        <EditExamDialog
+          open={openDialog}
+          handleClose={handleCloseDialog}
+          currentExam={editExam}
+          onSave={handleSaveExam}
+        />
+      )}
     </Box>
   )
 }
