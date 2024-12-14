@@ -87,7 +87,7 @@ const AdminPathManagementMenu = (props: PathManagementMenuProps) => {
         />
         <Tab
           sx={{ width: '100%' }}
-          label="Quản lý part"
+          label="Quản lý phần kỹ năng"
           id="vertical-tab-1"
           aria-controls="vertical-tabpanel-1"
         />

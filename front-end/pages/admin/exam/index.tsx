@@ -23,12 +23,16 @@ import { IExam } from '@/features/exam/type'
 import { Quiz } from '@mui/icons-material'
 import { useNavigate } from 'react-router-dom'
 import AddCircleIcon from '@mui/icons-material/AddCircle'
+import { toast } from 'react-hot-toast'
 
 const ExamManagement: React.FC = () => {
   const [exams, setExams] = useState<IExam[]>([])
   const [openDialog, setOpenDialog] = useState(false)
   const [editExam, setEditExam] = useState<IExam | null>(null)
-  const [newExam, setNewExam] = useState({ title: '', date: '', duration: 0 })
+  const [newExam, setNewExam] = useState({
+    title: '',
+    description: '',
+  })
   const navigate = useNavigate()
   useEffect(() => {
     void handleGetExams()
@@ -74,6 +78,17 @@ const ExamManagement: React.FC = () => {
     navigate(`/admin/questions/${id}`)
   }
 
+  const handleCreateNewExam = async () => {
+    try {
+      const rs = await examRequest.createNewExam()
+      if (rs) {
+        setExams((prevState) => [rs, ...prevState])
+        toast.success('Tạo đề thi thành công')
+      } else {
+        toast.error('Tạo đề thi thất bại')
+      }
+    } catch (e) {}
+  }
   return (
     <Box sx={{ p: 3 }}>
       <Box display={'flex'} justifyContent={'flex-end'}>
@@ -81,7 +96,7 @@ const ExamManagement: React.FC = () => {
           variant="outlined"
           color="primary"
           startIcon={<AddCircleIcon />}
-          onClick={() => handleOpenDialog()}
+          onClick={() => handleCreateNewExam()}
           sx={{
             border: '2px dashed',
             color: 'text.secondary',
@@ -100,10 +115,9 @@ const ExamManagement: React.FC = () => {
           <TableHead>
             <TableRow>
               <TableCell></TableCell>
-              <TableCell>Name</TableCell>
-              <TableCell>Date</TableCell>
-              <TableCell>Description</TableCell>
-              <TableCell align="center">Actions</TableCell>
+              <TableCell>Tên đề thi</TableCell>
+              <TableCell>Mô tả</TableCell>
+              <TableCell align="center">Tác vụ</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -123,7 +137,6 @@ const ExamManagement: React.FC = () => {
                   </Tooltip>
                 </TableCell>
                 <TableCell>{exam.title}</TableCell>
-                <TableCell>{exam.createdAt}</TableCell>
                 <TableCell>{exam.description}</TableCell>
                 <TableCell align="center">
                   <IconButton
@@ -145,14 +158,15 @@ const ExamManagement: React.FC = () => {
         </Table>
       </TableContainer>
 
-      {/* Dialog tạo/sửa exam */}
       <Dialog open={openDialog} onClose={handleCloseDialog}>
-        <DialogTitle>{editExam ? 'Edit Exam' : 'Add New Exam'}</DialogTitle>
+        <DialogTitle>
+          {editExam ? 'Sửa thông tin đề thi' : 'Thêm mới đề thi'}
+        </DialogTitle>
         <DialogContent>
           <TextField
             autoFocus
             margin="dense"
-            label="Title"
+            label="Tên đề thi"
             name="title"
             value={editExam ? editExam.title : newExam.title}
             onChange={handleInputChange}
@@ -160,24 +174,11 @@ const ExamManagement: React.FC = () => {
             variant="outlined"
           />
           <TextField
+            autoFocus
             margin="dense"
-            label="Date"
-            type="date"
-            name="date"
-            value={editExam ? editExam.createdAt : newExam.date}
-            onChange={handleInputChange}
-            fullWidth
-            variant="outlined"
-            InputLabelProps={{
-              shrink: true,
-            }}
-          />
-          <TextField
-            margin="dense"
-            label="Duration (minutes)"
-            type="number"
-            name="duration"
-            value={editExam ? editExam.description : newExam.duration}
+            label="Mô tả"
+            name="description"
+            value={editExam ? editExam.description : newExam.description}
             onChange={handleInputChange}
             fullWidth
             variant="outlined"

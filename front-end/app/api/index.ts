@@ -17,7 +17,6 @@ export interface IResp<T> {
 
 const authRequest = new AuthRequest(baseApiUrl, instance)
 const examRequest = new ExamRequest(baseApiUrl, instance)
-
 const attemptRequest = new AttemptRequest(baseApiUrl, instance)
 const questionRequest = new QuestionRequest(baseApiUrl, instance)
 const sectionPartRequest = new SectionPartRequest(baseApiUrl, instance)

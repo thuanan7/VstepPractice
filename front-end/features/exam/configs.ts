@@ -1,5 +1,6 @@
-export const storePathConfigs = {
+export const examPathConfigs = {
   list: 'exams',
+  createEmptyExam: 'exams',
 }
 
 export const sectionPartsPathConfigs = {

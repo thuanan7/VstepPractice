@@ -59,11 +59,11 @@ const ButtonRemovePart = (props: RemovePartProps) => {
         disabled={loading}
         fullWidth={true}
       >
-        Xoá part
+        Xoá phần kỹ năng
       </Button>
       <Dialog open={open} onClose={handleClose}>
-        <DialogTitle>Xoá part</DialogTitle>
-        <DialogContent>Bạn có muốn xoá part này?</DialogContent>
+        <DialogTitle>Xoá phần kỹ năng</DialogTitle>
+        <DialogContent>Bạn có muốn xoá phần kỹ năng này?</DialogContent>
         <DialogActions>
           <Button onClick={handleClose} color="primary" disabled={loading}>
             Cancel
