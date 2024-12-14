@@ -236,7 +236,57 @@ export default class AxiosClient {
         return Promise.resolve(null)
       })
   }
+  postFormData(
+    url: string,
+    formData: FormData,
+    cancelToken?: CancelToken | undefined,
+  ) {
+    const date = new Date()
+    const timezoneOffset = date.getTimezoneOffset()
 
+    const options_ = {
+      method: 'POST',
+      url: `${this.baseUrl}/${url}`,
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'multipart/form-data',
+        'X-TIMEZONE-OFFSET': timezoneOffset,
+      },
+      data: formData,
+      cancelToken: cancelToken,
+    } as AxiosRequestConfig
+
+    return this.instance
+      .request(options_)
+      .catch((error: any) => {
+        return error
+      })
+      .then((response: AxiosResponse) => {
+        const status = response.status
+        if (status === 200 || status === 201) {
+          return ApiOutputModel.fromJS(response)
+        } else if (status === 401) {
+          store.dispatch(clearCredentials())
+          setTimeout(() => {
+            window.location.href = '/users/login'
+          })
+          return Promise.resolve(null)
+        } else {
+          const errorMessage =
+            response?.data?.error?.message ||
+            response?.data?.message ||
+            'An unexpected error occurred'
+          const errorResponse: ApiOutputModel = {
+            success: false,
+            message: errorMessage,
+            init: () => {
+              throw new Error('Function not implemented.')
+            },
+          }
+          return ApiOutputModel.fromJS({ data: errorResponse })
+        }
+      })
+  }
   putFormData(url: string, data: any, cancelToken?: CancelToken | undefined) {
     const options_ = {
       method: 'PUT',

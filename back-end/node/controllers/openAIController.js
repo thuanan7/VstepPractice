@@ -6,6 +6,21 @@ const {
   typeSections,
   fnParseData,
 } = require('../configs/enums')
+
+const multer = require('multer')
+const path = require('path')
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const pathDestination = path.resolve(__dirname, '../uploads/speaking')
+    cb(null, pathDestination)
+  },
+  filename: function (req, file, cb) {
+    const uniqueName = `speaking_${req.params.attemptId}_${file.originalname}`
+    cb(null, uniqueName)
+  },
+})
+
+const upload = multer({ storage })
 const openAIController = {}
 
 openAIController.testConnection = async (req, res) => {
@@ -203,23 +218,39 @@ openAIController.submitStudentSection = async (req, res) => {
     let id = isNaN(req.params.attemptId)
       ? 0
       : parseInt(`${req.params.attemptId}`)
-    console.log('aaaa', id)
     const token = getGatewayJwtToken()
     let typeSection = isNaN(section)
       ? typeSections.listening
       : parseInt(`${section}`)
 
     let sectionPartId = isNaN(partId) ? 0 : parseInt(`${partId}`)
-
-    if (sectionPartId === 0 || !questions || questions.length === 0)
+    const userId = req.user.id
+    const host = `http://localhost:${process.env.NETCORE_PORT}/api/v1/StudentAttempt/${id}/${hostStudentSection[typeSection]}`
+    if (id <= 0 || sectionPartId === 0) {
+      return res
+        .status(500)
+        .json({ success: false, message: 'Please send your attemptId' })
+    } else if (typeSection === typeSections.speaking) {
+      if (req.files.length > 0) {
+        const form = fnParseData[typeSection](userId, req)
+        const response = await axios.post(host, form, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            Authorization: `Bearer ${token}`,
+          },
+        })
+        res.status(response.status).json(response.data)
+      } else {
+        return res
+          .status(500)
+          .json({ success: false, message: 'Please send with your audio' })
+      }
+    } else if (!questions || questions.length === 0) {
       return res.status(500).json({
         message: 'Need partId, TypeSection, Options',
         success: false,
       })
-
-    if (id > 0) {
-      const host = `http://localhost:${process.env.NETCORE_PORT}/api/v1/StudentAttempt/${id}/${hostStudentSection[typeSection]}`
-      const userId = req.user.id
+    } else {
       const data = {
         userId: userId,
         scope: {
@@ -237,8 +268,6 @@ openAIController.submitStudentSection = async (req, res) => {
         },
       })
       res.status(response.status).json(response.data)
-    } else {
-      res.status(500).json({ error: 'Please send your attemptId' })
     }
   } catch (error) {
     console.error('Error calling .NET Core API:', error.message)
@@ -247,5 +276,5 @@ openAIController.submitStudentSection = async (req, res) => {
       .json({ error: 'Error calling .NET Core API' })
   }
 }
-
+openAIController.upload = upload
 module.exports = openAIController

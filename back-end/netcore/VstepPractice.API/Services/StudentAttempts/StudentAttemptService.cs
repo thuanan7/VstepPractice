@@ -842,7 +842,7 @@ public class StudentAttemptService : IStudentAttemptService
     {
         var validIds = new HashSet<int>();
 
-        if (scopeType == SectionPartTypes.Part)
+        if (scopeType == SectionPartTypes.Part||(sectionPart.SectionType == SectionTypes.Speaking && sectionPart.Questions.Any()))
         {
             // For Part scope, only include direct questions
             validIds.UnionWith(sectionPart.Questions.Select(q => q.Id));

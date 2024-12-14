@@ -1,65 +1,43 @@
-import { useState, useRef } from 'react'
 import { Box, Button, Typography } from '@mui/material'
 import MicIcon from '@mui/icons-material/Mic'
 import StopIcon from '@mui/icons-material/Stop'
 import PlayArrowIcon from '@mui/icons-material/PlayArrow'
+import PauseIcon from '@mui/icons-material/Pause'
 import { IAttemptQuestion } from '@/features/exam/type'
+import { useDispatch, useSelector } from 'react-redux'
+import { saveAnswer } from '@/features/exam/attemptSlice'
+import { selectAnswerWritingSpeaking } from '@/features/exam/attemptSelector'
+import { useReactMediaRecorder } from 'react-media-recorder'
+import { useState } from 'react'
 
 interface SingleQuestionSectionProps {
   questions: IAttemptQuestion[]
 }
 
-const SpeakingQuestionSection = (props: SingleQuestionSectionProps) => {
-  const { questions } = props
-  const [recordingState, setRecordingState] = useState<Map<number, boolean>>(
-    new Map(),
-  ) // Trạng thái ghi âm cho từng câu hỏi
-  const [audioBlobs, setAudioBlobs] = useState<Map<number, Blob | null>>(
-    new Map(),
-  ) // Audio blobs cho từng câu hỏi
-  const audioRefs = useRef<Map<number, HTMLAudioElement>>(new Map()) // Audio refs cho từng câu hỏi
-  const mediaRecorderRefs = useRef<Map<number, MediaRecorder>>(new Map()) // MediaRecorder refs cho từng câu hỏi
+const SpeakingQuestionSection = ({ questions }: SingleQuestionSectionProps) => {
+  const dispatch = useDispatch()
+  const answerDictionary = useSelector(selectAnswerWritingSpeaking)
+  const [playingQuestionId, setPlayingQuestionId] = useState<number | null>(
+    null,
+  )
+  const [currentTime, setCurrentTime] = useState<number>(0)
 
-  const handleStartRecording = async (questionId: number) => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-      const mediaRecorder = new MediaRecorder(stream)
-      mediaRecorderRefs.current.set(questionId, mediaRecorder)
-
-      const chunks: Blob[] = []
-      mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0) chunks.push(event.data)
-      }
-
-      mediaRecorder.onstop = () => {
-        const blob = new Blob(chunks, { type: 'audio/webm' })
-        setAudioBlobs((prev) => new Map(prev).set(questionId, blob))
-      }
-
-      mediaRecorder.start()
-      setRecordingState((prev) => new Map(prev).set(questionId, true))
-    } catch (error) {
-      console.error('Error accessing microphone:', error)
-    }
+  const handleSaveAudio = (questionId: number, blobUrl: string) => {
+    dispatch(saveAnswer({ id: questionId, answer: blobUrl }))
   }
 
-  const handleStopRecording = (questionId: number) => {
-    const mediaRecorder = mediaRecorderRefs.current.get(questionId)
-    if (mediaRecorder) {
-      mediaRecorder.stop()
-      setRecordingState((prev) => new Map(prev).set(questionId, false))
-    }
-  }
+  const handlePlayAudio = (questionId: number, audioUrl: string) => {
+    const audio = new Audio(audioUrl)
+    setPlayingQuestionId(questionId)
+    audio.play()
 
-  const handlePlayAudio = (questionId: number) => {
-    const audioBlob = audioBlobs.get(questionId)
-    if (audioBlob) {
-      const audioUrl = URL.createObjectURL(audioBlob)
-      const audioRef = audioRefs.current.get(questionId)
-      if (audioRef) {
-        audioRef.src = audioUrl
-        audioRef.play()
-      }
+    audio.ontimeupdate = () => {
+      setCurrentTime(audio.currentTime)
+    }
+
+    audio.onended = () => {
+      setPlayingQuestionId(null)
+      setCurrentTime(0)
     }
   }
 
@@ -97,62 +75,94 @@ const SpeakingQuestionSection = (props: SingleQuestionSectionProps) => {
             {question.questionText}
           </Typography>
 
-          {/* Nút ghi âm */}
-          <Box
-            sx={{
-              display: 'flex',
-              justifyContent: 'center',
-              marginTop: 2,
-            }}
-          >
-            {!recordingState.get(question.id) ? (
-              <Button
-                variant="contained"
-                startIcon={<MicIcon />}
-                onClick={() => handleStartRecording(question.id)}
-                sx={{ fontSize: '16px', padding: '10px 20px' }}
-              >
-                Ghi âm
-              </Button>
-            ) : (
-              <Button
-                variant="contained"
-                startIcon={<StopIcon />}
-                color="error"
-                onClick={() => handleStopRecording(question.id)}
-                sx={{ fontSize: '16px', padding: '10px 20px' }}
-              >
-                Dừng
-              </Button>
-            )}
-          </Box>
+          <AudioRecorder questionId={question.id} onSave={handleSaveAudio} />
 
-          {audioBlobs.get(question.id) && (
+          {answerDictionary[question.id] && (
             <Box
               sx={{
                 display: 'flex',
                 justifyContent: 'center',
+                gap: 2,
                 marginTop: 2,
+                alignItems: 'center',
               }}
             >
               <Button
                 variant="contained"
-                startIcon={<PlayArrowIcon />}
-                onClick={() => handlePlayAudio(question.id)}
+                startIcon={
+                  playingQuestionId === question.id ? (
+                    <PauseIcon />
+                  ) : (
+                    <PlayArrowIcon />
+                  )
+                }
+                onClick={() => {
+                  if (playingQuestionId === question.id) {
+                    setPlayingQuestionId(null)
+                  } else {
+                    handlePlayAudio(question.id, answerDictionary[question.id])
+                  }
+                }}
                 sx={{ fontSize: '16px', padding: '10px 20px' }}
               >
-                Nghe lại
+                {playingQuestionId === question.id
+                  ? 'Đang phát...'
+                  : 'Nghe lại'}
               </Button>
-              <audio
-                ref={(el) => {
-                  if (el) audioRefs.current.set(question.id, el)
-                }}
-                hidden
-              />
+              {playingQuestionId === question.id && (
+                <Typography variant="body2" sx={{ color: '#37474F' }}>
+                  {`Thời gian: ${currentTime.toFixed(1)} giây`}
+                </Typography>
+              )}
             </Box>
           )}
         </Box>
       ))}
+    </Box>
+  )
+}
+
+interface AudioRecorderProps {
+  questionId: number
+  onSave: (questionId: number, blobUrl: string) => void
+}
+
+const AudioRecorder = ({ questionId, onSave }: AudioRecorderProps) => {
+  const { startRecording, stopRecording, mediaBlobUrl, status } =
+    useReactMediaRecorder({ audio: true })
+
+  if (mediaBlobUrl && status === 'stopped') {
+    onSave(questionId, mediaBlobUrl)
+  }
+
+  return (
+    <Box
+      sx={{
+        display: 'flex',
+        justifyContent: 'center',
+        marginTop: 2,
+      }}
+    >
+      {status !== 'recording' ? (
+        <Button
+          variant="contained"
+          startIcon={<MicIcon />}
+          onClick={startRecording}
+          sx={{ fontSize: '16px', padding: '10px 20px' }}
+        >
+          Ghi âm
+        </Button>
+      ) : (
+        <Button
+          variant="contained"
+          color="error"
+          startIcon={<StopIcon />}
+          onClick={stopRecording}
+          sx={{ fontSize: '16px', padding: '10px 20px' }}
+        >
+          Dừng
+        </Button>
+      )}
     </Box>
   )
 }

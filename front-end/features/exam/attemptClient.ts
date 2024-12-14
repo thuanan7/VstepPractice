@@ -77,6 +77,45 @@ export default class AttemptClient extends APIClient {
       return undefined
     })
   }
+  sendSpeakingSubmitAttempt(
+    partType: number,
+    attemptId: number,
+    answer: IAttemptStudentAnswer,
+    cancelToken?: any,
+  ): Promise<IStartStudentAttempt | undefined> {
+    const subParams = getUrlGet(attemptConfigs.sendSubmit, {
+      id: attemptId,
+    })
+
+    const formData = new FormData()
+
+    formData.append('section', answer.section.toString())
+    formData.append('partId', answer.partId.toString())
+    formData.append('type', partType.toString())
+    answer.questions.forEach((question, index) => {
+      formData.append(`answers[${index}].id`, question.id.toString())
+      formData.append(
+        `answers[${index}].audioFile`,
+        new File(
+          [question.answer as string],
+          `audio_question_${question.id}.wav`,
+          {
+            type: 'audio/wav',
+          },
+        ),
+      )
+    })
+
+    return super
+      .postFormData(subParams, formData, cancelToken)
+      .then((response) => {
+        if (response?.success) {
+          return response?.data
+        }
+        return undefined
+      })
+  }
+
   finishAttempt(
     attemptId: number,
     cancelToken?: any,

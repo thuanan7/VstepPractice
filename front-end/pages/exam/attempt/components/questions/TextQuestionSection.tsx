@@ -2,11 +2,19 @@ import { Box, Typography } from '@mui/material'
 import { IAttemptQuestion } from '@/features/exam/type'
 import ReactQuill from 'react-quill'
 import 'react-quill/dist/quill.snow.css'
+import { useSelector, useDispatch } from 'react-redux'
+import { selectAnswerWritingSpeaking } from '@/features/exam/attemptSelector'
+import { saveAnswer } from '@/features/exam/attemptSlice.ts'
 interface SingleQuestionSectionProps {
   questions: IAttemptQuestion[]
 }
 const TextQuestionSection = (props: SingleQuestionSectionProps) => {
   const { questions } = props
+  const dispatch = useDispatch()
+  const answerDictionary = useSelector(selectAnswerWritingSpeaking)
+  const handleInputChange = (questionId: number, value: string) => {
+    dispatch(saveAnswer({ id: questionId, answer: value }))
+  }
   return questions.map((question, index) => (
     <Box
       key={index}
@@ -40,6 +48,8 @@ const TextQuestionSection = (props: SingleQuestionSectionProps) => {
       </Typography>
       <ReactQuill
         theme="snow"
+        onChange={(value) => handleInputChange(question.id, value)}
+        value={answerDictionary[question.id] || ''}
         modules={{
           toolbar: [
             [{ header: [1, 2, 3, false] }],

@@ -1,4 +1,4 @@
-import { AttemptStatusType } from './configs'
+import { AttemptStatusType, SectionPartTypes } from './configs'
 export interface IExam {
   id: number
   title: string
@@ -150,6 +150,7 @@ export interface IAttemptPart {
   title: string
   content?: string
   instructions?: string
+  type: SectionPartTypes
   questions: IAttemptQuestion[]
 }
 
@@ -182,7 +183,7 @@ export interface ISummaryStudentAttempt {
 }
 export interface IAttemptAnswer {
   id: number
-  answer: number | string
+  answer: number | string | File
 }
 
 export interface ISummaryAttempt {

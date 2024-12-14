@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Box, Typography, Button } from '@mui/material'
+import { Box, Button, Typography } from '@mui/material'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
 import SingleQuestionSection from '../questions/SingleQuestionSection'
@@ -19,6 +19,7 @@ import ReadingSection from '../instructions/ReadingSection'
 import { startDoPart } from '@/features/exam/attemptSlice.ts'
 import { attemptRequest } from '@/app/api'
 import { toast } from 'react-hot-toast'
+import { SectionPartTypes } from '@/features/exam/configs.ts'
 
 const AttemptContent = () => {
   const dispatch = useDispatch()
@@ -73,7 +74,16 @@ const AttemptContent = () => {
   const handleNext = async () => {
     if (nextPart && attemptId && answer) {
       setLoading(true)
-      const submiSection = await handleSendSubmit(attemptId, answer)
+      let submiSection = null
+      if (sectionType === SectionType.Speaking) {
+        submiSection = await handleSendSpeakingSubmit(
+          part?.type || SectionPartTypes.Part,
+          attemptId,
+          answer,
+        )
+      } else {
+        submiSection = await handleSendSubmit(attemptId, answer)
+      }
       if (submiSection) {
         const currentParams = new URLSearchParams(searchParams)
         currentParams.set('partId', `${nextPart.partId}`)
@@ -91,6 +101,22 @@ const AttemptContent = () => {
   ) => {
     try {
       const rs = await attemptRequest.sendSubmitAttempt(_attemptId, _answer)
+      return !rs
+    } catch (e) {
+      return false
+    }
+  }
+  const handleSendSpeakingSubmit = async (
+    _partType: number,
+    _attemptId: number,
+    _answer: IAttemptStudentAnswer,
+  ) => {
+    try {
+      const rs = await attemptRequest.sendSpeakingSubmitAttempt(
+        _partType,
+        _attemptId,
+        _answer,
+      )
       return !rs
     } catch (e) {
       return false

@@ -140,7 +140,6 @@ public class StudentAttemptController : ApiController
         return Ok(result.Value);
     }
 
-
     [HttpPost("{attemptId}/submit-speaking-section")]
     public async Task<IActionResult> BatchSubmitSpeaking(
     int attemptId,

@@ -3,9 +3,7 @@ const express = require('express')
 const router = express.Router()
 const openAIController = require('../controllers/openAIController')
 const authMiddleware = require('../middlewares/authMiddleware')
-
 router.get('/exams', authMiddleware, openAIController.allExams)
-
 router.get('/:examId/attempts', authMiddleware, openAIController.allAttempts)
 /**
  * @swagger
@@ -63,6 +61,7 @@ router.post('/start', authMiddleware, openAIController.startStudentAttempt)
 router.post(
   '/:attemptId/submit',
   authMiddleware,
+  openAIController.upload.any(),
   openAIController.submitStudentSection,
 )
 /**

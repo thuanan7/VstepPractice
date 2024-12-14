@@ -22,13 +22,13 @@ const getAttemptByExamId = async (req, res) => {
       })
     }
     const sections = await SectionPart.findAll({
-      attributes: ['id', 'title', 'instructions', 'sectionType'],
+      attributes: ['id', 'title', 'content', 'instructions', 'sectionType'],
       where: { examId: id, parentId: null },
       include: [
         {
           model: SectionPart,
           as: 'children',
-          attributes: ['id', 'content', 'instructions', 'title'],
+          attributes: ['id', 'content', 'instructions', 'title', 'type'],
           order: [['orderNum', 'ASC']],
           include: [
             {

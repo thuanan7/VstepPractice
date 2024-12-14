@@ -158,3 +158,14 @@ export const selectStudentAnswer = createSelector(
     return answer
   },
 )
+
+export const selectAnswerWritingSpeaking = createSelector(
+  [(state: RootState) => state.examStudent?.answer?.questions],
+  (answers) => {
+    const answerDictionary: { [key: number]: string } = {}
+    ;(answers || []).forEach((answer) => {
+      answerDictionary[answer.id] = (answer.answer as string) || ''
+    })
+    return answerDictionary
+  },
+)

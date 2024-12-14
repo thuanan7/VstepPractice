@@ -28,7 +28,6 @@ const AttemptStart = () => {
   const handleForceSubmit = async () => {
     if (attempt && attempt.attempId) {
       const response = await attemptRequest.finishAttempt(attempt.attempId)
-      console.log()
       if (response) {
         toast.success('Gửi bài thi thành công!')
         setTimeout(() => {
