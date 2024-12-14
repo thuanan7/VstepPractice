@@ -18,6 +18,10 @@ public class SectionPart : BaseEntity
 
     [Column("orderNum")]
     public int OrderNum { get; set; }
+    
+    [Column("duration")]
+    public int Duration { get; set; }
+    
     [Column("sectionType")]
     public SectionTypes SectionType { get; set; }
     [Column("type")]

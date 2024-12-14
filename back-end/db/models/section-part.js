@@ -39,6 +39,11 @@ module.exports = (sequelize, DataTypes) => {
       orderNum: DataTypes.INTEGER,
       sectionType: DataTypes.INTEGER,
       type: DataTypes.INTEGER,
+      duration: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: 30,
+      },
       examId: {
         type: DataTypes.INTEGER,
         allowNull: false,

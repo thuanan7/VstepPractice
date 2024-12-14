@@ -213,6 +213,10 @@ namespace VstepPractice.API.Migrations
                         .HasColumnType("timestamp without time zone")
                         .HasColumnName("createdAt");
 
+                    b.Property<int>("Duration")
+                        .HasColumnType("integer")
+                        .HasColumnName("duration");
+
                     b.Property<int>("ExamId")
                         .HasColumnType("integer")
                         .HasColumnName("examId");
