@@ -80,7 +80,7 @@ public class AutoMapperProfile : Profile
             .ForMember(dest => dest.Id,
                 opt => opt.MapFrom(src => src.Id))
             .ForMember(dest => dest.FinalCore,
-                opt => opt.MapFrom(src => src.FinalCore))
+                opt => opt.MapFrom(src => src.FinalScore))
             .ForMember(dest => dest.StartTime,
                 opt => opt.MapFrom(src => src.StartTime))
             .ForMember(dest => dest.EndTime,
