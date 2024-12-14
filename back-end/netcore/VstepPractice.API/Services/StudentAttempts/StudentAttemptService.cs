@@ -828,7 +828,7 @@ public class StudentAttemptService : IStudentAttemptService
             FinalScore = score.FinalScore
         };
         
-        attempt.FinalCore = score.FinalScore; // Assuming FinalScore is a decimal value
+        attempt.FinalScore = score.FinalScore; // Assuming FinalScore is a decimal value
         _unitOfWork.StudentAttemptRepository.Update(attempt);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
         
