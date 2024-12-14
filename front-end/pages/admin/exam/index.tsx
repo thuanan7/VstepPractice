@@ -20,11 +20,13 @@ import { useNavigate } from 'react-router-dom'
 import AddCircleIcon from '@mui/icons-material/AddCircle'
 import { toast } from 'react-hot-toast'
 import EditExamDialog from './components/EditExamDialog'
+import ConfirmDeleteDialog from './components/ConfirmDeleteDialog'
 
 const ExamManagement: React.FC = () => {
   const [exams, setExams] = useState<IExam[]>([])
   const [openDialog, setOpenDialog] = useState(false)
   const [editExam, setEditExam] = useState<IExam | null>(null)
+  const [deleteExamId, setDeleteExamId] = useState<number | null>(null)
 
   const navigate = useNavigate()
   useEffect(() => {
@@ -66,9 +68,6 @@ const ExamManagement: React.FC = () => {
       }
     } catch (e) {}
   }
-  const handleDeleteExam = (id: number) => {
-    setExams(exams.filter((exam) => exam.id !== id))
-  }
   const handleManageQuestions = (id: number) => {
     navigate(`/admin/questions/${id}`)
   }
@@ -84,6 +83,29 @@ const ExamManagement: React.FC = () => {
       }
     } catch (e) {}
   }
+  const handleDeleteExam = async (id: number) => {
+    try {
+      const response = await examRequest.deleteExam(id) // Gọi API để xóa
+      if (response?.success) {
+        setExams((prevExams) => prevExams.filter((exam) => exam.id !== id))
+        toast.success('Đã xóa đề thi thành công')
+      } else {
+        toast.error(response?.message || 'Không thể xóa đề thi')
+      }
+    } catch (e) {
+      toast.error('Không thể xóa đề thi. Vui lòng thử lại.')
+    } finally {
+      setDeleteExamId(null) // Đóng hộp thoại
+    }
+  }
+  const handleOpenDeleteDialog = (id: number) => {
+    setDeleteExamId(id) // Lưu ID đề thi cần xóa
+  }
+
+  const handleCloseDeleteDialog = () => {
+    setDeleteExamId(null)
+  }
+
   return (
     <Box sx={{ p: 3 }}>
       <Box display={'flex'} justifyContent={'flex-end'}>
@@ -142,7 +164,7 @@ const ExamManagement: React.FC = () => {
                   </IconButton>
                   <IconButton
                     color="error"
-                    onClick={() => handleDeleteExam(exam.id)}
+                    onClick={() => handleOpenDeleteDialog(exam.id)}
                   >
                     <DeleteIcon />
                   </IconButton>
@@ -158,6 +180,14 @@ const ExamManagement: React.FC = () => {
           handleClose={handleCloseDialog}
           currentExam={editExam}
           onSave={handleSaveExam}
+        />
+      )}
+      {!!deleteExamId && (
+        <ConfirmDeleteDialog
+          open={!!deleteExamId}
+          title="Bạn có chắc chắn muốn xóa đề thi này?"
+          onConfirm={() => handleDeleteExam(deleteExamId!)}
+          onClose={handleCloseDeleteDialog}
         />
       )}
     </Box>

@@ -24,4 +24,5 @@ const authMiddleware = require('../middlewares/authMiddleware')
 router.get('/', examController.getAllExam)
 router.post('/', authMiddleware, examController.createEmptyExam)
 router.put('/:id', authMiddleware, examController.updateExam)
+router.delete('/:id', authMiddleware, examController.deleteExam)
 module.exports = router

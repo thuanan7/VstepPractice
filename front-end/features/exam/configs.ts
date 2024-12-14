@@ -2,6 +2,7 @@ export const examPathConfigs = {
   list: 'exams',
   createEmptyExam: 'exams',
   updateExam: 'exams/{id}',
+  deleteExam: 'exams/{id}',
 }
 
 export const sectionPartsPathConfigs = {

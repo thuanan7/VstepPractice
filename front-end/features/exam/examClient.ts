@@ -40,4 +40,12 @@ export default class ExamClient extends APIClient {
       return undefined
     })
   }
+  deleteExam(id: number, cancelToken?: any) {
+    const subParams = getUrlGet(examPathConfigs.deleteExam, {
+      id: id,
+    })
+    return super.delete(subParams, undefined, cancelToken).then((r) => {
+      return r
+    })
+  }
 }

@@ -60,4 +60,37 @@ examController.updateExam = async (req, res) => {
   }
 }
 
+examController.deleteExam = async (req, res) => {
+  try {
+    const examId = parseInt(req.params.id, 10)
+    if (!examId) {
+      return res
+        .status(400)
+        .json({ success: false, message: 'Invalid exam ID' })
+    }
+
+    const attempts = await models.StudentAttempt.findAll({ where: { examId } })
+    if (attempts.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Không thể xóa đề thi vì đã có thí sinh làm bài',
+      })
+    }
+
+    const deleted = await models.Exam.destroy({ where: { id: examId } })
+    if (deleted) {
+      return res
+        .status(200)
+        .json({ success: true, message: 'Đã xóa đề thi thành công' })
+    } else {
+      return res
+        .status(404)
+        .json({ success: false, message: 'Không tìm thấy đề thi để xóa' })
+    }
+  } catch (error) {
+    console.error('Error deleting exam:', error)
+    return res.status(500).json({ success: false, message: 'Server error' })
+  }
+}
+
 module.exports = examController
