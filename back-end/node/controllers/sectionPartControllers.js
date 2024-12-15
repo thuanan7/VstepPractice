@@ -73,6 +73,7 @@ const getSectionParts = async (req, res) => {
           'instructions',
           'content',
           'orderNum',
+          'duration',
           'sectionType',
           'type',
           'examId',
@@ -158,13 +159,15 @@ const createSectionPart = async (req, res) => {
 const updateSectionPart = async (req, res) => {
   try {
     const { id } = req.params
-    const { title, instructions, content, type, examId, parentId } = req.body
+    const { title, instructions, content, duration, type, examId, parentId } =
+      req.body
     const sectionPart = await SectionPart.findByPk(id)
     if (!sectionPart)
       return res.status(404).json({ error: 'Section part not found' })
     await sectionPart.update({
       title,
       instructions,
+      duration,
       content,
       type,
       examId,

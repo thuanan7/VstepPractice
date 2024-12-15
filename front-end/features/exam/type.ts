@@ -107,6 +107,7 @@ interface ISessionPartBase {
   content: string
   orderNum: number
   sectionType: number
+  duration: number
   examId: number
   type: number
 }

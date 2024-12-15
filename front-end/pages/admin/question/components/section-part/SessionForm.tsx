@@ -25,6 +25,7 @@ export type FormDataSession = {
   orderNum: number
   sectionType: SessionType
   type: SectionPartTypes
+  duration: number
 }
 interface SessionFormProps {
   onClose: () => void
@@ -49,6 +50,7 @@ const SessionForm = forwardRef((props: SessionFormProps, ref: any) => {
       setValue('content', data.content)
       setValue('sectionType', data.sectionType as SessionType)
       setValue('orderNum', data.orderNum)
+      setValue('duration', data.duration)
       const indexSectionType = sessionTypeOptions.findIndex(
         (x) => x.value === (data.sectionType as SessionType),
       )
@@ -116,6 +118,24 @@ const SessionForm = forwardRef((props: SessionFormProps, ref: any) => {
               </>
             )}
           </FormControl>
+        </Grid>
+        <Grid item xs={12}>
+          <TextField
+            fullWidth
+            label="Thời lượng (phút)"
+            variant="outlined"
+            type="number"
+            {...register('duration', {
+              required: 'Duration is required',
+              valueAsNumber: true,
+              min: {
+                value: 1,
+                message: 'Duration must be at least 1 minute',
+              },
+            })}
+            error={!!errors.duration}
+            helperText={errors.duration ? errors.duration.message : ''}
+          />
         </Grid>
         <Grid item xs={12}>
           <TextField

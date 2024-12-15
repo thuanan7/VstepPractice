@@ -36,6 +36,7 @@ const SessionGeneral = (props: SessionGeneralProps) => {
       orderNum: 0,
       sectionType: _data.sectionType,
       type: SectionPartTypes.Section,
+      duration: _data.duration,
       examId: parseInt(`${examId}`),
     })
     if (updated) {
@@ -74,6 +75,7 @@ const SessionGeneral = (props: SessionGeneralProps) => {
             instructions: session.instructions,
             content: session.content,
             type: session.type,
+            duration: session.duration,
             orderNum: 0,
           }}
           onClose={() => {}}
