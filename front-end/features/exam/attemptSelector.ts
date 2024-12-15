@@ -170,11 +170,10 @@ export const selectAnswerWritingSpeaking = createSelector(
   },
 )
 
-export const selectDetailBySectionId = (sectionId: number) =>
-  createSelector(
-    [(state: RootState) => state.examStudent?.attempt?.details || []],
-    (details) => {
-      const foundItem = details.find((item) => item.sectionId === sectionId)
-      return foundItem || null
-    },
-  )
+export const selectIncompleteDetailBySectionId = createSelector(
+  [(state: RootState) => state.examStudent?.attempt?.details || []],
+  (details) => {
+    const foundItem = details.find((item) => item.endTime === null)
+    return foundItem || null
+  },
+)

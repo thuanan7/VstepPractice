@@ -56,6 +56,7 @@ public class StudentAttemptService : IStudentAttemptService
         await _unitOfWork.BeginTransactionAsync(cancellationToken);
         try
         {
+            var endProcessing = false;
             var exam = await _unitOfWork.ExamRepository.FindByIdAsync(
                 request.ExamId, cancellationToken);
 
@@ -108,12 +109,60 @@ public class StudentAttemptService : IStudentAttemptService
                 attemptDetails = await _unitOfWork.StudentAttemptDetailRepository
                     .FindByAttemptIdAsync(studentAttempt.Id, cancellationToken);
             }
+            else
+            {
+                bool hasOngoingDetail = false;
+                foreach (var detail in attemptDetails)
+                {
+                    if (detail.EndTime == null)
+                    {
+                        var calculatedEndTime = detail.StartTime.AddMinutes(detail.Duration);
+                        if (DateTime.UtcNow > calculatedEndTime)
+                        {
+                            detail.EndTime = DateTime.UtcNow;
+                            _unitOfWork.StudentAttemptDetailRepository.Update(detail);
+                        }
+                        else
+                        {
+                            hasOngoingDetail = true;
+                        }
+                    }
+                }if (!hasOngoingDetail)
+                {
+                    var lastSectionId = attemptDetails.OrderByDescending(x => x.StartTime).FirstOrDefault()?.SectionId ?? 0;
+                    var nextSection = await _unitOfWork.SectionPartRepository
+                        .FindNextSectionByOrderNumAsync(lastSectionId, cancellationToken);
+                    if (nextSection != null)
+                    {
+                        var newAttemptDetail = new StudentAttemptDetail
+                        {
+                            StudentAttemptId = studentAttempt.Id,
+                            StartTime = DateTime.UtcNow,
+                            SectionType = nextSection.SectionType,
+                            Duration = nextSection.Duration,
+                            SectionId = nextSection.Id
+                        };
 
-            var attemptDetailResponses = _mapper.Map<List<AttemptDetailResponse>>(attemptDetails);
+                        _unitOfWork.StudentAttemptDetailRepository.Add(newAttemptDetail);
+                        await _unitOfWork.SaveChangesAsync(cancellationToken);
+                        attemptDetails = await _unitOfWork.StudentAttemptDetailRepository
+                            .FindByAttemptIdAsync(studentAttempt.Id, cancellationToken);
+                    }
+                    else
+                    {
+                        endProcessing = true;
+                    }
+                }
+            }
+
 
 
             var response = _mapper.Map<AttemptResponse>(studentAttempt);
-            response.Details = attemptDetailResponses;
+            if(!endProcessing)
+            {
+                var attemptDetailResponses = _mapper.Map<List<AttemptDetailResponse>>(attemptDetails);
+                response.Details = attemptDetailResponses;
+            }
             await _unitOfWork.CommitAsync(cancellationToken);
             return Result.Success(response);
         }

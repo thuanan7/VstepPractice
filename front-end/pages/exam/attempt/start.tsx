@@ -38,13 +38,18 @@ const AttemptStart = () => {
       }
     }
   }
+  const handleBackStartPage = (path?: string) => {
+    setTimeout(() => {
+      navigate(path ? path : `/exam`, { replace: true })
+    }, 100)
+  }
   return (
     <Box
       display={'flex'}
       flexDirection={'column'}
       sx={{ height: 'calc(100vh - 70px)', overflow: 'hidden' }}
     >
-      <AttemptTimer />
+      <AttemptTimer attempt={attempt} onBack={handleBackStartPage} />
       <Grid spacing={2} container sx={{ flex: 1, padding: 2 }}>
         <Grid item xs={2} sx={{ position: 'relative' }}>
           <AttemptSections />

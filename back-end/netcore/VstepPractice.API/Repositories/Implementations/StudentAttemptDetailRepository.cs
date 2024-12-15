@@ -6,7 +6,7 @@ namespace VstepPractice.API.Repositories.Implementations;
 
 using Microsoft.EntityFrameworkCore;
 
-public class StudentAttemptDetailRepository : RepositoryBase<SectionPart, int>, IStudentAttemptDetailRepository
+public class StudentAttemptDetailRepository : RepositoryBase<StudentAttemptDetail, int>, IStudentAttemptDetailRepository
 {
     public StudentAttemptDetailRepository(ApplicationDbContext context) : base(context)
     {

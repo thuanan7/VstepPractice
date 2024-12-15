@@ -2,8 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { AttemptTimerProps } from '../components/attempts/AttemptTimmer'
 import { useSelector } from 'react-redux'
-import { selectDetailBySectionId } from '@/features/exam/attemptSelector'
-import { AttemptStatusType } from '@/features/exam/configs'
+import { selectIncompleteDetailBySectionId } from '@/features/exam/attemptSelector'
 import { toast } from 'react-hot-toast'
 import { IStartStudentAttemptDetail } from '@/features/exam/type'
 
@@ -13,36 +12,39 @@ const withAttemptTimer = <P extends object>(
   const TimerHOC: React.FC<AttemptTimerProps & Omit<P, keyof P>> = ({
     minutes,
     onTimeUp,
+    onBack,
+    attempt,
     ...props
   }) => {
     const { id } = useParams<{ id: string }>()
-    const [searchParams] = useSearchParams()
+    const [searchParams, setSearchParams] = useSearchParams()
     const navigate = useNavigate()
     const sectionId = Number(searchParams.get('sectionId'))
-    const selectedDetail = useSelector(selectDetailBySectionId(sectionId))
+    const selectedDetail = useSelector(selectIncompleteDetailBySectionId)
     const [ready, setReady] = useState<IStartStudentAttemptDetail | undefined>(
       undefined,
     )
     useEffect(() => {
-      if (sectionId !== 0) {
+      if (sectionId !== 0 && attempt) {
         if (selectedDetail) {
-          if (selectedDetail.status === AttemptStatusType.InProgress) {
+          if (selectedDetail.sectionId === sectionId) {
             setReady(selectedDetail)
           } else {
-            console.log('aaaa', id)
             console.log('aaaaa', selectedDetail)
+            onBack &&
+              onBack(
+                `/exam/${id}/attempts/start?sectionId=${selectedDetail.sectionId}`,
+              )
           }
         } else {
           toast.error('Không tìm thấy quá trình thi')
           setTimeout(() => {
-            navigate(`/exam/${id}/attempts`)
+            navigate(`/exam/${id}/attempts`, { replace: true })
           }, 500)
         }
       }
-    }, [sectionId, selectedDetail])
-    const handleTimeUp = () => {
-      console.log('aaaa')
-    }
+    }, [sectionId, selectedDetail, attempt])
+    const handleTimeUp = () => {}
     if (!ready) return <></>
     return (
       <WrappedComponent
