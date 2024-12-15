@@ -4,6 +4,7 @@ import {
   IAttemptExam,
   IAttemptStudentAnswer,
   IStartStudentAttempt,
+  ISubmitStudentAttempt,
   ISumaryAttemptExam,
   ISummaryStudentAttempt,
 } from '@/features/exam/type'
@@ -64,33 +65,38 @@ export default class AttemptClient extends APIClient {
       })
   }
   sendSubmitAttempt(
+    detailId: number,
+    partType: number,
     attemptId: number,
     data: IAttemptStudentAnswer,
     cancelToken?: any,
-  ): Promise<IStartStudentAttempt | undefined> {
+  ): Promise<ISubmitStudentAttempt | undefined> {
     const subParams = getUrlGet(attemptConfigs.sendSubmit, {
       id: attemptId,
     })
-    return super.post(subParams, data, cancelToken).then((r) => {
-      if (r?.success) {
-        return r?.data
-      }
-      return undefined
-    })
+    return super
+      .post(subParams, { ...data, type: partType, detailId }, cancelToken)
+      .then((r) => {
+        if (r?.success) {
+          return r?.data
+        }
+        return undefined
+      })
   }
   sendSpeakingSubmitAttempt(
+    detailId: number,
     partType: number,
     attemptId: number,
     answer: IAttemptStudentAnswer,
     cancelToken?: any,
-  ): Promise<IStartStudentAttempt | undefined> {
+  ): Promise<ISubmitStudentAttempt | undefined> {
     const subParams = getUrlGet(attemptConfigs.sendSubmit, {
       id: attemptId,
     })
 
     const formData = new FormData()
-
-    formData.append('section', answer.section.toString())
+    formData.append('detailId', detailId.toString())
+    formData.append('section', answer.sectionType.toString())
     formData.append('partId', answer.partId.toString())
     formData.append('type', partType.toString())
     answer.questions.forEach((question, index) => {

@@ -11,7 +11,7 @@ namespace VstepPractice.API.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.RenameColumn(
-                name: "finalCore",
+                name: "finalScore",
                 table: "StudentAttempts",
                 newName: "finalScore");
         }
@@ -22,7 +22,7 @@ namespace VstepPractice.API.Migrations
             migrationBuilder.RenameColumn(
                 name: "finalScore",
                 table: "StudentAttempts",
-                newName: "finalCore");
+                newName: "finalScore");
         }
     }
 }

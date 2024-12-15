@@ -5,5 +5,5 @@ public class SummaryAttemptResponse
     public int Id { get; set; }
     public DateTime StartTime { get; set; } = DateTime.UtcNow;
     public DateTime? EndTime { get; set; } = null;
-    public decimal FinalCore { get; set; }
+    public decimal FinalScore { get; set; }
 }

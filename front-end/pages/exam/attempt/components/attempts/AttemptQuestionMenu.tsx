@@ -3,13 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom'
 import { selectPartsBySectionId } from '@/features/exam/attemptSelector.ts'
 import { useSelector } from 'react-redux'
 import QuizIcon from '@mui/icons-material/Quiz'
-import SendIcon from '@mui/icons-material/Send'
-
-interface AttemptQuestionMenuProps {
-  onEnd: () => void
-}
-const AttemptQuestionMenu = (props: AttemptQuestionMenuProps) => {
-  const { onEnd } = props
+const AttemptQuestionMenu = () => {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const sectionId = searchParams.get('sectionId') || ''
@@ -103,21 +97,6 @@ const AttemptQuestionMenu = (props: AttemptQuestionMenuProps) => {
             </Box>
           </Box>
         ))}
-      </Box>
-      <Box p={2} textAlign={'right'}>
-        <Button
-          variant="contained"
-          color="error"
-          onClick={onEnd}
-          startIcon={<SendIcon />}
-          sx={{
-            padding: '10px 20px',
-            fontSize: '16px',
-            fontWeight: 'bold',
-          }}
-        >
-          Kết thúc
-        </Button>
       </Box>
     </>
   )

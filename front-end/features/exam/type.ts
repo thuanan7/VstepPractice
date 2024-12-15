@@ -2,6 +2,7 @@ import { AttemptStatusType, SectionPartTypes } from './configs'
 export interface IExam {
   id: number
   title: string
+  duration: number
   createdAt?: string
   description: string
 }
@@ -107,7 +108,6 @@ interface ISessionPartBase {
   content: string
   orderNum: number
   sectionType: number
-  duration: number
   examId: number
   type: number
 }
@@ -176,6 +176,18 @@ export interface IStartStudentAttempt {
   details: IStartStudentAttemptDetail[]
 }
 
+export interface ISubmitStudentAttempt {
+  attempId: number
+  examId: number
+  title: string
+  description: string
+  status: AttemptStatusType
+  details: {
+    isFinish: boolean
+    items: IStartStudentAttemptDetail[]
+  }
+}
+
 export interface IStartStudentAttemptDetail {
   id: number
   startTime: string
@@ -201,10 +213,11 @@ export interface ISummaryAttempt {
   id: number
   startTime: string
   endTime?: string
-  finalCore: number
+  finalScore: number
 }
 export interface IAttemptStudentAnswer {
-  section: SectionType
+  sectionType: SectionType
+  partType: SectionPartTypes
   partId: number
   questions: IAttemptAnswer[]
 }

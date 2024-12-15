@@ -95,11 +95,11 @@ const ExamManagement: React.FC = () => {
     } catch (e) {
       toast.error('Không thể xóa đề thi. Vui lòng thử lại.')
     } finally {
-      setDeleteExamId(null) // Đóng hộp thoại
+      setDeleteExamId(null)
     }
   }
   const handleOpenDeleteDialog = (id: number) => {
-    setDeleteExamId(id) // Lưu ID đề thi cần xóa
+    setDeleteExamId(id)
   }
 
   const handleCloseDeleteDialog = () => {

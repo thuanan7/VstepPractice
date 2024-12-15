@@ -8,6 +8,9 @@ public class Exam : BaseEntity
     public string? Title { get; set; }
     [Column("description")]
     public string? Description { get; set; }
+    
+    [Column("duration")]
+    public int Duration { get; set; }
     [Column("userId")]
     public int UserId { get; set; }
 

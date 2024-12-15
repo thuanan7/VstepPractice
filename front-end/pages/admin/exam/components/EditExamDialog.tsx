@@ -7,18 +7,12 @@ import {
   DialogActions,
   Button,
 } from '@mui/material'
-
-interface Exam {
-  id: number
-  title: string
-  description: string
-}
-
+import { IExam } from '@/features/exam/type'
 interface EditExamDialogProps {
   open: boolean
-  currentExam: Exam | null
+  currentExam: IExam | null
   handleClose: () => void
-  onSave: (updatedExam: Exam) => void
+  onSave: (updatedExam: IExam) => void
 }
 
 const EditExamDialog: React.FC<EditExamDialogProps> = ({
@@ -27,13 +21,13 @@ const EditExamDialog: React.FC<EditExamDialogProps> = ({
   handleClose,
   onSave,
 }) => {
-  const [editedExam, setEditedExam] = useState<Exam>({
+  const [editedExam, setEditedExam] = useState<IExam>({
     id: currentExam?.id || 0,
     title: currentExam?.title || '',
     description: currentExam?.description || '',
+    duration: currentExam?.duration || 0,
   })
 
-  // Xử lý khi người dùng thay đổi nội dung input
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     setEditedExam((prev) => ({
@@ -64,6 +58,16 @@ const EditExamDialog: React.FC<EditExamDialogProps> = ({
           label="Tên đề thi"
           name="title"
           value={editedExam.title}
+          onChange={handleInputChange}
+          fullWidth
+          variant="outlined"
+        />
+        <TextField
+          autoFocus
+          margin="dense"
+          label="Thời gian thi"
+          name="duration"
+          value={editedExam.duration}
           onChange={handleInputChange}
           fullWidth
           variant="outlined"

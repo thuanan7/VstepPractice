@@ -31,8 +31,8 @@ const AttemptStart = () => {
       if (response) {
         toast.success('Gửi bài thi thành công!')
         setTimeout(() => {
-          navigate(`/exam/${attempt.examId}/attempt`)
-        }, 500)
+          navigate(`/exam/${attempt.examId}/attempts`, { replace: true })
+        }, 200)
       } else {
         toast.error('Không thể kết thúc bài thi, vui lòng thử lại!')
       }
@@ -43,13 +43,20 @@ const AttemptStart = () => {
       navigate(path ? path : `/exam`, { replace: true })
     }, 100)
   }
+  const handleSubmitPart = () => {
+    console.log('aaaaa')
+  }
   return (
     <Box
       display={'flex'}
       flexDirection={'column'}
       sx={{ height: 'calc(100vh - 70px)', overflow: 'hidden' }}
     >
-      <AttemptTimer attempt={attempt} onBack={handleBackStartPage} />
+      <AttemptTimer
+        onEnd={handleForceSubmit}
+        attempt={attempt}
+        onBack={handleBackStartPage}
+      />
       <Grid spacing={2} container sx={{ flex: 1, padding: 2 }}>
         <Grid item xs={2} sx={{ position: 'relative' }}>
           <AttemptSections />
@@ -58,7 +65,7 @@ const AttemptStart = () => {
           <AttemptContent />
         </Grid>
         <Grid item xs={2} sx={{ position: 'relative' }}>
-          <AttemptQuestionMenu onEnd={handleForceSubmit} />
+          <AttemptQuestionMenu />
         </Grid>
       </Grid>
     </Box>

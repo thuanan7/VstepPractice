@@ -161,7 +161,9 @@ const AttemptStudent = () => {
                   <TableRow key={index}>
                     <TableCell align="center">{index + 1}</TableCell>
                     <TableCell align="center">Kết thúc</TableCell>
-                    <TableCell align="center">{attempt.finalCore}/10</TableCell>
+                    <TableCell align="center">
+                      {attempt.finalScore}/10
+                    </TableCell>
                     <TableCell align="center">
                       <Button variant="text">Xem lại</Button>
                     </TableCell>

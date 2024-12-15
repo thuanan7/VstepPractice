@@ -82,7 +82,7 @@ public class AutoMapperProfile : Profile
         CreateMap<StudentAttempt, SummaryAttemptResponse>()
             .ForMember(dest => dest.Id,
                 opt => opt.MapFrom(src => src.Id))
-            .ForMember(dest => dest.FinalCore,
+            .ForMember(dest => dest.FinalScore,
                 opt => opt.MapFrom(src => src.FinalScore))
             .ForMember(dest => dest.StartTime,
                 opt => opt.MapFrom(src => src.StartTime))

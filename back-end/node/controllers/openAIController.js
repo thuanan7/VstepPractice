@@ -1,6 +1,5 @@
 const axios = require('axios')
 const { getGatewayJwtToken } = require('../configs/jwt')
-
 const {
   hostStudentSection,
   typeSections,
@@ -214,14 +213,21 @@ openAIController.resultStudentAnswer = async (req, res) => {
 
 openAIController.submitStudentSection = async (req, res) => {
   try {
-    const { section = '0', partId = '0', questions } = req.body
+    const {
+      sectionType = '0',
+      detailId,
+      type = '0',
+      partId = '0',
+      questions,
+    } = req.body
+    const crrDate = new Date()
     let id = isNaN(req.params.attemptId)
       ? 0
       : parseInt(`${req.params.attemptId}`)
     const token = getGatewayJwtToken()
-    let typeSection = isNaN(section)
+    let typeSection = isNaN(sectionType)
       ? typeSections.listening
-      : parseInt(`${section}`)
+      : parseInt(`${sectionType}`)
 
     let sectionPartId = isNaN(partId) ? 0 : parseInt(`${partId}`)
     const userId = req.user.id
@@ -254,7 +260,7 @@ openAIController.submitStudentSection = async (req, res) => {
       const data = {
         userId: userId,
         scope: {
-          type: 2,
+          type: type,
           sectionPartId: sectionPartId,
         },
         answers: fnParseData[typeSection](questions),
@@ -267,7 +273,7 @@ openAIController.submitStudentSection = async (req, res) => {
           Authorization: `Bearer ${token}`,
         },
       })
-      res.status(response.status).json(response.data)
+      res.status(response.status).json({ data: response.data, success: true })
     }
   } catch (error) {
     console.error('Error calling .NET Core API:', error.message)

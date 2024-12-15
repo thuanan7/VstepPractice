@@ -16,6 +16,9 @@ public class StudentAttempt : BaseEntity
     [Column("status")]
     public AttemptStatus? Status { get; set; } = AttemptStatus.InProgress;
     
+    [Column("duration")]
+    public int Duration { get; set; }
+    
     [Column("finalScore", TypeName = "decimal(4,2)")]
     public decimal FinalScore { get; set; } = 0;
     // Navigation properties

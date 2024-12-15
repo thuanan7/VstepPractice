@@ -1,38 +1,59 @@
 import { useEffect, useState } from 'react'
-import { Box, Typography, LinearProgress } from '@mui/material'
+import { Box, Typography, LinearProgress, Button } from '@mui/material'
 import AccessTimeIcon from '@mui/icons-material/AccessTime'
 import withAttemptTimer from '../../hoc/withAttemptTimer'
 import { IStartStudentAttempt } from '@/features/exam/type'
+import SendIcon from '@mui/icons-material/Send'
 
 export interface AttemptTimerProps {
   minutes?: number
+  startTime?: string
   onTimeUp?: () => void
   onBack?: (path?: string) => void
   attempt?: IStartStudentAttempt
+  onEnd: () => void
 }
 
 const AttemptTimer = (props: AttemptTimerProps) => {
-  const { minutes = 1, onTimeUp = () => {} } = props
-  const [timeLeft, setTimeLeft] = useState(minutes * 60)
+  const { minutes = 1, onTimeUp = () => {}, onEnd, startTime } = props
+
   const totalTime = minutes * 60
+  const [timeLeft, setTimeLeft] = useState(0)
+  const calculateTimeLeft = () => {
+    const now = new Date()
+    const start = startTime ? new Date(startTime) : now
+    const elapsed = Math.floor((now.getTime() - start.getTime()) / 1000)
+    return Math.max(totalTime - elapsed, 0)
+  }
+
+  useEffect(() => {
+    const remainingTime = calculateTimeLeft()
+    setTimeLeft(remainingTime)
+
+    if (remainingTime <= 0) {
+      onTimeUp()
+      return
+    }
+
+    const timer = setInterval(() => {
+      setTimeLeft((prevTime) => {
+        const newTimeLeft = prevTime - 1
+        if (newTimeLeft <= 0) {
+          clearInterval(timer)
+          onTimeUp()
+        }
+        return newTimeLeft
+      })
+    }, 1000)
+
+    return () => clearInterval(timer)
+  }, [startTime, minutes, onTimeUp])
 
   const formatTime = (seconds: number) => {
     const minutes = Math.floor(seconds / 60)
     const remainingSeconds = seconds % 60
     return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`
   }
-
-  useEffect(() => {
-    if (timeLeft <= 0) {
-      onTimeUp()
-      return
-    }
-    const timer = setInterval(() => {
-      setTimeLeft((prevTime) => prevTime - 1)
-    }, 1000)
-
-    return () => clearInterval(timer)
-  }, [timeLeft, onTimeUp])
 
   const progress = ((totalTime - timeLeft) / totalTime) * 100
 
@@ -69,6 +90,19 @@ const AttemptTimer = (props: AttemptTimerProps) => {
           {formatTime(timeLeft)}
         </Typography>
       </Box>
+      <Button
+        variant="contained"
+        color="error"
+        onClick={onEnd}
+        startIcon={<SendIcon />}
+        sx={{
+          padding: '10px 20px',
+          fontSize: '16px',
+          fontWeight: 'bold',
+        }}
+      >
+        Huỷ
+      </Button>
     </Box>
   )
 }

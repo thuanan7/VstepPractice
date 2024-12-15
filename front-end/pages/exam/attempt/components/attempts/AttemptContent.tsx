@@ -51,7 +51,13 @@ const AttemptContent = () => {
         })
       }
     } else {
-      dispatch(startDoPart({ partId: part?.id || 0, sectionType }))
+      dispatch(
+        startDoPart({
+          partId: part?.id || 0,
+          sectionType,
+          partType: part?.type || SectionPartTypes.Part,
+        }),
+      )
       setLoading(false)
     }
   }, [sectionId, partId, part, setSearchParams])

@@ -1,11 +1,16 @@
 import { useState, useEffect } from 'react'
 import { Box, List, ListItem, ListItemButton, Typography } from '@mui/material'
 import { useSelector } from 'react-redux'
-import { selectSections } from '@/features/exam/attemptSelector'
+import {
+  selectCompleteDetailBySectionId,
+  selectSections,
+} from '@/features/exam/attemptSelector'
 import { useSearchParams, useNavigate } from 'react-router-dom'
+import { IStartStudentAttemptDetail } from '@/features/exam/type.ts'
 
 const AttemptSections = () => {
   const sections = useSelector(selectSections)
+  const comletedSections = useSelector(selectCompleteDetailBySectionId)
   const [activeSkill, setActiveSkill] = useState<number | null>(null)
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
@@ -51,33 +56,40 @@ const AttemptSections = () => {
           Danh sách kỹ năng
         </Typography>
         <List>
-          {sections.map((section, index) => (
-            <ListItem key={index} disablePadding>
-              <ListItemButton
-                onClick={() => handleSkillClick(index)}
-                sx={{
-                  backgroundColor:
-                    activeSkill === index ? 'text.secondary' : 'inherit',
-                  borderRadius: '8px',
-                  '&:hover': {
-                    backgroundColor: '#D8BFD8',
-                    color: 'text.secondary',
-                  },
-                  padding: '10px',
-                }}
-              >
-                <Typography
+          {sections.map((section, index) => {
+            const isCompleted = comletedSections.findIndex(
+              (x: IStartStudentAttemptDetail) => x.sectionId === section.id,
+            )
+
+            return (
+              <ListItem key={index} disablePadding>
+                <ListItemButton
+                  disabled={isCompleted !== -1}
+                  onClick={() => handleSkillClick(index)}
                   sx={{
-                    fontSize: 14,
-                    color: activeSkill === index ? '#FFFFFF' : 'inherit',
-                    fontWeight: activeSkill === index ? 'bold' : 'normal',
+                    backgroundColor:
+                      activeSkill === index ? 'text.secondary' : 'inherit',
+                    borderRadius: '8px',
+                    '&:hover': {
+                      backgroundColor: '#D8BFD8',
+                      color: 'text.secondary',
+                    },
+                    padding: '10px',
                   }}
                 >
-                  {section.title}
-                </Typography>
-              </ListItemButton>
-            </ListItem>
-          ))}
+                  <Typography
+                    sx={{
+                      fontSize: 14,
+                      color: activeSkill === index ? '#FFFFFF' : 'inherit',
+                      fontWeight: activeSkill === index ? 'bold' : 'normal',
+                    }}
+                  >
+                    {section.title}
+                  </Typography>
+                </ListItemButton>
+              </ListItem>
+            )
+          })}
         </List>
       </Box>
     </Box>

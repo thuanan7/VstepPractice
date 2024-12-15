@@ -85,7 +85,7 @@ namespace VstepPractice.API.Migrations
                 oldType: "timestamp with time zone");
 
             migrationBuilder.AddColumn<decimal>(
-                name: "finalCore",
+                name: "finalScore",
                 table: "StudentAttempts",
                 type: "numeric(4,2)",
                 nullable: false,
@@ -200,7 +200,7 @@ namespace VstepPractice.API.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
-                name: "finalCore",
+                name: "finalScore",
                 table: "StudentAttempts");
 
             migrationBuilder.AlterColumn<DateTime>(

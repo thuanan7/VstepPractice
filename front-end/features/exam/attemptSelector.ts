@@ -2,6 +2,7 @@ import { createSelector } from '@reduxjs/toolkit'
 import { IAttemptExam, IAttemptQuestion } from '@/features/exam/type'
 
 import { RootState } from '@/app/store'
+import { AttemptStatusType } from '@/features/exam/configs.ts'
 
 export const selectSections = createSelector(
   [(state: RootState) => state.examStudent.sections],
@@ -175,5 +176,16 @@ export const selectIncompleteDetailBySectionId = createSelector(
   (details) => {
     const foundItem = details.find((item) => item.endTime === null)
     return foundItem || null
+  },
+)
+
+export const selectCompleteDetailBySectionId = createSelector(
+  [(state: RootState) => state.examStudent?.attempt?.details || []],
+  (details) => {
+    const foundItem = details.filter(
+      (item) =>
+        item.endTime !== null || item.status === AttemptStatusType.Completed,
+    )
+    return foundItem || []
   },
 )

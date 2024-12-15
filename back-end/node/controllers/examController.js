@@ -18,6 +18,7 @@ examController.createEmptyExam = async (req, res) => {
       {
         title: 'Nội dung đề thi',
         description: 'Mô tả đề thi',
+        duration: 30,
         userId: req.user.id,
       },
       { transaction },
@@ -67,7 +68,6 @@ examController.createEmptyExam = async (req, res) => {
       data: newExam,
     })
   } catch (error) {
-    // Rollback transaction nếu lỗi
     await transaction.rollback()
     console.error('Error creating exam and sections:', error)
     res.status(500).json({
@@ -80,7 +80,7 @@ examController.createEmptyExam = async (req, res) => {
 examController.updateExam = async (req, res) => {
   try {
     const { id } = req.params
-    const { title, description } = req.body
+    const { title, description, duration } = req.body
 
     const exam = await models.Exam.findByPk(id)
     if (!exam) {
@@ -92,6 +92,7 @@ examController.updateExam = async (req, res) => {
 
     exam.title = title || exam.title
     exam.description = description || exam.description
+    exam.duration = duration
     await exam.save()
     res.status(200).json({
       success: true,
@@ -124,7 +125,6 @@ examController.deleteExam = async (req, res) => {
     }
 
     const transaction = await models.sequelize.transaction()
-
     try {
       await models.SectionPart.destroy({
         where: { examId },
