@@ -94,6 +94,10 @@ namespace VstepPractice.API.Migrations
                         .HasColumnType("character varying(255)")
                         .HasColumnName("description");
 
+                    b.Property<int>("Duration")
+                        .HasColumnType("integer")
+                        .HasColumnName("duration");
+
                     b.Property<string>("Title")
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)")
@@ -212,10 +216,6 @@ namespace VstepPractice.API.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp without time zone")
                         .HasColumnName("createdAt");
-
-                    b.Property<int>("Duration")
-                        .HasColumnType("integer")
-                        .HasColumnName("duration");
 
                     b.Property<int>("ExamId")
                         .HasColumnType("integer")
@@ -353,6 +353,10 @@ namespace VstepPractice.API.Migrations
                         .HasColumnType("timestamp without time zone")
                         .HasColumnName("createdAt");
 
+                    b.Property<int>("Duration")
+                        .HasColumnType("integer")
+                        .HasColumnName("duration");
+
                     b.Property<DateTime?>("EndTime")
                         .HasColumnType("timestamp without time zone")
                         .HasColumnName("endTime");
@@ -388,6 +392,54 @@ namespace VstepPractice.API.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("StudentAttempts", (string)null);
+                });
+
+            modelBuilder.Entity("VstepPractice.API.Models.Entities.StudentAttemptDetail", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("createdAt");
+
+                    b.Property<int>("Duration")
+                        .HasColumnType("integer")
+                        .HasColumnName("duration");
+
+                    b.Property<DateTime?>("EndTime")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("endTime");
+
+                    b.Property<int>("SectionId")
+                        .HasColumnType("integer")
+                        .HasColumnName("sectionId");
+
+                    b.Property<int>("SectionType")
+                        .HasColumnType("integer")
+                        .HasColumnName("sectionType");
+
+                    b.Property<DateTime>("StartTime")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("startTime");
+
+                    b.Property<int>("StudentAttemptId")
+                        .HasColumnType("integer")
+                        .HasColumnName("studentAttemptId");
+
+                    b.Property<DateTime>("UpdateAt")
+                        .HasColumnType("timestamp without time zone")
+                        .HasColumnName("updatedAt");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StudentAttemptId");
+
+                    b.ToTable("StudentAttemptDetails");
                 });
 
             modelBuilder.Entity("VstepPractice.API.Models.Entities.User", b =>
@@ -596,6 +648,17 @@ namespace VstepPractice.API.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("VstepPractice.API.Models.Entities.StudentAttemptDetail", b =>
+                {
+                    b.HasOne("VstepPractice.API.Models.Entities.StudentAttempt", "StudentAttempt")
+                        .WithMany("StudentAttemptDetails")
+                        .HasForeignKey("StudentAttemptId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("StudentAttempt");
+                });
+
             modelBuilder.Entity("VstepPractice.API.Models.Entities.WritingAssessment", b =>
                 {
                     b.HasOne("VstepPractice.API.Models.Entities.Answer", "Answer")
@@ -629,6 +692,8 @@ namespace VstepPractice.API.Migrations
             modelBuilder.Entity("VstepPractice.API.Models.Entities.StudentAttempt", b =>
                 {
                     b.Navigation("Answers");
+
+                    b.Navigation("StudentAttemptDetails");
                 });
 
             modelBuilder.Entity("VstepPractice.API.Models.Entities.User", b =>
