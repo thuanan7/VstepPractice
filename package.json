@@ -7,6 +7,7 @@
     "c": "rm -rf node_modules && rm -rf dist && rm -rf pnpm-lock.yaml && rm -rf yarn.lock",
     "ci": "pnpm run c && pnpm i",
     "seed": "sequelize db:seed:all --config ./back-end/db/config/config.json --seeders-path back-end/db/seeders",
+    "migrate": "npx sequelize-cli db:migrate --config back-end/db/config/config.json",
     "net-api": "dotnet run --project ./back-end/netcore/VstepPractice.API",
     "node-api": "npx nodemon back-end/node/index.js",
     "web": "vite",

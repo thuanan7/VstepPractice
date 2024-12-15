@@ -32,11 +32,11 @@ public class StudentAttemptRepository : RepositoryBase<StudentAttempt, int>, ISt
         CancellationToken cancellationToken = default)
     {
         return await _context.StudentAttempts
-            .FirstOrDefaultAsync(a =>
+                .Where(a=>
                     a.UserId == userId &&
                     a.ExamId == examId &&
-                    a.Status == AttemptStatus.InProgress,
-                cancellationToken);
+                    a.Status == AttemptStatus.InProgress)
+                .FirstOrDefaultAsync(cancellationToken);
     }
 
     public async Task<List<StudentAttempt>?> FindAllAttemptCompleted(int userId, int examId, CancellationToken cancellationToken = default)

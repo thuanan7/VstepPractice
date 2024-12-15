@@ -24,4 +24,5 @@ public class StudentAttempt : BaseEntity
     [ForeignKey(nameof(UserId))]
     public virtual User User { get; set; } = default!;
     public virtual ICollection<Answer> Answers { get; set; } = default!;
+    public virtual ICollection<StudentAttemptDetail> StudentAttemptDetails { get; set; } = default!;
 }

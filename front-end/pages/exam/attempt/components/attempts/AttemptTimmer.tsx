@@ -1,13 +1,16 @@
 import React, { useEffect, useState } from 'react'
 import { Box, Typography, LinearProgress } from '@mui/material'
 import AccessTimeIcon from '@mui/icons-material/AccessTime'
+import withAttemptTimer from '../../hoc/withAttemptTimer'
 
-interface AttemptTimerProps {
-  minutes: number
-  onTimeUp: () => void
+export interface AttemptTimerProps {
+  minutes?: number
+  onTimeUp?: () => void
 }
 
-const AttemptTimer: React.FC<AttemptTimerProps> = ({ minutes, onTimeUp }) => {
+const AttemptTimer = (props: AttemptTimerProps) => {
+  const { minutes = 1, onTimeUp = () => {} } = props
+  console.log('aaaa', minutes)
   const [timeLeft, setTimeLeft] = useState(minutes * 60)
   const totalTime = minutes * 60
 
@@ -68,4 +71,4 @@ const AttemptTimer: React.FC<AttemptTimerProps> = ({ minutes, onTimeUp }) => {
   )
 }
 
-export default AttemptTimer
+export default withAttemptTimer(AttemptTimer)

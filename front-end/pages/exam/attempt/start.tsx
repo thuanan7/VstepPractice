@@ -44,7 +44,7 @@ const AttemptStart = () => {
       flexDirection={'column'}
       sx={{ height: 'calc(100vh - 70px)', overflow: 'hidden' }}
     >
-      <AttemptTimer minutes={1} onTimeUp={() => {}} />
+      <AttemptTimer />
       <Grid spacing={2} container sx={{ flex: 1, padding: 2 }}>
         <Grid item xs={2} sx={{ position: 'relative' }}>
           <AttemptSections />

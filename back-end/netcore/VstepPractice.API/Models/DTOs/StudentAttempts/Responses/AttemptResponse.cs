@@ -12,4 +12,6 @@ public class AttemptResponse
     public DateTime? EndTime { get; set; }
     public AttemptStatus Status { get; set; }
     public List<AnswerResponse> Answers { get; set; } = new();
+    
+    public List<AttemptDetailResponse> Details { get; set; } = new();
 }

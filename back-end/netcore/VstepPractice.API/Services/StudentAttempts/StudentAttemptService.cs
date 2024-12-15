@@ -10,6 +10,7 @@ using VstepPractice.API.Repositories.Interfaces;
 using VstepPractice.API.Services.AI;
 using VstepPractice.API.Services.ScoreCalculation;
 using VstepPractice.API.Services.Storage;
+using Exception = System.Exception;
 
 namespace VstepPractice.API.Services.StudentAttempts;
 
@@ -52,53 +53,79 @@ public class StudentAttemptService : IStudentAttemptService
         StartAttemptRequest request,
         CancellationToken cancellationToken = default)
     {
-        var exam = await _unitOfWork.ExamRepository.FindByIdAsync(
-            request.ExamId, cancellationToken);
-
-        if (exam == null)
-            return Result.Failure<AttemptResponse>(Error.NotFound);
-
-        // Check if user has any in-progress attempts
-        var inProgressAttempt = await _unitOfWork.StudentAttemptRepository
-            .FindAttemptInProgress(userId, request.ExamId, cancellationToken);
-        var completedAttempts = await _unitOfWork.StudentAttemptRepository
-            .FindAllAttemptCompleted(userId, request.ExamId, cancellationToken);
-        
-        var summaryAttemptResponses = completedAttempts?.Any() == true
-            ? completedAttempts.Select(_mapper.Map<SummaryAttemptResponse>).ToList()
-            : new List<SummaryAttemptResponse>();
-
-        if (inProgressAttempt != null)
+        await _unitOfWork.BeginTransactionAsync(cancellationToken);
+        try
         {
-            var r = _mapper.Map<AttemptResponse>(new StudentAttempt
+            var exam = await _unitOfWork.ExamRepository.FindByIdAsync(
+                request.ExamId, cancellationToken);
+
+            if (exam == null)
+                return Result.Failure<AttemptResponse>(Error.NotFound);
+
+            var firstSectionPart = await _unitOfWork.SectionPartRepository
+                .FindFirstSectionPartAsync(exam.Id, cancellationToken);
+            if (firstSectionPart == null)
+                return Result.Failure<AttemptResponse>(Error.NotFound);
+
+            // Check if user has any in-progress attempts
+            var inProgressAttempt = await _unitOfWork.StudentAttemptRepository
+                .FindAttemptInProgress(userId, request.ExamId, cancellationToken);
+            var studentAttempt = new StudentAttempt
             {
                 UserId = userId,
+                StartTime = DateTime.UtcNow,
                 ExamId = request.ExamId,
                 Exam = exam,
-                Id = inProgressAttempt.Id,
-                StartTime = DateTime.UtcNow,
-                Status = AttemptStatus.Started
-            });
-            return Result.Success(r);
+            };
+            if (inProgressAttempt != null)
+            {
+                studentAttempt.Id = inProgressAttempt.Id;
+                studentAttempt.Status = AttemptStatus.Started;
+            }
+            else
+            {
+                studentAttempt.Status = AttemptStatus.InProgress;
+                _unitOfWork.StudentAttemptRepository.Add(studentAttempt);
+                await _unitOfWork.SaveChangesAsync(cancellationToken);
+            }
+
+            var attemptDetails = await _unitOfWork.StudentAttemptDetailRepository
+                .FindByAttemptIdAsync(studentAttempt.Id, cancellationToken);
+
+            if (!attemptDetails.Any())
+            {
+                var newAttemptDetail = new StudentAttemptDetail
+                {
+                    StudentAttemptId = studentAttempt.Id,
+                    StartTime = DateTime.UtcNow,
+                    SectionType = firstSectionPart.SectionType,
+                    Duration = firstSectionPart?.Duration ?? 30,
+                    SectionId = firstSectionPart?.Id ?? 0
+                };
+
+                _unitOfWork.StudentAttemptDetailRepository.Add(newAttemptDetail);
+                await _unitOfWork.SaveChangesAsync(cancellationToken);
+                attemptDetails = await _unitOfWork.StudentAttemptDetailRepository
+                    .FindByAttemptIdAsync(studentAttempt.Id, cancellationToken);
+            }
+
+            var attemptDetailResponses = _mapper.Map<List<AttemptDetailResponse>>(attemptDetails);
+
+
+            var response = _mapper.Map<AttemptResponse>(studentAttempt);
+            response.Details = attemptDetailResponses;
+            await _unitOfWork.CommitAsync(cancellationToken);
+            return Result.Success(response);
         }
-
-        var attempt = new StudentAttempt
+        catch (Exception e)
         {
-            UserId = userId,
-            Exam = exam,
-            ExamId = request.ExamId,
-            StartTime = DateTime.UtcNow,
-            Status = AttemptStatus.InProgress
-        };
-
-        _unitOfWork.StudentAttemptRepository.Add(attempt);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
-
-        var response = _mapper.Map<AttemptResponse>(attempt);
-        return Result.Success(response);
+            await _unitOfWork.RollbackAsync(cancellationToken);
+            return Result.Failure<AttemptResponse>(new Error("TransactionFailed", e.Message));
+        }
     }
 
-    public async Task<Result<AttemptStudentSummaryResponse>> ListAllAttemptAsync(int userId, StartAttemptRequest request, CancellationToken cancellationToken = default)
+    public async Task<Result<AttemptStudentSummaryResponse>> ListAllAttemptAsync(int userId,
+        StartAttemptRequest request, CancellationToken cancellationToken = default)
     {
         var exam = await _unitOfWork.ExamRepository.FindByIdAsync(
             request.ExamId, cancellationToken);
@@ -109,7 +136,7 @@ public class StudentAttemptService : IStudentAttemptService
             .FindAttemptInProgress(userId, request.ExamId, cancellationToken);
         var completedAttempts = await _unitOfWork.StudentAttemptRepository
             .FindAllAttemptCompleted(userId, request.ExamId, cancellationToken);
-        
+
         var summaryAttemptResponses = completedAttempts?.Any() == true
             ? completedAttempts.Select(_mapper.Map<SummaryAttemptResponse>).ToList()
             : new List<SummaryAttemptResponse>();
@@ -119,15 +146,17 @@ public class StudentAttemptService : IStudentAttemptService
             ExamId = exam.Id,
             ExamTitle = exam.Title,
             ExamDescription = exam.Description,
-            Inprocess = inProgressAttempt!=null?_mapper.Map<AttemptResponse>(new StudentAttempt
-            {
-                UserId = userId,
-                ExamId = request.ExamId,
-                Exam = exam,
-                Id = inProgressAttempt.Id,
-                StartTime = DateTime.UtcNow,
-                Status = AttemptStatus.Started
-            }):null,
+            Inprocess = inProgressAttempt != null
+                ? _mapper.Map<AttemptResponse>(new StudentAttempt
+                {
+                    UserId = userId,
+                    ExamId = request.ExamId,
+                    Exam = exam,
+                    Id = inProgressAttempt.Id,
+                    StartTime = DateTime.UtcNow,
+                    Status = AttemptStatus.Started
+                })
+                : null,
             Attempts = summaryAttemptResponses
         });
     }
@@ -813,8 +842,7 @@ public class StudentAttemptService : IStudentAttemptService
             answers.Add(answerResponse);
         }
 
-        
-        
+
         var result = new AttemptResultResponse
         {
             Id = attempt.Id,
@@ -827,11 +855,11 @@ public class StudentAttemptService : IStudentAttemptService
                 kvp => kvp.Value.Score),
             FinalScore = score.FinalScore
         };
-        
+
         attempt.FinalScore = score.FinalScore; // Assuming FinalScore is a decimal value
         _unitOfWork.StudentAttemptRepository.Update(attempt);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
-        
+
         return Result.Success(result);
     }
 
@@ -842,7 +870,8 @@ public class StudentAttemptService : IStudentAttemptService
     {
         var validIds = new HashSet<int>();
 
-        if (scopeType == SectionPartTypes.Part||(sectionPart.SectionType == SectionTypes.Speaking && sectionPart.Questions.Any()))
+        if (scopeType == SectionPartTypes.Part ||
+            (sectionPart.SectionType == SectionTypes.Speaking && sectionPart.Questions.Any()))
         {
             // For Part scope, only include direct questions
             validIds.UnionWith(sectionPart.Questions.Select(q => q.Id));

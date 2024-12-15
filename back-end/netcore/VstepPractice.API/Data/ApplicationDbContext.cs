@@ -20,6 +20,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<Answer> Answers { get; set; } = null!;
     public DbSet<WritingAssessment> WritingAssessments { get; set; } = null!;
     public DbSet<SpeakingAssessment> SpeakingAssessments { get; set; } = null!;
+    public DbSet<StudentAttemptDetail> StudentAttemptDetails { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

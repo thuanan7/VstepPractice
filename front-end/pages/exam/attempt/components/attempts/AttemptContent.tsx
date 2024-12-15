@@ -36,17 +36,20 @@ const AttemptContent = () => {
   const { previousPart, nextPart } = useSelector(
     selectPreviousNextPart(sectionId, partId),
   )
-
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     if (!sectionId) {
       setLoading(true)
     } else if (sectionId && !partId && !part) {
-      setSearchParams({
-        sectionId: String(sectionId),
-        partId: String(sections[0].id),
-      })
+      if (sections.length === 0) {
+        setLoading(false)
+      } else {
+        setSearchParams({
+          sectionId: String(sectionId),
+          partId: String(sections[0].id),
+        })
+      }
     } else {
       dispatch(startDoPart({ partId: part?.id || 0, sectionType }))
       setLoading(false)

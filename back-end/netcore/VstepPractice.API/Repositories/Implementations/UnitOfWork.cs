@@ -15,6 +15,7 @@ public class UnitOfWork : IUnitOfWork
     private IExamRepository? _examRepository;
     private IQuestionOptionRepository? _questionOptionRepository;
     private IStudentAttemptRepository? _studentAttemptRepository;
+    private IStudentAttemptDetailRepository? _studentAttemptDetailRepository;
     private IAnswerRepository? _answerRepository;
     private IQuestionRepository? _questionRepository;
     private IWritingAssessmentRepository? _writingAssessmentRepository;
@@ -35,7 +36,8 @@ public class UnitOfWork : IUnitOfWork
 
     public IStudentAttemptRepository StudentAttemptRepository =>
         _studentAttemptRepository ??= new StudentAttemptRepository(_context);
-
+    public IStudentAttemptDetailRepository StudentAttemptDetailRepository =>
+        _studentAttemptDetailRepository ??= new StudentAttemptDetailRepository(_context);
     public IAnswerRepository AnswerRepository =>
         _answerRepository ??= new AnswerRepository(_context);
 

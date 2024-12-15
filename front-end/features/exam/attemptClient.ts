@@ -57,6 +57,7 @@ export default class AttemptClient extends APIClient {
             title: r?.data?.examTitle,
             description: r?.data?.examDescription,
             status: r?.data?.status,
+            details: r?.data?.details,
           }
         }
         return undefined

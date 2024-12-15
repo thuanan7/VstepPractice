@@ -173,8 +173,18 @@ export interface IStartStudentAttempt {
   title: string
   description: string
   status: AttemptStatusType
+  details: IStartStudentAttemptDetail[]
 }
 
+export interface IStartStudentAttemptDetail {
+  id: number
+  startTime: string
+  endTime: string | null
+  sectionType: number
+  sectionId: number
+  duration: number
+  status: number
+}
 export interface ISummaryStudentAttempt {
   examId: number
   examTitle?: string

@@ -12,4 +12,6 @@ public interface ISectionPartRepository : IRepositoryBase<SectionPart, int>
         int sectionPartId,
         int? parentId,
         CancellationToken cancellationToken = default);
+    Task<SectionPart?> FindFirstSectionPartAsync(int examId, CancellationToken cancellationToken = default);
+
 }

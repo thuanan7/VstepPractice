@@ -14,6 +14,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IStudentAttemptService, StudentAttemptService>();
         services.AddScoped<IExamRepository, ExamRepository>();
         services.AddScoped<IQuestionOptionRepository, QuestionOptionRepository>();
+        services.AddScoped<IStudentAttemptDetailRepository, StudentAttemptDetailRepository>();
         services.AddScoped<IStudentAttemptRepository, StudentAttemptRepository>();
         services.AddScoped<IAnswerRepository, AnswerRepository>();
         services.AddScoped<IQuestionRepository, QuestionRepository>();

@@ -58,4 +58,12 @@ public class SectionPartRepository : RepositoryBase<SectionPart, int>, ISectionP
 
         return false;
     }
+    
+    public async Task<SectionPart?> FindFirstSectionPartAsync(int examId, CancellationToken cancellationToken = default)
+    {
+        return await _context.SectionParts
+            .Where(sp => sp.ExamId == examId && sp.ParentId == null)
+            .OrderBy(sp => sp.OrderNum)
+            .FirstOrDefaultAsync(cancellationToken);
+    }
 }

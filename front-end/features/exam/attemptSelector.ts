@@ -169,3 +169,12 @@ export const selectAnswerWritingSpeaking = createSelector(
     return answerDictionary
   },
 )
+
+export const selectDetailBySectionId = (sectionId: number) =>
+  createSelector(
+    [(state: RootState) => state.examStudent?.attempt?.details || []],
+    (details) => {
+      const foundItem = details.find((item) => item.sectionId === sectionId)
+      return foundItem || null
+    },
+  )
