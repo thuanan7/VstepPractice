@@ -147,3 +147,8 @@ interface ISubmitStudentAttemptScore {
   EarnedPoints: number
   Percentage: number
 }
+
+export interface IErrorAPI {
+  success: boolean
+  message: string
+}

@@ -3,6 +3,7 @@ import { attemptConfigs } from './configs'
 import {
   IAttemptExam,
   IAttemptStudentAnswer,
+  IErrorAPI,
   IStartStudentAttempt,
   ISubmitStudentAttempt,
   ISumaryAttemptExam,
@@ -124,13 +125,19 @@ export default class AttemptClient extends APIClient {
   finishAttempt(
     attemptId: number,
     cancelToken?: any,
-  ): Promise<IStartStudentAttempt | undefined> {
+  ): Promise<IStartStudentAttempt | IErrorAPI | undefined> {
     const subParams = getUrlGet(attemptConfigs.finishAttempt, {
       id: attemptId,
     })
     return super.post(subParams, undefined, cancelToken).then((r) => {
       if (r?.success) {
         return r?.data
+      }
+      if (r?.message) {
+        return {
+          success: false,
+          message: r?.message,
+        } as IErrorAPI
       }
       return undefined
     })

@@ -1,16 +1,23 @@
 import { useEffect } from 'react'
 import { Box, Grid } from '@mui/material'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'react-hot-toast'
-import { RootState } from '@/app/store'
+import { AppDispatch, RootState } from '@/app/store'
 import AttemptSections from './components/attempts/AttemptSections'
 import AttemptQuestionMenu from './components/attempts/AttemptQuestionMenu'
 import AttemptContent from './components/attempts/AttemptContent'
 import AttemptTimer from './components/attempts/AttemptTimmer'
-import { attemptRequest } from '@/app/api'
+import {
+  finishAttempt,
+  IDataCallbackAttemptSlice,
+  submitAttemptPart,
+} from '@/features/exam/attemptSlice'
+import { handleAttemptError } from '@/features/exam/utils.ts'
+import { KEY_SUBMIT_RESPONSE } from '@/features/exam/configs.ts'
 
 const AttemptStart = () => {
+  const dispatch: AppDispatch = useDispatch()
   const navigate = useNavigate()
   const { attempt, sections } = useSelector(
     (state: RootState) => state.examStudent,
@@ -21,20 +28,37 @@ const AttemptStart = () => {
       toast.error('Dữ liệu không hợp lệ, vui lòng thử lại!')
       setTimeout(() => {
         navigate('/exam')
-      }, 500)
+      }, 200)
     }
   }, [attempt, sections, navigate])
 
+  const handleFinishedError = ({ success, key }: IDataCallbackAttemptSlice) => {
+    if (!success) {
+      const msg = handleAttemptError(key)
+      if (msg) {
+        toast.error(msg)
+      }
+    }
+  }
+
   const handleForceSubmit = async () => {
     if (attempt && attempt.attempId) {
-      const response = await attemptRequest.finishAttempt(attempt.attempId)
-      if (response) {
+      const resultAction = await dispatch(
+        finishAttempt({ callback: handleFinishedError }),
+      )
+      if (submitAttemptPart.fulfilled.match(resultAction)) {
         toast.success('Gửi bài thi thành công!')
         setTimeout(() => {
           navigate(`/exam/${attempt.examId}/attempts`, { replace: true })
         }, 200)
-      } else {
-        toast.error('Không thể kết thúc bài thi, vui lòng thử lại!')
+      } else if (resultAction.payload) {
+        if (
+          resultAction.payload === KEY_SUBMIT_RESPONSE.ATTEMPT_NOT_IN_PROGRESS
+        ) {
+          setTimeout(() => {
+            navigate(`/exam/${attempt.examId}/attempts`, { replace: true })
+          }, 200)
+        }
       }
     }
   }
@@ -43,7 +67,7 @@ const AttemptStart = () => {
       navigate(path ? path : `/exam`, { replace: true })
     }, 100)
   }
-  const handleSubmitPart = () => {}
+
   return (
     <Box
       display={'flex'}

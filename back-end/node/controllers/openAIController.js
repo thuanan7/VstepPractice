@@ -174,11 +174,18 @@ openAIController.finishStudentAnswer = async (req, res) => {
       res.status(500).json({ error: 'Please send your attemptId' })
     }
   } catch (error) {
-    console.log('dsadsa')
-    console.error('Error calling .NET Core API:', error.message)
-    res
-      .status(error.response ? error.response.status : 500)
-      .json({ error: 'Error calling .NET Core API' })
+    if (error.response) {
+      res.status(error.response.status).json({
+        success: false,
+        message: error.response.data?.code || 'Error calling .NET Core API',
+        data: error.response.data?.code || 'UNKNOWN_ERROR',
+      })
+    } else {
+      res.status(500).json({
+        success: false,
+        message: error.message,
+      })
+    }
   }
 }
 
@@ -210,11 +217,9 @@ openAIController.resultStudentAnswer = async (req, res) => {
       .json({ error: 'Error calling .NET Core API' })
   }
 }
-
 openAIController.submitStudentSection = async (req, res) => {
   try {
     const { sectionType = '0', type = '0', partId = '0', questions } = req.body
-    const crrDate = new Date()
     let id = isNaN(req.params.attemptId)
       ? 0
       : parseInt(`${req.params.attemptId}`)

@@ -1,4 +1,5 @@
-import { IOption } from '@/features/exam/type.ts'
+import { IErrorAPI, IOption } from '@/features/exam/type.ts'
+import { KEY_SUBMIT_RESPONSE } from '@/features/exam/configs.ts'
 
 export const isMatchWithManageExam = (pathname: string) => {
   return /^\/admin\/questions\/\d+$/.test(pathname)
@@ -53,4 +54,41 @@ export function formatDateTime(dateTime: string | null | undefined): string {
     console.error('Invalid date format:', error)
     return ''
   }
+}
+
+export const checkAndFinishAttempt = (startTime: string, duration: number) => {
+  const startTimeUTC = new Date(startTime)
+  const endTimeUTC = new Date(startTimeUTC.getTime() + duration * 60 * 1000)
+  const currentTimeUTC = new Date(new Date().toISOString())
+  return endTimeUTC <= currentTimeUTC
+}
+
+const fnErrorToast: { [key: string]: string } = {
+  [`${KEY_SUBMIT_RESPONSE.ANSWER_ATTEMPT_EMPTY}`]:
+    'Không init được.Hãy thử lại!!!',
+  [`${KEY_SUBMIT_RESPONSE.QUESTION_EMPTY}`]: 'Bạn chưa trả lời câu hỏi nào cả',
+  [`${KEY_SUBMIT_RESPONSE.API_BACK_ERROR}`]:
+    'Không nhận được response từ server',
+  [`${KEY_SUBMIT_RESPONSE.ATTEMPT_NOT_IN_PROGRESS}`]:
+    'Bài thi có thể đã kết thúc',
+}
+export const handleAttemptError = (key?: string) => {
+  if (key) {
+    let msg = 'Đã xảy ra lỗi không xác định'
+    if (key in fnErrorToast) {
+      msg = fnErrorToast[key]
+    } else {
+      return key
+    }
+    return msg
+  }
+}
+
+export function isErrorAPI(obj: any): obj is IErrorAPI {
+  return (
+    obj &&
+    typeof obj === 'object' &&
+    obj.success === false &&
+    typeof obj.message === 'string'
+  )
 }

@@ -16,15 +16,18 @@ import TextQuestionSection from '../questions/TextQuestionSection'
 import SpeakingQuestionSection from '../questions/SpeakingQuestionSection'
 import ListeningSection from '../instructions/ListeningSection'
 import ReadingSection from '../instructions/ReadingSection'
-import { startDoPart, submitAttemptPart } from '@/features/exam/attemptSlice.ts'
 import {
-  KEY_SUBMIT_RESPONSE,
-  SectionPartTypes,
-} from '@/features/exam/configs.ts'
+  IDataCallbackAttemptSlice,
+  startDoPart,
+  submitAttemptPart,
+} from '@/features/exam/attemptSlice'
+import { SectionPartTypes } from '@/features/exam/configs'
 import { toast } from 'react-hot-toast'
+import { handleAttemptError } from '@/features/exam/utils'
+import { AppDispatch } from '@/app/store'
 
 const AttemptContent = () => {
-  const dispatch = useDispatch()
+  const dispatch: AppDispatch = useDispatch()
   const [searchParams, setSearchParams] = useSearchParams()
   const sectionId = Number(searchParams.get('sectionId'))
   const partId = searchParams.get('partId')
@@ -82,27 +85,11 @@ const AttemptContent = () => {
     }
     return [single, text, speaking]
   }, [part, sectionType])
-
-  const fnErrorToast: { [key: string]: () => void } = {
-    [`${KEY_SUBMIT_RESPONSE.QUESTION_EMPTY}`]: () => {
-      toast.error('Bạn chưa trả lời câu hỏi nào cả')
-    },
-    [`${KEY_SUBMIT_RESPONSE.API_BACK_ERROR}`]: () => {
-      toast.error('Không thể submit câu trả lời lên server')
-    },
-  }
-  const handleSubmitPart = ({
-    success,
-    key,
-  }: {
-    success: boolean
-    key: KEY_SUBMIT_RESPONSE
-  }) => {
+  const handleSubmitPart = ({ success, key }: IDataCallbackAttemptSlice) => {
     if (!success) {
-      if (key in fnErrorToast) {
-        fnErrorToast[key]()
-      } else {
-        toast.error('Đã xảy ra lỗi không xác định')
+      const msg = handleAttemptError(key)
+      if (msg) {
+        toast.error(msg)
       }
     }
   }
@@ -110,7 +97,6 @@ const AttemptContent = () => {
     if (nextPart && attemptId && answer) {
       setLoading(true)
       const resultAction = await dispatch(
-        // @ts-ignore
         submitAttemptPart({
           callback: handleSubmitPart,
         }),

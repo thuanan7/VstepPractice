@@ -13,6 +13,7 @@ import {
   KEY_SUBMIT_RESPONSE,
   SectionPartTypes,
 } from '@/features/exam/configs.ts'
+import { isErrorAPI } from '@/features/exam/utils.ts'
 export interface IAttempExam {
   examId?: number
   sections?: IAttemptExam[]
@@ -77,12 +78,16 @@ export const { setAttempt, saveAnswer, startDoPart, resetAttempt } =
   ExamStudentSlice.actions
 export const examStudentReducer = ExamStudentSlice.reducer
 
-export interface IReqSubmitAttemptPart {
-  callback: (data: { success: boolean; key?: string }) => void
+export interface IDataCallbackAttemptSlice {
+  success: boolean
+  key?: string
+}
+interface ICallbackAttemptSlice {
+  callback: (data: IDataCallbackAttemptSlice) => void
 }
 export const submitAttemptPart = createAsyncThunk<
-  any,
-  IReqSubmitAttemptPart,
+  ISubmitStudentAttempt,
+  ICallbackAttemptSlice,
   { state: RootState }
 >(
   'examAdmin/submitAttemptPart',
@@ -90,6 +95,10 @@ export const submitAttemptPart = createAsyncThunk<
     const state = getState() as RootState
     const { answer, attempt } = state.examStudent
     if (!answer || !attempt) {
+      callback({
+        success: false,
+        key: KEY_SUBMIT_RESPONSE.ANSWER_ATTEMPT_EMPTY,
+      })
       return rejectWithValue({ success: false })
     }
 
@@ -103,6 +112,42 @@ export const submitAttemptPart = createAsyncThunk<
         sectionType === SectionType.Speaking ? 'speaking' : 'normal'
       ](partType, attempt.attempId, answer)
       if (rs) {
+        callback({ success: true })
+        return rs
+      } else {
+        callback({ success: false, key: KEY_SUBMIT_RESPONSE.API_BACK_ERROR })
+        return rejectWithValue('ERROR')
+      }
+    } catch (error) {
+      callback({ success: false, key: KEY_SUBMIT_RESPONSE.API_BACK_ERROR })
+      return rejectWithValue('ERROR')
+    }
+  },
+)
+
+export const finishAttempt = createAsyncThunk<
+  IStartStudentAttempt,
+  ICallbackAttemptSlice,
+  { state: RootState }
+>(
+  'examAdmin/finishAttempt',
+  async ({ callback }, { getState, rejectWithValue }) => {
+    const state = getState() as RootState
+    const { attempt } = state.examStudent
+    if (!attempt) {
+      callback({
+        success: false,
+        key: KEY_SUBMIT_RESPONSE.ANSWER_ATTEMPT_EMPTY,
+      })
+      return rejectWithValue({ success: false })
+    }
+    try {
+      const rs = await attemptRequest.finishAttempt(attempt.attempId)
+      if (rs) {
+        if (isErrorAPI(rs)) {
+          callback({ success: false, key: rs.message })
+          return rejectWithValue(rs.message)
+        }
         callback({ success: true })
         return rs
       } else {
