@@ -1,16 +1,11 @@
 import { useState, useEffect } from 'react'
 import { Box, List, ListItem, ListItemButton, Typography } from '@mui/material'
 import { useSelector } from 'react-redux'
-import {
-  selectCompleteDetailBySectionId,
-  selectSections,
-} from '@/features/exam/attemptSelector'
+import { selectSections } from '@/features/exam/attemptSelector'
 import { useSearchParams, useNavigate } from 'react-router-dom'
-import { IStartStudentAttemptDetail } from '@/features/exam/type.ts'
 
 const AttemptSections = () => {
   const sections = useSelector(selectSections)
-  const comletedSections = useSelector(selectCompleteDetailBySectionId)
   const [activeSkill, setActiveSkill] = useState<number | null>(null)
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
@@ -57,14 +52,9 @@ const AttemptSections = () => {
         </Typography>
         <List>
           {sections.map((section, index) => {
-            const isCompleted = comletedSections.findIndex(
-              (x: IStartStudentAttemptDetail) => x.sectionId === section.id,
-            )
-
             return (
               <ListItem key={index} disablePadding>
                 <ListItemButton
-                  disabled={isCompleted !== -1}
                   onClick={() => handleSkillClick(index)}
                   sx={{
                     backgroundColor:

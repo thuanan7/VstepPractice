@@ -23,84 +23,12 @@ export interface QuestionOption {
   orderNum: string
   id: number
 }
-export interface BaseQuestion {
-  id: string
-  questionText: string
-  type: 'multiple-choice' | 'essay' | 'speaking' | 'audio'
-}
-
-export interface MultipleChoiceQuestion extends BaseQuestion {
-  type: 'multiple-choice'
-  options: string[]
-  correctAnswer?: string // Optional if not needed
-}
-
-export interface EssayQuestion extends BaseQuestion {
-  type: 'essay'
-  instructions: string
-}
-
-export interface SpeakingQuestion extends BaseQuestion {
-  type: 'speaking'
-  title: string
-  questionText: string
-  audioUrl: string
-  pictureUrl: string
-  questions: Question[]
-  speakingPrompt: string
-}
-
-export interface AudioQuestion extends BaseQuestion {
-  type: 'audio'
-  audioUrl: string
-  questions: MultipleChoiceQuestion[]
-}
-
-export interface ReadingQuestions extends BaseQuestion {
-  type: 'multiple-choice'
-  questions: MultipleChoiceQuestion[]
-}
-
 export enum SectionType {
   Listening = 1,
   Reading = 2,
   Writing = 3,
   Speaking = 4,
 }
-export interface ListeningQuestion {
-  id: string
-  type: 'audio'
-  audioUrl: string
-  questions: Question[]
-}
-
-export interface ReadingQuestion {
-  id: string
-  type: 'multiple-choice'
-  questionText: string
-  questions: Question[]
-}
-
-export interface Section {
-  id?: string
-  title: string
-  instructions: string
-  type: 'listening' | 'reading' | 'writing' | 'speaking'
-  essayText?: string
-  parent?: Section
-  exam?: IExam
-  orderNum?: number
-  questions: Question[] | ListeningQuestion[]
-  sectionPart:
-    | Question[]
-    | ListeningQuestion[]
-    | ReadingQuestion[]
-    | SpeakingQuestion
-}
-export interface VSTEPExam {
-  sections: Section[]
-}
-
 //ROMIO
 interface ISessionPartBase {
   title: string
@@ -135,7 +63,7 @@ export interface ISumaryAttemptExam {
   id: string
   title: string
   description?: string
-  date: string
+  duration: number
 }
 
 export interface IAttemptExam {
@@ -172,31 +100,11 @@ export interface IStartStudentAttempt {
   examId: number
   title: string
   description: string
-  status: AttemptStatusType
-  details: IStartStudentAttemptDetail[]
-}
-
-export interface ISubmitStudentAttempt {
-  attempId: number
-  examId: number
-  title: string
-  description: string
-  status: AttemptStatusType
-  details: {
-    isFinish: boolean
-    items: IStartStudentAttemptDetail[]
-  }
-}
-
-export interface IStartStudentAttemptDetail {
-  id: number
-  startTime: string
-  endTime: string | null
-  sectionType: number
-  sectionId: number
   duration: number
-  status: number
+  startTime: string
+  status: AttemptStatusType
 }
+
 export interface ISummaryStudentAttempt {
   examId: number
   examTitle?: string
@@ -220,4 +128,22 @@ export interface IAttemptStudentAnswer {
   partType: SectionPartTypes
   partId: number
   questions: IAttemptAnswer[]
+}
+
+export interface ISubmitStudentAttempt {
+  attemptId: number
+  scope: ISubmitStudentAttemptScope
+  scores: ISubmitStudentAttemptScore
+  submittedCount: number
+  validationErrors: null | any
+}
+interface ISubmitStudentAttemptScope {
+  type: number
+  sectionPartId: number
+  title: string
+}
+interface ISubmitStudentAttemptScore {
+  TotalPoints: number
+  EarnedPoints: number
+  Percentage: number
 }

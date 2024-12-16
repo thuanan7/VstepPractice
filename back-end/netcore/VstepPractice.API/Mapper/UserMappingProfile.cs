@@ -27,6 +27,8 @@ public class AutoMapperProfile : Profile
         CreateMap<Exam, ExamStudentResponse>()
             .ForMember(dest => dest.Title,
                 opt => opt.MapFrom(src => src.Title ?? string.Empty))
+            .ForMember(dest => dest.Duration,
+                opt => opt.MapFrom(src => src.Duration))
             .ForMember(dest => dest.Description,
                 opt => opt.MapFrom(src => src.Description ?? string.Empty));
 
@@ -73,8 +75,6 @@ public class AutoMapperProfile : Profile
                 opt => opt.MapFrom(src => src.Exam.Description ?? string.Empty))
             .ForMember(dest => dest.Status,
                 opt => opt.MapFrom(src => src.Status))
-            .ForMember(dest => dest.Details,
-                opt => opt.Ignore())
             .ForMember(dest => dest.Answers,
                 opt => opt.MapFrom(src => src.Answers.OrderBy(a => a.Question.OrderNum)));
         CreateMap<StudentAttemptDetail, AttemptDetailResponse>();

@@ -11,15 +11,17 @@ import {
   selectPreviousNextPart,
   selectStudentAnswer,
 } from '@/features/exam/attemptSelector'
-import { IAttemptStudentAnswer, SectionType } from '@/features/exam/type.ts'
+import { SectionType } from '@/features/exam/type.ts'
 import TextQuestionSection from '../questions/TextQuestionSection'
 import SpeakingQuestionSection from '../questions/SpeakingQuestionSection'
 import ListeningSection from '../instructions/ListeningSection'
 import ReadingSection from '../instructions/ReadingSection'
-import { startDoPart } from '@/features/exam/attemptSlice.ts'
-import { attemptRequest } from '@/app/api'
+import { startDoPart, submitAttemptPart } from '@/features/exam/attemptSlice.ts'
+import {
+  KEY_SUBMIT_RESPONSE,
+  SectionPartTypes,
+} from '@/features/exam/configs.ts'
 import { toast } from 'react-hot-toast'
-import { SectionPartTypes } from '@/features/exam/configs.ts'
 
 const AttemptContent = () => {
   const dispatch = useDispatch()
@@ -80,55 +82,46 @@ const AttemptContent = () => {
     }
     return [single, text, speaking]
   }, [part, sectionType])
+
+  const fnErrorToast: { [key: string]: () => void } = {
+    [`${KEY_SUBMIT_RESPONSE.QUESTION_EMPTY}`]: () => {
+      toast.error('Bạn chưa trả lời câu hỏi nào cả')
+    },
+    [`${KEY_SUBMIT_RESPONSE.API_BACK_ERROR}`]: () => {
+      toast.error('Không thể submit câu trả lời lên server')
+    },
+  }
+  const handleSubmitPart = ({
+    success,
+    key,
+  }: {
+    success: boolean
+    key: KEY_SUBMIT_RESPONSE
+  }) => {
+    if (!success) {
+      if (key in fnErrorToast) {
+        fnErrorToast[key]()
+      } else {
+        toast.error('Đã xảy ra lỗi không xác định')
+      }
+    }
+  }
   const handleNext = async () => {
     if (nextPart && attemptId && answer) {
       setLoading(true)
-      let submiSection = null
-      if (sectionType === SectionType.Speaking) {
-        submiSection = await handleSendSpeakingSubmit(
-          part?.type || SectionPartTypes.Part,
-          attemptId,
-          answer,
-        )
-      } else {
-        submiSection = await handleSendSubmit(attemptId, answer)
-      }
-      if (submiSection) {
+      const resultAction = await dispatch(
+        // @ts-ignore
+        submitAttemptPart({
+          callback: handleSubmitPart,
+        }),
+      )
+      if (submitAttemptPart.fulfilled.match(resultAction)) {
         const currentParams = new URLSearchParams(searchParams)
         currentParams.set('partId', `${nextPart.partId}`)
         currentParams.set('sectionId', `${nextPart.sectionId}`)
         setSearchParams(currentParams)
-      } else {
-        toast.error('Không thể submit câu trả lời')
       }
       setLoading(false)
-    }
-  }
-  const handleSendSubmit = async (
-    _attemptId: number,
-    _answer: IAttemptStudentAnswer,
-  ) => {
-    try {
-      const rs = await attemptRequest.sendSubmitAttempt(_attemptId, _answer)
-      return !rs
-    } catch (e) {
-      return false
-    }
-  }
-  const handleSendSpeakingSubmit = async (
-    _partType: number,
-    _attemptId: number,
-    _answer: IAttemptStudentAnswer,
-  ) => {
-    try {
-      const rs = await attemptRequest.sendSpeakingSubmitAttempt(
-        _partType,
-        _attemptId,
-        _answer,
-      )
-      return !rs
-    } catch (e) {
-      return false
     }
   }
 

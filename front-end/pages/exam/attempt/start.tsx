@@ -43,9 +43,7 @@ const AttemptStart = () => {
       navigate(path ? path : `/exam`, { replace: true })
     }, 100)
   }
-  const handleSubmitPart = () => {
-    console.log('aaaaa')
-  }
+  const handleSubmitPart = () => {}
   return (
     <Box
       display={'flex'}

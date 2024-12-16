@@ -213,13 +213,7 @@ openAIController.resultStudentAnswer = async (req, res) => {
 
 openAIController.submitStudentSection = async (req, res) => {
   try {
-    const {
-      sectionType = '0',
-      detailId,
-      type = '0',
-      partId = '0',
-      questions,
-    } = req.body
+    const { sectionType = '0', type = '0', partId = '0', questions } = req.body
     const crrDate = new Date()
     let id = isNaN(req.params.attemptId)
       ? 0

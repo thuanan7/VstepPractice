@@ -38,7 +38,10 @@ const ExamList: React.FC = () => {
           {exams.map((exam) => (
             <Grid item xs={12} sm={6} md={4} key={exam.id}>
               <Card variant="outlined">
-                <CardHeader title={exam.title} subheader={exam.date} />
+                <CardHeader
+                  title={exam.title}
+                  subheader={`Thời gian thi:${exam.duration} phút`}
+                />
                 <CardContent>
                   <Typography variant="body2" color="textSecondary">
                     {exam.description}

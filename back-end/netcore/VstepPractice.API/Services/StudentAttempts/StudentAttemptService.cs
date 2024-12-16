@@ -58,7 +58,6 @@ public class StudentAttemptService : IStudentAttemptService
         {
             var exam = await _unitOfWork.ExamRepository.FindByIdAsync(
                 request.ExamId, cancellationToken);
-
             if (exam == null)
                 return Result.Failure<AttemptResponse>(Error.NotFound);
             // Check if user has any in-progress attempts
@@ -68,18 +67,20 @@ public class StudentAttemptService : IStudentAttemptService
             var studentAttempt = new StudentAttempt
             {
                 UserId = userId,
-                StartTime = DateTime.UtcNow,
                 ExamId = request.ExamId,
                 Exam = exam,
             };
             if (inProgressAttempt != null)
             {
+                // TODO CHECK DURATION
                 studentAttempt.Id = inProgressAttempt.Id;
                 studentAttempt.Status = AttemptStatus.Started;
             }
             else
             {
+                studentAttempt.StartTime = DateTime.UtcNow;
                 studentAttempt.Status = AttemptStatus.InProgress;
+                studentAttempt.Duration = exam.Duration;
                 _unitOfWork.StudentAttemptRepository.Add(studentAttempt);
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
             }

@@ -58,14 +58,14 @@ export default class AttemptClient extends APIClient {
             title: r?.data?.examTitle,
             description: r?.data?.examDescription,
             status: r?.data?.status,
-            details: r?.data?.details,
+            duration: r?.data?.duration,
+            startTime: r?.data?.startTime,
           }
         }
         return undefined
       })
   }
   sendSubmitAttempt(
-    detailId: number,
     partType: number,
     attemptId: number,
     data: IAttemptStudentAnswer,
@@ -75,7 +75,7 @@ export default class AttemptClient extends APIClient {
       id: attemptId,
     })
     return super
-      .post(subParams, { ...data, type: partType, detailId }, cancelToken)
+      .post(subParams, { ...data, type: partType }, cancelToken)
       .then((r) => {
         if (r?.success) {
           return r?.data
@@ -84,7 +84,6 @@ export default class AttemptClient extends APIClient {
       })
   }
   sendSpeakingSubmitAttempt(
-    detailId: number,
     partType: number,
     attemptId: number,
     answer: IAttemptStudentAnswer,
@@ -95,7 +94,6 @@ export default class AttemptClient extends APIClient {
     })
 
     const formData = new FormData()
-    formData.append('detailId', detailId.toString())
     formData.append('section', answer.sectionType.toString())
     formData.append('partId', answer.partId.toString())
     formData.append('type', partType.toString())

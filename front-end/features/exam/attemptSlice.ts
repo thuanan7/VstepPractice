@@ -4,13 +4,15 @@ import {
   IAttemptExam,
   IAttemptStudentAnswer,
   IStartStudentAttempt,
-  IStartStudentAttemptDetail,
   ISubmitStudentAttempt,
   SectionType,
 } from './type'
 import { RootState } from '@/app/store'
 import { attemptRequest } from '@/app/api'
-import { SectionPartTypes } from '@/features/exam/configs.ts'
+import {
+  KEY_SUBMIT_RESPONSE,
+  SectionPartTypes,
+} from '@/features/exam/configs.ts'
 export interface IAttempExam {
   examId?: number
   sections?: IAttemptExam[]
@@ -39,10 +41,6 @@ export const ExamStudentSlice = createSlice({
       state.sections = undefined
       state.attempt = undefined
       state.examId = undefined
-    },
-    resetAnswer(state) {
-      state.attempt.details = []
-      state.answer = undefined
     },
     startDoPart(
       state,
@@ -75,103 +73,72 @@ export const ExamStudentSlice = createSlice({
     },
   },
 })
-export const {
-  setAttempt,
-  saveAnswer,
-  resetAnswer,
-  startDoPart,
-  resetAttempt,
-} = ExamStudentSlice.actions
+export const { setAttempt, saveAnswer, startDoPart, resetAttempt } =
+  ExamStudentSlice.actions
 export const examStudentReducer = ExamStudentSlice.reducer
 
+export interface IReqSubmitAttemptPart {
+  callback: (data: { success: boolean; key?: string }) => void
+}
 export const submitAttemptPart = createAsyncThunk<
-  {
-    success: boolean
-    isFinish: boolean
-    details: IStartStudentAttemptDetail[]
-  },
-  void,
+  any,
+  IReqSubmitAttemptPart,
   { state: RootState }
->('examAdmin/submitAttemptPart', async (_, { getState, rejectWithValue }) => {
-  const state = getState() as RootState
-
-  const { answer, attempt } = state.examStudent
-  if (answer && attempt) {
-    const foundItem = attempt.details.find((item) => item.endTime === null)
-    let rs: ISubmitStudentAttempt | boolean | undefined = false
-    const { sectionType, partType } = answer
-    if (sectionType === SectionType.Speaking) {
-      rs = await handleSendSpeakingSubmit(
-        foundItem?.id || 0,
-        partType,
-        attempt.attempId,
-        answer,
-      )
-    } else {
-      rs = await handleSendSubmit(
-        foundItem?.id || 0,
-        partType,
-        attempt.attempId,
-        answer,
-      )
-    }
-    if (isSubmitStudentAttempt(rs)) {
-      const isFinish = rs.details.isFinish
-      return {
-        success: true,
-        isFinish: isFinish,
-        details: isFinish ? [] : rs?.details?.items || [],
-      }
-    } else {
+>(
+  'examAdmin/submitAttemptPart',
+  async ({ callback }, { getState, rejectWithValue }) => {
+    const state = getState() as RootState
+    const { answer, attempt } = state.examStudent
+    if (!answer || !attempt) {
       return rejectWithValue({ success: false })
     }
-  } else {
-    return rejectWithValue({ success: false })
-  }
-})
 
-const handleSendSubmit = async (
-  _detailId: number,
-  _partType: number,
-  _attemptId: number,
-  _answer: IAttemptStudentAnswer,
-) => {
-  try {
-    const rs = await attemptRequest.sendSubmitAttempt(
-      _detailId,
+    if (answer.questions.length === 0) {
+      callback({ success: false, key: KEY_SUBMIT_RESPONSE.QUESTION_EMPTY })
+      return rejectWithValue('ERROR')
+    }
+    const { sectionType, partType } = answer
+    try {
+      const rs: ISubmitStudentAttempt | undefined = await handleSubmitSection[
+        sectionType === SectionType.Speaking ? 'speaking' : 'normal'
+      ](partType, attempt.attempId, answer)
+      if (rs) {
+        callback({ success: true })
+        return rs
+      } else {
+        callback({ success: false, key: KEY_SUBMIT_RESPONSE.API_BACK_ERROR })
+        return rejectWithValue('ERROR')
+      }
+    } catch (error) {
+      callback({ success: false, key: KEY_SUBMIT_RESPONSE.API_BACK_ERROR })
+      return rejectWithValue('ERROR')
+    }
+  },
+)
+
+const handleSubmitSection: {
+  [key: string]: (
+    _partType: number,
+    _attemptId: number,
+    _answer: IAttemptStudentAnswer,
+  ) => Promise<ISubmitStudentAttempt | undefined>
+} = {
+  ['normal']: (
+    _partType: number,
+    _attemptId: number,
+    _answer: IAttemptStudentAnswer,
+  ) => {
+    return attemptRequest.sendSubmitAttempt(_partType, _attemptId, _answer)
+  },
+  ['speaking']: (
+    _partType: number,
+    _attemptId: number,
+    _answer: IAttemptStudentAnswer,
+  ) => {
+    return attemptRequest.sendSpeakingSubmitAttempt(
       _partType,
       _attemptId,
       _answer,
     )
-    return rs
-  } catch (e) {
-    return false
-  }
-}
-const handleSendSpeakingSubmit = async (
-  _detailId: number,
-  _partType: number,
-  _attemptId: number,
-  _answer: IAttemptStudentAnswer,
-) => {
-  try {
-    const rs = await attemptRequest.sendSpeakingSubmitAttempt(
-      _detailId,
-      _partType,
-      _attemptId,
-      _answer,
-    )
-    return !rs
-  } catch (e) {
-    return false
-  }
-}
-function isSubmitStudentAttempt(obj: any): obj is ISubmitStudentAttempt {
-  return (
-    typeof obj === 'object' &&
-    obj !== null &&
-    'details' in obj &&
-    typeof obj.details.isFinish === 'boolean' &&
-    Array.isArray(obj.details.items)
-  )
+  },
 }

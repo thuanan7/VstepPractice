@@ -52,3 +52,8 @@ export enum AttemptStatusType {
   InProgress = 0,
   Completed = 1,
 }
+
+export enum KEY_SUBMIT_RESPONSE {
+  QUESTION_EMPTY = 'QUESTION_EMPTY',
+  API_BACK_ERROR = 'API_BACK_ERROR',
+}
