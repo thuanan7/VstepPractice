@@ -1,35 +1,40 @@
-'use strict';
+'use strict'
+const bcrypt = require('bcrypt')
 
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
-    async up(queryInterface, Sequelize) {
-        const items = [{
-            "email": "admin@gmail.com",
-            "password": "Demo@123",
-            "firstName": "Supper",
-            "lastName": "Admin",
-            "role": 0
-        }, {
-            "email": "teacher@gmail.com",
-            "password": "Demo@123",
-            "firstName": "Enrico",
-            "lastName": "De Ferraris",
-            "role": 1
-        }, {
-            "email": "student1@gmail.com",
-            "password": "Demo@123",
-            "firstName": "Lisle",
-            "lastName": "Carlick",
-            "role": 1
-        }];
-        items.forEach(item => {
-            item.createdAt = Sequelize.literal('NOW()');
-            item.updatedAt = Sequelize.literal('NOW()');
-        });
-        await queryInterface.bulkInsert('Users', items, {});
-    },
+  async up(queryInterface, Sequelize) {
+    const items = [
+      {
+        email: 'admin@gmail.com',
+        password: bcrypt.hashSync('Demo@123', 8),
+        firstName: 'Nguyện Thị',
+        lastName: 'Admin',
+        role: 0,
+      },
+      {
+        email: 'teacher@gmail.com',
+        password: bcrypt.hashSync('Demo@123', 8),
+        firstName: 'Trần Văn',
+        lastName: 'Giáo Viên',
+        role: 1,
+      },
+      {
+        email: 'student@gmail.com',
+        password: bcrypt.hashSync('Demo@123', 8),
+        firstName: 'Phan Văn',
+        lastName: 'Sinh Viên',
+        role: 2,
+      },
+    ]
+    items.forEach((item) => {
+      item.createdAt = Sequelize.literal('NOW()')
+      item.updatedAt = Sequelize.literal('NOW()')
+    })
+    await queryInterface.bulkInsert('Users', items, {})
+  },
 
-    async down(queryInterface, Sequelize) {
-        await queryInterface.bulkDelete('Users', null, {});
-    }
-};
+  async down(queryInterface, Sequelize) {
+    await queryInterface.bulkDelete('Users', null, {})
+  },
+}

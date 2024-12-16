@@ -17,7 +17,7 @@
     "backup-db": "pg_dump -U postgres -d tkpm2024 -F c -f ./doc/tkpm2024_db_backup_$(date +\"%Y%m%d_%H%M%S\").backup",
     "rb-dump": "pg_restore -U postgres -d tkpm2024test ./doc/mytestdb_backup.dump",
     "dev": "concurrently \"pnpm node-api\" \"pnpm web\"",
-    "redis": "redis-cli shutdown && redis-server"
+    "msr": "yarn migrate && yarn seed && yarn node-api"
   },
   "dependencies": {
     "@emotion/react": "^11.11.4",
@@ -38,7 +38,6 @@
     "connect-redis": "^7.1.1",
     "cors": "^2.8.5",
     "dompurify": "^3.2.3",
-    "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "express-session": "^1.18.1",
     "express-validator": "^7.2.0",

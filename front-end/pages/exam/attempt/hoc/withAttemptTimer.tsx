@@ -25,7 +25,11 @@ const withAttemptTimer = <P extends object>(
       }
     }, [attempt])
 
-    const handleTimeUp = () => {}
+    const handleTimeUp = () => {
+      if (onEnd) {
+        onEnd()
+      }
+    }
     if (!attempt) return <></>
     return (
       <WrappedComponent

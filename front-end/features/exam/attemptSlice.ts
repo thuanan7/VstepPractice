@@ -59,6 +59,15 @@ export const ExamStudentSlice = createSlice({
           partId: partId,
           questions: [],
         }
+      } else {
+        if (state.answer.partId !== partId) {
+          state.answer = {
+            sectionType: sectionType,
+            partType: partType,
+            partId: partId,
+            questions: [],
+          }
+        }
       }
     },
     resetAnswer(state) {

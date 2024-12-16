@@ -66,6 +66,7 @@ const getSectionParts = async (req, res) => {
     if (!exam) {
       res.status(200).json({ success: false, message: 'Not found your exam' })
     } else {
+      console.log('hello')
       const sectionParts = await SectionPart.findAll({
         attributes: [
           'id',
@@ -73,7 +74,6 @@ const getSectionParts = async (req, res) => {
           'instructions',
           'content',
           'orderNum',
-          'duration',
           'sectionType',
           'type',
           'examId',
@@ -81,11 +81,13 @@ const getSectionParts = async (req, res) => {
         where: { examId: req.params.id, parentId: null },
         order: [['orderNum', 'ASC']],
       })
+
       res
         .status(200)
         .json({ success: true, data: { exam, sessions: sectionParts } })
     }
   } catch (err) {
+    console.log('romio', err)
     res
       .status(500)
       .json({ success: false, message: 'Failed to fetch section parts' })
@@ -159,15 +161,13 @@ const createSectionPart = async (req, res) => {
 const updateSectionPart = async (req, res) => {
   try {
     const { id } = req.params
-    const { title, instructions, content, duration, type, examId, parentId } =
-      req.body
+    const { title, instructions, content, type, examId, parentId } = req.body
     const sectionPart = await SectionPart.findByPk(id)
     if (!sectionPart)
       return res.status(404).json({ error: 'Section part not found' })
     await sectionPart.update({
       title,
       instructions,
-      duration,
       content,
       type,
       examId,
