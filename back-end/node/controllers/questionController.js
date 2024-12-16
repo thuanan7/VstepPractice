@@ -1,29 +1,31 @@
 const { Question, QuestionOption } = require('../../db/models')
 const getQuestions = async (req, res) => {
   try {
-    const { id } = req.params
+    const { id } = req.params;
     const questions = await Question.findAll({
-      attributes: ['id', 'questionText', 'point'],
+      attributes: ['id', 'questionText', 'point', 'orderNum'],
       where: { passageId: id },
       include: [
         {
           model: QuestionOption,
           as: 'options',
-          attributes: ['id', 'content', 'isCorrect'],
+          attributes: ['id', 'content', 'isCorrect', 'orderNum'],
+          order: [['orderNum', 'ASC']], // Sorting options by orderNum in ascending order
         },
       ],
-    })
+      order: [['orderNum', 'ASC']], // Sorting questions by orderNum in ascending order
     res.status(200).json({
       success: true,
       data: questions,
-      message: 'get list question successfully',
-    })
+      message: 'Get list of questions successfully',
+    });
   } catch (err) {
-    res
-      .status(500)
-      .json({ success: false, message: 'Failed to fetch questions' })
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch questions',
+    });
   }
-}
+};
 const createEmptyQuestion = async (req, res) => {
   try {
     const { partId } = req.body
