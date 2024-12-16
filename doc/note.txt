@@ -26,7 +26,16 @@
     AZURE__SPEECH__REGION
 
 5.(Optional) Run migration and seed data:
-        Run command line of root project:
+
+       1. Change value connect db back-end/db/config/config.json file
+              "development": {
+                "username": "postgres",
+                "password": "123456",
+                "database": "name_db",
+                "host": "127.0.0.1",
+                "dialect": "postgres"
+              },
+       2. Run command line of root project:
             yarn msr
 
 6. Run project BE NetCore
@@ -41,7 +50,7 @@
     Run command line of root project:
         yarn node-api
 
-5. Run project FE
+9. Run project FE
     Run command line of root project:
             yarn web
 ------------------------------------------------------------------------------------------------------------------------
