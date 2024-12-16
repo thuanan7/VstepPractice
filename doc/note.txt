@@ -1,9 +1,16 @@
 ------------------------------------------------------------------------------------------------------------------------
+***** Thành viên:
+1981223     -   Nguyễn Duy Khương
+21810201    -   Nguyễn Thuận An
+22810208    -   Bùi Duy Minh
+20810018    -   Liên Kim Phong
+------------------------------------------------------------------------------------------------------------------------
 ***** Need install before run app:
 1. install redis-server
-2. install postgres (need dbeaver tool for create db)
-3. install npm/yarn/pnpm (any for install node_modules + run app)
-4. dotnet cli (need if use macosx)
+2. install sequenlize-cli
+3. install postgres (need dbeaver tool for create db)
+4. install npm/yarn/pnpm (any for install node_modules + run app)
+5. dotnet cli (need if use macosx)
 ------------------------------------------------------------------------------------------------------------------------
 ***** Run app:
 1. Clone source form GitLab with url: git@gitlab.com:nguyenromio/tkpm.git

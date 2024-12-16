@@ -21,6 +21,7 @@ export const questionPathConfigs = {
 }
 export const attemptConfigs = {
   getAttemptByExamId: 'attempts/{examId}',
+  getAttemptResult: 'ai/{id}/review',
   startAttempt: 'ai/start',
   finishAttempt: 'ai/{id}/finish',
   getAttempts: 'ai/{id}/attempts',

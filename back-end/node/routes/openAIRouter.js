@@ -193,7 +193,7 @@ router.post(
  *         description: Unauthorized
  */
 router.get(
-  '/:attemptId/result',
+  '/:attemptId/review',
   authMiddleware,
   openAIController.resultStudentAnswer,
 )
