@@ -42,11 +42,9 @@ const AttemptStart = () => {
 
   const handleFinishAttempt = async () => {
     if (attempt && attempt.attempId) {
-      console.log('handleFinishAttempt')
       const resultAction = await dispatch(
         finishAttempt({ callback: handleFinishedError }),
       )
-      console.log('resultAction', resultAction)
       if (finishAttempt.fulfilled.match(resultAction)) {
         toast.success('Gửi bài thi thành công!')
         setTimeout(() => {
@@ -85,7 +83,7 @@ const AttemptStart = () => {
           <AttemptSections />
         </Grid>
         <Grid item xs={8} sx={{ position: 'relative' }}>
-          <AttemptContent />
+          <AttemptContent onEnd={handleFinishAttempt} />
         </Grid>
         <Grid item xs={2} sx={{ position: 'relative' }}>
           <AttemptQuestionMenu />

@@ -26,7 +26,11 @@ import { toast } from 'react-hot-toast'
 import { handleAttemptError } from '@/features/exam/utils'
 import { AppDispatch } from '@/app/store'
 
-const AttemptContent = () => {
+interface AttemptContentProps {
+  onEnd: () => void
+}
+const AttemptContent = (props: AttemptContentProps) => {
+  const { onEnd } = props
   const dispatch: AppDispatch = useDispatch()
   const [searchParams, setSearchParams] = useSearchParams()
   const sectionId = Number(searchParams.get('sectionId'))
@@ -109,6 +113,18 @@ const AttemptContent = () => {
       }
       setLoading(false)
     }
+  }
+  const handleSubmitAndFinish = async () => {
+    setLoading(true)
+    const resultAction = await dispatch(
+      submitAttemptPart({
+        callback: handleSubmitPart,
+      }),
+    )
+    if (submitAttemptPart.fulfilled.match(resultAction)) {
+      onEnd()
+    }
+    setLoading(false)
   }
 
   const handlePrevious = () => {
@@ -207,7 +223,7 @@ const AttemptContent = () => {
         >
           Trở về trước
         </Button>
-        {nextPart && (
+        {nextPart ? (
           <Button
             variant="contained"
             color="success"
@@ -220,6 +236,20 @@ const AttemptContent = () => {
             }}
           >
             Tiếp theo
+          </Button>
+        ) : (
+          <Button
+            variant="contained"
+            color="success"
+            onClick={handleSubmitAndFinish}
+            endIcon={<ArrowForwardIcon />}
+            sx={{
+              padding: '10px 20px',
+              fontSize: '16px',
+              fontWeight: 'bold',
+            }}
+          >
+            Submit và Nộp bài
           </Button>
         )}
       </Box>
