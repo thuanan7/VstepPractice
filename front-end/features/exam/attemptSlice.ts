@@ -52,7 +52,7 @@ export const ExamStudentSlice = createSlice({
       }>,
     ) {
       const { partId, sectionType, partType } = action.payload
-      if (state.answer && state.answer.partId !== partId) {
+      if (!state.answer) {
         state.answer = {
           sectionType: sectionType,
           partType: partType,
@@ -60,6 +60,9 @@ export const ExamStudentSlice = createSlice({
           questions: [],
         }
       }
+    },
+    resetAnswer(state) {
+      if (state.answer) state.answer = { ...state.answer, questions: [] }
     },
     saveAnswer(state, action: PayloadAction<IAttemptAnswer>) {
       const { id, answer } = action.payload
@@ -73,9 +76,19 @@ export const ExamStudentSlice = createSlice({
       }
     },
   },
+  extraReducers: (builder) => {
+    builder.addCase(finishAttempt.fulfilled, (state) => {
+      state.answer = undefined
+    })
+  },
 })
-export const { setAttempt, saveAnswer, startDoPart, resetAttempt } =
-  ExamStudentSlice.actions
+export const {
+  setAttempt,
+  saveAnswer,
+  resetAnswer,
+  startDoPart,
+  resetAttempt,
+} = ExamStudentSlice.actions
 export const examStudentReducer = ExamStudentSlice.reducer
 
 export interface IDataCallbackAttemptSlice {

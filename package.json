@@ -16,7 +16,8 @@
     "preview": "vite preview",
     "backup-db": "pg_dump -U postgres -d tkpm2024 -F c -f ./doc/tkpm2024_db_backup_$(date +\"%Y%m%d_%H%M%S\").backup",
     "rb-dump": "pg_restore -U postgres -d tkpm2024test ./doc/mytestdb_backup.dump",
-    "dev": "concurrently \"pnpm node-api\" \"pnpm web\""
+    "dev": "concurrently \"pnpm node-api\" \"pnpm web\"",
+    "redis": "redis-cli shutdown && redis-server"
   },
   "dependencies": {
     "@emotion/react": "^11.11.4",

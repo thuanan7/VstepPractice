@@ -13,8 +13,12 @@ import {
 import { useNavigate } from 'react-router-dom'
 import { attemptRequest } from '@/app/api'
 import { ISumaryAttemptExam } from '@/features/exam/type.ts'
+import { useDispatch } from 'react-redux'
+import { AppDispatch } from '@/app/store'
+import { resetAnswer } from '@/features/exam/attemptSlice.ts'
 
 const ExamList: React.FC = () => {
+  const dispatch: AppDispatch = useDispatch()
   const navigate = useNavigate()
   const [exams, setExams] = useState<ISumaryAttemptExam[]>([])
   useEffect(() => {
@@ -29,6 +33,7 @@ const ExamList: React.FC = () => {
     }
   }
   const handleStartExam = (id: string) => {
+    void dispatch(resetAnswer())
     navigate(`/exam/${id}/attempts`)
   }
   return (

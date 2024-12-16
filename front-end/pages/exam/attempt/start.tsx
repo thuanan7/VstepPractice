@@ -11,7 +11,6 @@ import AttemptTimer from './components/attempts/AttemptTimmer'
 import {
   finishAttempt,
   IDataCallbackAttemptSlice,
-  submitAttemptPart,
 } from '@/features/exam/attemptSlice'
 import { handleAttemptError } from '@/features/exam/utils.ts'
 import { KEY_SUBMIT_RESPONSE } from '@/features/exam/configs.ts'
@@ -41,12 +40,14 @@ const AttemptStart = () => {
     }
   }
 
-  const handleForceSubmit = async () => {
+  const handleFinishAttempt = async () => {
     if (attempt && attempt.attempId) {
+      console.log('handleFinishAttempt')
       const resultAction = await dispatch(
         finishAttempt({ callback: handleFinishedError }),
       )
-      if (submitAttemptPart.fulfilled.match(resultAction)) {
+      console.log('resultAction', resultAction)
+      if (finishAttempt.fulfilled.match(resultAction)) {
         toast.success('Gửi bài thi thành công!')
         setTimeout(() => {
           navigate(`/exam/${attempt.examId}/attempts`, { replace: true })
@@ -75,7 +76,7 @@ const AttemptStart = () => {
       sx={{ height: 'calc(100vh - 70px)', overflow: 'hidden' }}
     >
       <AttemptTimer
-        onEnd={handleForceSubmit}
+        onEnd={handleFinishAttempt}
         attempt={attempt}
         onBack={handleBackStartPage}
       />
