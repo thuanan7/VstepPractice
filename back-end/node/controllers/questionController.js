@@ -14,6 +14,7 @@ const getQuestions = async (req, res) => {
         },
       ],
       order: [['orderNum', 'ASC']], // Sorting questions by orderNum in ascending order
+    });
     res.status(200).json({
       success: true,
       data: questions,
