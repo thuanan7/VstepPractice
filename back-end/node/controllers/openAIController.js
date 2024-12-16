@@ -6,6 +6,7 @@ const {
   fnParseData,
 } = require('../configs/enums')
 
+const hostNetCore = process.env.NETCORE_HOST
 const multer = require('multer')
 const path = require('path')
 const storage = multer.diskStorage({
@@ -24,7 +25,7 @@ const openAIController = {}
 
 openAIController.testConnection = async (req, res) => {
   try {
-    const host = `http://localhost:${process.env.NETCORE_PORT}/api/v1/StudentAttempt/test`
+    const host = `${hostNetCore}/StudentAttempt/test`
     const token = getGatewayJwtToken()
     const response = await axios({
       method: req.method,
@@ -46,7 +47,7 @@ openAIController.testConnection = async (req, res) => {
 openAIController.allAttempts = async (req, res) => {
   try {
     let examId = isNaN(req.params.examId) ? 0 : parseInt(`${req.params.examId}`)
-    const host = `http://localhost:${process.env.NETCORE_PORT}/api/v1/StudentAttempt/attempts`
+    const host = `${hostNetCore}/StudentAttempt/attempts`
     const token = getGatewayJwtToken()
     const response = await axios({
       method: req.method,
@@ -70,7 +71,7 @@ openAIController.allAttempts = async (req, res) => {
 }
 openAIController.allExams = async (req, res) => {
   try {
-    const host = `http://localhost:${process.env.NETCORE_PORT}/api/v1/StudentAttempt/exams`
+    const host = `${hostNetCore}/StudentAttempt/exams`
     const token = getGatewayJwtToken()
     const response = await axios({
       method: req.method,
@@ -92,10 +93,9 @@ openAIController.allExams = async (req, res) => {
       .json({ error: 'Error calling .NET Core API' })
   }
 }
-
 openAIController.startStudentAttempt = async (req, res) => {
   try {
-    const host = `http://localhost:${process.env.NETCORE_PORT}/api/v1/StudentAttempt/start`
+    const host = `${hostNetCore}/StudentAttempt/start`
     const token = getGatewayJwtToken()
 
     const response = await axios({
@@ -120,14 +120,13 @@ openAIController.startStudentAttempt = async (req, res) => {
     })
   }
 }
-
 openAIController.submitStudentAnswer = async (req, res) => {
   try {
     let id = isNaN(req.params.attemptId)
       ? 0
       : parseInt(`${req.params.attemptId}`)
     if (id > 0) {
-      const host = `http://localhost:${process.env.NETCORE_PORT}/api/v1/StudentAttempt/${id}/submit-answer`
+      const host = `${hostNetCore}/StudentAttempt/${id}/submit-answer`
       const token = getGatewayJwtToken()
       const response = await axios({
         method: req.method,
@@ -148,14 +147,13 @@ openAIController.submitStudentAnswer = async (req, res) => {
       .json({ error: 'Error calling .NET Core API' })
   }
 }
-
 openAIController.finishStudentAnswer = async (req, res) => {
   try {
     let id = isNaN(req.params.attemptId)
       ? 0
       : parseInt(`${req.params.attemptId}`)
     if (id > 0) {
-      const host = `http://localhost:${process.env.NETCORE_PORT}/api/v1/StudentAttempt/${id}/finish`
+      const host = `${hostNetCore}/StudentAttempt/${id}/finish`
       const token = getGatewayJwtToken()
       const response = await axios({
         method: req.method,
@@ -188,7 +186,6 @@ openAIController.finishStudentAnswer = async (req, res) => {
     }
   }
 }
-
 openAIController.resultStudentAnswer = async (req, res) => {
   try {
     let id = isNaN(req.params.attemptId)
@@ -196,7 +193,7 @@ openAIController.resultStudentAnswer = async (req, res) => {
       : parseInt(`${req.params.attemptId}`)
     const userId = req.query.userId
     if (id > 0 && userId) {
-      const host = `http://localhost:${process.env.NETCORE_PORT}/api/v1/StudentAttempt/${id}/result?userId=${userId}`
+      const host = `${hostNetCore}/StudentAttempt/${id}/result?userId=${userId}`
       const token = getGatewayJwtToken()
       const response = await axios({
         method: req.method,
@@ -230,7 +227,7 @@ openAIController.submitStudentSection = async (req, res) => {
 
     let sectionPartId = isNaN(partId) ? 0 : parseInt(`${partId}`)
     const userId = req.user.id
-    const host = `http://localhost:${process.env.NETCORE_PORT}/api/v1/StudentAttempt/${id}/${hostStudentSection[typeSection]}`
+    const host = `${hostNetCore}/StudentAttempt/${id}/${hostStudentSection[typeSection]}`
     if (id <= 0 || sectionPartId === 0) {
       return res
         .status(500)
