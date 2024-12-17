@@ -13,10 +13,12 @@ namespace VstepPractice.API.Controllers.V1;
 public class StudentAttemptController : ApiController
 {
     private readonly IStudentAttemptService _studentAttemptService;
+    private readonly ILogger<StudentAttemptController> _logger;
 
-    public StudentAttemptController(IStudentAttemptService studentAttemptService)
+    public StudentAttemptController(IStudentAttemptService studentAttemptService, ILogger<StudentAttemptController> logger)
     {
         _studentAttemptService = studentAttemptService;
+        _logger = logger;
     }
 
     [HttpGet("test")]
@@ -24,6 +26,19 @@ public class StudentAttemptController : ApiController
     [ProducesResponseType(typeof(Error), StatusCodes.Status404NotFound)]
     public ActionResult GetTest(CancellationToken cancellationToken = default)
     {
+        _logger.LogInformation("This is a test INFO message");
+        _logger.LogWarning("This is a test WARNING message");
+        _logger.LogError("This is a test ERROR message");
+
+        try
+        {
+            throw new Exception("This is a test exception");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Caught test exception");
+        }
+
         return Ok("You connected to .NetServer");
     }
     
