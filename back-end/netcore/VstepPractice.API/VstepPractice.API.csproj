@@ -35,11 +35,18 @@
   <ItemGroup>
     <Folder Include="Common\Constant\" />
     <Folder Include="Common\Exceptions\" />
-    <Folder Include="Middlewares\" />
     <Folder Include="Models\DTOs\Passage\Requests\" />
     <Folder Include="Models\DTOs\Passage\Responses\" />
     <Folder Include="Models\DTOs\Sections\Requests\" />
     <Folder Include="Models\DTOs\Sections\Responses\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Update="appsettings.Production.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
   </ItemGroup>
 
 </Project>

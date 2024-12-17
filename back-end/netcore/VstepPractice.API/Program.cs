@@ -53,7 +53,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowNodejs", policy =>
     {
-        policy.WithOrigins("http://localhost:4001") 
+        policy.AllowAnyOrigin() 
               .AllowAnyMethod()
               .AllowAnyHeader();
     });
@@ -64,11 +64,13 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.ConfigureSwagger();
+   // app.ConfigureSwagger();
     // app.ApplyMigration();
     // Dont need seedData
     // await app.SeedDataAsync();
 }
+
+app.ConfigureSwagger();
 
 app.UseCors("AllowNodejs");
 
