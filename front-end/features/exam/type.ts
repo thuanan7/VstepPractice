@@ -114,7 +114,7 @@ export interface ISummaryStudentAttempt {
 }
 export interface IAttemptAnswer {
   id: number
-  answer: number | string | File
+  answer: number | string | File | Blob
 }
 
 export interface ISummaryAttempt {

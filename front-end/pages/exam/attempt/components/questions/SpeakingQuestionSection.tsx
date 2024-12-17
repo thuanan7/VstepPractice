@@ -22,8 +22,8 @@ const SpeakingQuestionSection = ({ questions }: SingleQuestionSectionProps) => {
   )
   const [currentTime, setCurrentTime] = useState<number>(0)
 
-  const handleSaveAudio = (questionId: number, blobUrl: string) => {
-    dispatch(saveAnswer({ id: questionId, answer: blobUrl }))
+  const handleSaveAudio = (questionId: number, audioBlob: Blob) => {
+    dispatch(saveAnswer({ id: questionId, answer: audioBlob }))
   }
 
   const handlePlayAudio = (questionId: number, audioUrl: string) => {
@@ -124,7 +124,7 @@ const SpeakingQuestionSection = ({ questions }: SingleQuestionSectionProps) => {
 
 interface AudioRecorderProps {
   questionId: number
-  onSave: (questionId: number, blobUrl: string) => void
+  onSave: (questionId: number, blobUrl: Blob) => void
 }
 
 const AudioRecorder = ({ questionId, onSave }: AudioRecorderProps) => {
@@ -167,7 +167,7 @@ const AudioRecorder = ({ questionId, onSave }: AudioRecorderProps) => {
         const audioBlob = new Blob(audioChunks.current, { type: "audio/wav" });
         const blobUrl = URL.createObjectURL(audioBlob);
         setAudioUrl(blobUrl);
-        onSave(questionId, blobUrl); // Pass the recorded audio back
+        onSave(questionId, audioBlob); // Pass the recorded audio back
         setRemainingTime(120); // Reset timer
       };
 

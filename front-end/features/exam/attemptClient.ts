@@ -113,17 +113,13 @@ export default class AttemptClient extends APIClient {
     formData.append('sectionType', answer.sectionType.toString())
     formData.append('partId', answer.partId.toString())
     formData.append('type', partType.toString())
+
     answer.questions.forEach((question, index) => {
       formData.append(`answers[${index}].id`, question.id.toString())
       formData.append(
         `answers[${index}].audioFile`,
-        new File(
-          [question.answer as string],
-          `audio_question_${question.id}.wav`,
-          {
-            type: 'audio/wav',
-          },
-        ),
+        question.answer as Blob,
+        `audio_question_${question.id}.wav`,
       )
     })
 
