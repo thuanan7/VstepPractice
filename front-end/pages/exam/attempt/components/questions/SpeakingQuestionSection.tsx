@@ -26,8 +26,9 @@ const SpeakingQuestionSection = ({ questions }: SingleQuestionSectionProps) => {
     dispatch(saveAnswer({ id: questionId, answer: audioBlob }))
   }
 
-  const handlePlayAudio = (questionId: number, audioUrl: string) => {
-    const audio = new Audio(audioUrl)
+  const handlePlayAudio = (questionId: number, audioBlob: Blob) => {
+    const blobUrl = URL.createObjectURL(audioBlob);
+    const audio = new Audio(blobUrl)
     setPlayingQuestionId(questionId)
     audio.play()
 
