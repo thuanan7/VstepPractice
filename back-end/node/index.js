@@ -39,6 +39,9 @@ app.use('/api/section-parts', require('./routes/sectionPartRouter'))
 app.use('/api/questions', require('./routes/questionRouter'))
 app.use('/api/attempts', require('./routes/attemptRouter'))
 app.use('/api/ai', require('./routes/openAIRouter'))
+app.get('*', (req, res) => {
+  res.sendFile(path.join(basePath, 'dist', 'index.html'))
+})
 app.use(errorHandler)
 app.listen(port, () => {
   console.log(`server start at port: ${port}`)
