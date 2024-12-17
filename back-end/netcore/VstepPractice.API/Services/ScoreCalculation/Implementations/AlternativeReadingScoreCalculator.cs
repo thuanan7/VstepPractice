@@ -55,9 +55,9 @@ public class AlternativeReadingScoreCalculator : ISectionScoreCalculator
                     }
                     else
                     {
-                        _logger.LogInformation(
-                            "Question ID: {QuestionId} in {PartTitle} is unanswered (score: 0)",
-                            question.Id, part.Key.Title);
+                        //_logger.LogInformation(
+                        //    "Question ID: {QuestionId} in {PartTitle} is unanswered (score: 0)",
+                        //    question.Id, part.Key.Title);
                     }
 
                     questionScores.Add((
@@ -83,13 +83,13 @@ public class AlternativeReadingScoreCalculator : ISectionScoreCalculator
                     Score = partCorrect // Raw score = number of correct answers
                 };
 
-                _logger.LogInformation(
-                    "{PartTitle} scores - Correct: {CorrectCount}/{TotalQuestions} " +
-                    "(Unanswered: {UnansweredCount})",
-                    part.Key.Title,
-                    partCorrect,
-                    partTotal,
-                    partQuestions.Count - questionScores.Count(q => q.IsAnswered));
+                //_logger.LogInformation(
+                //    "{PartTitle} scores - Correct: {CorrectCount}/{TotalQuestions} " +
+                //    "(Unanswered: {UnansweredCount})",
+                //    part.Key.Title,
+                //    partCorrect,
+                //    partTotal,
+                //    partQuestions.Count - questionScores.Count(q => q.IsAnswered));
 
                 partScores.Add(partScore);
 

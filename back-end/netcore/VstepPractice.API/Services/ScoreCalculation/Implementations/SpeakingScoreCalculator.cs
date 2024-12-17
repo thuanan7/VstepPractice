@@ -72,9 +72,9 @@ public class SpeakingScoreCalculator : ISectionScoreCalculator
                     }
                     else
                     {
-                        _logger.LogInformation(
-                            "Question ID: {QuestionId} in {PartTitle} is unanswered (score: 0/10)",
-                            question.Id, part.Key.Title);
+                        //_logger.LogInformation(
+                        //    "Question ID: {QuestionId} in {PartTitle} is unanswered (score: 0/10)",
+                        //    question.Id, part.Key.Title);
                     }
 
                     // Add to question scores regardless of whether it was answered
