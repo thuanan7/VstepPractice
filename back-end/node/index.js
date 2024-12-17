@@ -22,7 +22,7 @@ app.use(express.urlencoded({ extended: true }))
 app.use(
   session({
     store: new RedisStore({ client: redisClient }),
-    secret: process.env.REDIS_URL,
+    secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
   }),
