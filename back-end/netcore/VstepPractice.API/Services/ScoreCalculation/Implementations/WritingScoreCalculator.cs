@@ -64,9 +64,9 @@ public class WritingScoreCalculator : ISectionScoreCalculator
                 }
                 else
                 {
-                    _logger.LogInformation(
-                        "Task ID: {TaskId} ({TaskTitle}) is unanswered (score: 0/10)",
-                        task.Id, task.Passage.Title);
+                    //_logger.LogInformation(
+                    //    "Task ID: {TaskId} ({TaskTitle}) is unanswered (score: 0/10)",
+                    //    task.Id, task.Passage.Title);
                 }
 
                 taskScores.Add((task.Passage.Title, taskScore, assessment));

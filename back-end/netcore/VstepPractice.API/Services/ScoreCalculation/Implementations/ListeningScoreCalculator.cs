@@ -53,9 +53,9 @@ public class ListeningScoreCalculator : ISectionScoreCalculator
                     }
                     else
                     {
-                        _logger.LogInformation(
-                            "Question ID: {QuestionId} in {PartTitle} is unanswered (score: 0)",
-                            question.Id, part.Key.Title);
+                        //_logger.LogInformation(
+                        //    "Question ID: {QuestionId} in {PartTitle} is unanswered (score: 0)",
+                        //    question.Id, part.Key.Title);
                     }
 
                     questionScores.Add((
@@ -78,11 +78,11 @@ public class ListeningScoreCalculator : ISectionScoreCalculator
                     Score = questionScores.Count(q => q.IsCorrect) // Score = number of correct answers
                 };
 
-                _logger.LogInformation(
-                    "{PartTitle} scores - Correct: {CorrectCount}/{TotalQuestions}",
-                    part.Key.Title,
-                    partScore.CorrectAnswers,
-                    partScore.TotalQuestions);
+                //_logger.LogInformation(
+                //    "{PartTitle} scores - Correct: {CorrectCount}/{TotalQuestions}",
+                //    part.Key.Title,
+                //    partScore.CorrectAnswers,
+                //    partScore.TotalQuestions);
 
                 partScores.Add(partScore);
                 detailScores[$"{part.Key.Title} - Score"] =

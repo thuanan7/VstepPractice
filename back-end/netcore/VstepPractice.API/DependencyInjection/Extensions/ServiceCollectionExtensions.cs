@@ -1,6 +1,5 @@
 ﻿using VstepPractice.API.Repositories.Implementations;
 using VstepPractice.API.Repositories.Interfaces;
-using VstepPractice.API.Services.AI;
 using VstepPractice.API.Services.BackgroundServices;
 using VstepPractice.API.Services.StudentAttempts;
 
@@ -43,5 +42,12 @@ public static class ServiceCollectionExtensions
             sp.GetRequiredService<HybridSpeakingAssessmentBackgroundService>());
         services.AddHostedService(sp =>
             sp.GetRequiredService<HybridSpeakingAssessmentBackgroundService>());
+
+        // Add status checking service
+        services.AddSingleton<AttemptStatusCheckingBackgroundService>();
+        services.AddSingleton<IAttemptStatusQueue>(sp =>
+            sp.GetRequiredService<AttemptStatusCheckingBackgroundService>());
+        services.AddHostedService(sp =>
+            sp.GetRequiredService<AttemptStatusCheckingBackgroundService>());
     }
 }

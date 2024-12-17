@@ -7,7 +7,7 @@ using VstepPractice.API.Models.DTOs.StudentAttempts.Requests;
 using VstepPractice.API.Models.DTOs.StudentAttempts.Responses;
 using VstepPractice.API.Models.Entities;
 using VstepPractice.API.Repositories.Interfaces;
-using VstepPractice.API.Services.AI;
+using VstepPractice.API.Services.BackgroundServices;
 using VstepPractice.API.Services.ScoreCalculation;
 using VstepPractice.API.Services.Storage;
 using Exception = System.Exception;
@@ -23,12 +23,14 @@ public class StudentAttemptService : IStudentAttemptService
     private readonly IVstepScoreCalculator _scoreCalculator;
     private readonly ILogger<StudentAttemptService> _logger;
     private readonly IFileStorageService _storageService;
+    private readonly IAttemptStatusQueue _statusQueue;
 
     public StudentAttemptService(
         IUnitOfWork unitOfWork,
         IMapper mapper,
         IEssayScoringQueue scoringQueue,
         ISpeakingAssessmentQueue assessmentQueue,
+        IAttemptStatusQueue statusQueue,
         IVstepScoreCalculator scoreCalculator,
         IFileStorageService storageService,
         ILogger<StudentAttemptService> logger)
@@ -37,6 +39,7 @@ public class StudentAttemptService : IStudentAttemptService
         _mapper = mapper;
         _essayScoringQueue = scoringQueue;
         _speakingAssessmentQueue = assessmentQueue;
+        _statusQueue = statusQueue;
         _logger = logger;
         _scoreCalculator = scoreCalculator;
         _storageService = storageService;
@@ -369,10 +372,10 @@ public class StudentAttemptService : IStudentAttemptService
     }
 
     public async Task<Result<BatchSubmitResponse>> BatchSubmitSpeakingAsync(
-        int userId,
-        int attemptId,
-        BatchSubmitSpeakingRequest request,
-        CancellationToken cancellationToken)
+    int userId,
+    int attemptId,
+    BatchSubmitSpeakingRequest request,
+    CancellationToken cancellationToken)
     {
         var attempt = await _unitOfWork.StudentAttemptRepository
             .FindByIdAsync(attemptId, cancellationToken);
@@ -508,16 +511,8 @@ public class StudentAttemptService : IStudentAttemptService
                         submission.AudioFile.FileName,
                         submission.AudioFile.ContentType);
 
-                    // Queue for assessment
-                    await _speakingAssessmentQueue.QueueAssessmentTaskAsync(new SpeakingAssessmentTask
-                    {
-                        AnswerId = answer.Id,
-                        AudioUrl = audioUrl,
-                        QuestionText = question.QuestionText ?? string.Empty
-                    });
-
                     answer.Score = null; // Reset score as it will be set by assessment
-                    answer.AiFeedback = audioUrl; // Reset feedback as it will be set by assessment
+                    answer.AiFeedback = audioUrl; // Store audio URL in AiFeedback
                     _unitOfWork.AnswerRepository.Update(answer);
 
                     processedAnswers.Add(answer);
@@ -542,6 +537,7 @@ public class StudentAttemptService : IStudentAttemptService
                 }
             }
 
+            // If there are validation errors, rollback
             if (validationErrors.Any())
             {
                 await _unitOfWork.RollbackAsync(cancellationToken);
@@ -553,8 +549,35 @@ public class StudentAttemptService : IStudentAttemptService
                 });
             }
 
+            // First save all answers to get their IDs
             await _unitOfWork.SaveChangesAsync(cancellationToken);
             await _unitOfWork.CommitAsync(cancellationToken);
+
+            // Re-fetch processed answers to ensure we have latest data
+            var savedAnswers = await _unitOfWork.AnswerRepository
+                .FindAll(a => processedAnswers.Select(pa => pa.Id).Contains(a.Id))
+                .Include(a => a.Question)
+                .ToListAsync(cancellationToken);
+
+            // Now queue assessments with saved answer IDs
+            foreach (var answer in savedAnswers)
+            {
+                if (answer.Id > 0) // Make sure answer has valid ID
+                {
+                    await _speakingAssessmentQueue.QueueAssessmentTaskAsync(
+                        new SpeakingAssessmentTask
+                        {
+                            AnswerId = answer.Id,
+                            AudioUrl = answer.AiFeedback!, // URL is stored in AiFeedback
+                            QuestionText = answer.Question.QuestionText ?? string.Empty
+                        });
+
+                    _logger.LogInformation(
+                        "Queued assessment for answer {AnswerId} in attempt {AttemptId}",
+                        answer.Id,
+                        attemptId);
+                }
+            }
 
             return Result.Success(new BatchSubmitResponse
             {
@@ -751,18 +774,34 @@ public class StudentAttemptService : IStudentAttemptService
                 new Error("Attempt.NotInProgress", "This attempt is not in progress."));
 
         attempt.EndTime = DateTime.UtcNow;
-        attempt.Status = AttemptStatus.Completed;
+
+        // Check if there are any writing/speaking answers submitted
+        var hasAiAnswers = await _unitOfWork.AnswerRepository.FindAll(
+            a => a.AttemptId == attempt.Id &&
+                 (a.Question.Passage.SectionType == SectionTypes.Writing ||
+                  a.Question.Passage.SectionType == SectionTypes.Speaking))
+            .AnyAsync(cancellationToken);
+
+        // Set initial status
+        attempt.Status = hasAiAnswers ? AttemptStatus.AssessingByAI : AttemptStatus.AssessmentCompleted;
 
         _unitOfWork.StudentAttemptRepository.Update(attempt);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
+        // Queue status check if there are AI-graded answers
+        if (hasAiAnswers)
+        {
+            await _statusQueue.QueueStatusCheckAsync(attempt.Id);
+        }
+
         return await GetAttemptResultAsync(userId, request.AttemptId, cancellationToken);
     }
 
+
     public async Task<Result<AttemptResultResponse>> GetAttemptResultAsync(
-        int userId,
-        int attemptId,
-        CancellationToken cancellationToken = default)
+    int userId,
+    int attemptId,
+    CancellationToken cancellationToken = default)
     {
         var attempt = await _unitOfWork.StudentAttemptRepository
             .GetAttemptWithDetailsAsync(attemptId, cancellationToken);
@@ -770,15 +809,45 @@ public class StudentAttemptService : IStudentAttemptService
         if (attempt == null || attempt.UserId != userId)
             return Result.Failure<AttemptResultResponse>(Error.NotFound);
 
-        if (attempt.Status != AttemptStatus.Completed)
+        if (!attempt.EndTime.HasValue)
             return Result.Failure<AttemptResultResponse>(
-                new Error("Attempt.NotCompleted", "This attempt is not completed."));
+                new Error("Attempt.NotEnded", "This attempt has not been ended."));
 
-        // Calculate scores using VstepScoreCalculator
+        // Calculate available scores
         var score = await _scoreCalculator.CalculateScoreAsync(attempt, cancellationToken);
+        var answers = await GetAnswersWithAssessments(attempt, cancellationToken);
 
-        // Map answers and include assessments (writing and speaking)
+        var result = new AttemptResultResponse
+        {
+            Id = attempt.Id,
+            ExamTitle = attempt.Exam.Title!,
+            StartTime = attempt.StartTime,
+            EndTime = attempt.EndTime.Value,
+            Status = attempt.Status,
+            Answers = answers,
+            SectionScores = score.SectionScores.ToDictionary(
+                kvp => kvp.Key,
+                kvp => kvp.Value.Score),
+            FinalScore = score.FinalScore
+        };
+
+        // Update final score if completed
+        if (attempt.Status == AttemptStatus.AssessmentCompleted && attempt.FinalScore != score.FinalScore)
+        {
+            attempt.FinalScore = score.FinalScore;
+            _unitOfWork.StudentAttemptRepository.Update(attempt);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+        }
+
+        return Result.Success(result);
+    }
+
+    private async Task<List<AnswerResponse>> GetAnswersWithAssessments(
+        StudentAttempt attempt,
+        CancellationToken cancellationToken)
+    {
         var answers = new List<AnswerResponse>();
+
         foreach (var answer in attempt.Answers)
         {
             var answerResponse = _mapper.Map<AnswerResponse>(answer);
@@ -791,13 +860,7 @@ public class StudentAttemptService : IStudentAttemptService
 
                 if (writingAssessment != null)
                 {
-                    answerResponse.WritingScore = new WritingScoreDetails
-                    {
-                        TaskAchievement = writingAssessment.TaskAchievement,
-                        CoherenceCohesion = writingAssessment.CoherenceCohesion,
-                        LexicalResource = writingAssessment.LexicalResource,
-                        GrammarAccuracy = writingAssessment.GrammarAccuracy
-                    };
+                    answerResponse.WritingScore = _mapper.Map<WritingScoreDetails>(writingAssessment);
                 }
             }
             // Handle speaking assessments 
@@ -815,25 +878,7 @@ public class StudentAttemptService : IStudentAttemptService
             answers.Add(answerResponse);
         }
 
-
-        var result = new AttemptResultResponse
-        {
-            Id = attempt.Id,
-            ExamTitle = attempt.Exam.Title!,
-            StartTime = attempt.StartTime,
-            EndTime = attempt.EndTime!.Value,
-            Answers = answers,
-            SectionScores = score.SectionScores.ToDictionary(
-                kvp => kvp.Key,
-                kvp => kvp.Value.Score),
-            FinalScore = score.FinalScore
-        };
-
-        attempt.FinalScore = score.FinalScore; // Assuming FinalScore is a decimal value
-        _unitOfWork.StudentAttemptRepository.Update(attempt);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
-
-        return Result.Success(result);
+        return answers.OrderBy(a => a.QuestionId).ToList();
     }
 
     private async Task<HashSet<int>> GetValidQuestionIdsForScope(

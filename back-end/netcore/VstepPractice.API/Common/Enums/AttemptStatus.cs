@@ -2,7 +2,9 @@
 
 public enum AttemptStatus
 {
-    Started=-1,
+    Started = -1,
     InProgress = 0,
-    Completed = 1
+    Completed = 1,
+    AssessingByAI = 2,
+    AssessmentCompleted = 3
 }

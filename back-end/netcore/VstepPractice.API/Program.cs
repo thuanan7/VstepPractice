@@ -1,11 +1,25 @@
 using MicroElements.Swashbuckle.FluentValidation.AspNetCore;
+using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
+using Serilog;
 using System.Reflection;
 using VstepPractice.API.Data;
 using VstepPractice.API.DependencyInjection.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
+
+Log.Logger = new LoggerConfiguration()
+    .ReadFrom
+    .Configuration(builder.Configuration)
+    .WriteTo.ApplicationInsights(TelemetryConfiguration.Active, TelemetryConverter.Traces)
+    .CreateLogger();
+
+builder.Logging
+    .ClearProviders()
+    .AddSerilog();
+
+builder.Host.UseSerilog();
 
 // Load environment variables from .env file
 builder.Configuration.LoadEnv("../../../.env");
@@ -53,22 +67,28 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowNodejs", policy =>
     {
-        policy.WithOrigins("http://localhost:4001") 
+        policy.AllowAnyOrigin() 
               .AllowAnyMethod()
               .AllowAnyHeader();
     });
 });
 
+builder.Services.AddApplicationInsightsTelemetry();
+
 var app = builder.Build();
+
+app.UseSerilogRequestLogging();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.ConfigureSwagger();
+   // app.ConfigureSwagger();
     // app.ApplyMigration();
     // Dont need seedData
     // await app.SeedDataAsync();
 }
+
+app.ConfigureSwagger();
 
 app.UseCors("AllowNodejs");
 
@@ -78,4 +98,20 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-app.Run();
+try
+{
+    await app.RunAsync();
+    Log.Information("Stopped cleanly");
+}
+catch (Exception ex)
+{
+    Log.Fatal(ex, "An unhandled exception occured during the execution of the application");
+    await app.StopAsync();
+}
+finally
+{
+    Log.CloseAndFlush();
+    await app.DisposeAsync();
+}
+
+public partial class Program { }
