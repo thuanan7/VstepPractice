@@ -126,9 +126,9 @@ const AttemptStudent = () => {
       // navigate('/exam')
     }
   }
-  console.log('aaaa', examAttempt)
   if (isLoading) return <Box></Box>
   if (!examAttempt) return <Box>Không tạo được bài thi</Box>
+  // @ts-ignore
   return (
     <Container
       sx={{
@@ -144,10 +144,9 @@ const AttemptStudent = () => {
       <Box display="flex" alignItems="center">
         <Button
           variant="text"
-          color="darkColor"
           onClick={() => navigate('/exam')}
           startIcon={<ArrowBackIcon />}
-          sx={{ textTransform: 'none', mr: 2 }}
+          sx={{ textTransform: 'none', mr: 2, background: '#6C3483' }}
         />
         <Typography variant="h4" fontWeight="bold" gutterBottom>
           {examAttempt.examTitle}
@@ -188,7 +187,7 @@ const AttemptStudent = () => {
                     <TableCell align="center">
                       <Button
                         variant="text"
-                        onClick={() => handleOpenReviewModal(attempt.id)}
+                        onClick={() => handleOpenReviewModal(`${attempt.id}`)}
                       >
                         Xem kết quả
                       </Button>

@@ -298,10 +298,12 @@ export default class AxiosClient {
     } as AxiosRequestConfig
 
     if (data instanceof FormData) {
+      // @ts-ignore
       options_.headers['Content-Type'] = 'multipart/form-data'
       options_.data = data
     } else if (data !== null) {
       options_.data = JSON.stringify(data)
+      // @ts-ignore
       options_.headers['Content-Type'] = 'application/json'
     }
 
