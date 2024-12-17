@@ -158,5 +158,7 @@ public class AutoMapperProfile : Profile
             .ForMember(dest => dest.GrammarAccuracy, opt => opt.MapFrom(src => src.GrammarAccuracy))
             .ForMember(dest => dest.DetailedFeedback, opt => opt.MapFrom(src => src.DetailedFeedback))
             .ForMember(dest => dest.AssessedAt, opt => opt.MapFrom(src => DateTime.UtcNow));
+
+        CreateMap<WritingAssessment, WritingScoreDetails>();
     }
 }

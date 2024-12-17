@@ -7,7 +7,6 @@ using VstepPractice.API.Models.DTOs.StudentAttempts.Requests;
 using VstepPractice.API.Models.DTOs.StudentAttempts.Responses;
 using VstepPractice.API.Models.Entities;
 using VstepPractice.API.Repositories.Interfaces;
-using VstepPractice.API.Services.AI;
 using VstepPractice.API.Services.BackgroundServices;
 using VstepPractice.API.Services.ScoreCalculation;
 using VstepPractice.API.Services.Storage;
@@ -780,9 +779,9 @@ public class StudentAttemptService : IStudentAttemptService
 
 
     public async Task<Result<AttemptResultResponse>> GetAttemptResultAsync(
-        int userId,
-        int attemptId,
-        CancellationToken cancellationToken = default)
+    int userId,
+    int attemptId,
+    CancellationToken cancellationToken = default)
     {
         var attempt = await _unitOfWork.StudentAttemptRepository
             .GetAttemptWithDetailsAsync(attemptId, cancellationToken);
@@ -790,15 +789,45 @@ public class StudentAttemptService : IStudentAttemptService
         if (attempt == null || attempt.UserId != userId)
             return Result.Failure<AttemptResultResponse>(Error.NotFound);
 
-        if (attempt.Status != AttemptStatus.Completed)
+        if (!attempt.EndTime.HasValue)
             return Result.Failure<AttemptResultResponse>(
-                new Error("Attempt.NotCompleted", "This attempt is not completed."));
+                new Error("Attempt.NotEnded", "This attempt has not been ended."));
 
-        // Calculate scores using VstepScoreCalculator
+        // Calculate available scores
         var score = await _scoreCalculator.CalculateScoreAsync(attempt, cancellationToken);
+        var answers = await GetAnswersWithAssessments(attempt, cancellationToken);
 
-        // Map answers and include assessments (writing and speaking)
+        var result = new AttemptResultResponse
+        {
+            Id = attempt.Id,
+            ExamTitle = attempt.Exam.Title!,
+            StartTime = attempt.StartTime,
+            EndTime = attempt.EndTime.Value,
+            Status = attempt.Status,
+            Answers = answers,
+            SectionScores = score.SectionScores.ToDictionary(
+                kvp => kvp.Key,
+                kvp => kvp.Value.Score),
+            FinalScore = score.FinalScore
+        };
+
+        // Update final score if completed
+        if (attempt.Status == AttemptStatus.AssessmentCompleted && attempt.FinalScore != score.FinalScore)
+        {
+            attempt.FinalScore = score.FinalScore;
+            _unitOfWork.StudentAttemptRepository.Update(attempt);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+        }
+
+        return Result.Success(result);
+    }
+
+    private async Task<List<AnswerResponse>> GetAnswersWithAssessments(
+        StudentAttempt attempt,
+        CancellationToken cancellationToken)
+    {
         var answers = new List<AnswerResponse>();
+
         foreach (var answer in attempt.Answers)
         {
             var answerResponse = _mapper.Map<AnswerResponse>(answer);
@@ -811,13 +840,7 @@ public class StudentAttemptService : IStudentAttemptService
 
                 if (writingAssessment != null)
                 {
-                    answerResponse.WritingScore = new WritingScoreDetails
-                    {
-                        TaskAchievement = writingAssessment.TaskAchievement,
-                        CoherenceCohesion = writingAssessment.CoherenceCohesion,
-                        LexicalResource = writingAssessment.LexicalResource,
-                        GrammarAccuracy = writingAssessment.GrammarAccuracy
-                    };
+                    answerResponse.WritingScore = _mapper.Map<WritingScoreDetails>(writingAssessment);
                 }
             }
             // Handle speaking assessments 
@@ -835,25 +858,7 @@ public class StudentAttemptService : IStudentAttemptService
             answers.Add(answerResponse);
         }
 
-
-        var result = new AttemptResultResponse
-        {
-            Id = attempt.Id,
-            ExamTitle = attempt.Exam.Title!,
-            StartTime = attempt.StartTime,
-            EndTime = attempt.EndTime!.Value,
-            Answers = answers,
-            SectionScores = score.SectionScores.ToDictionary(
-                kvp => kvp.Key,
-                kvp => kvp.Value.Score),
-            FinalScore = score.FinalScore
-        };
-
-        attempt.FinalScore = score.FinalScore; // Assuming FinalScore is a decimal value
-        _unitOfWork.StudentAttemptRepository.Update(attempt);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
-
-        return Result.Success(result);
+        return answers.OrderBy(a => a.QuestionId).ToList();
     }
 
     private async Task<HashSet<int>> GetValidQuestionIdsForScope(
