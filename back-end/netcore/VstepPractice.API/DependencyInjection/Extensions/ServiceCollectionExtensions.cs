@@ -1,6 +1,5 @@
 ﻿using VstepPractice.API.Repositories.Implementations;
 using VstepPractice.API.Repositories.Interfaces;
-using VstepPractice.API.Services.AI;
 using VstepPractice.API.Services.BackgroundServices;
 using VstepPractice.API.Services.StudentAttempts;
 

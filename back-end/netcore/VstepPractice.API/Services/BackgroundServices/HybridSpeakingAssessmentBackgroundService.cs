@@ -4,7 +4,6 @@ using System.Threading.Channels;
 using VstepPractice.API.Models.DTOs.AI;
 using VstepPractice.API.Models.Entities;
 using VstepPractice.API.Repositories.Interfaces;
-using VstepPractice.API.Services.AI;
 using VstepPractice.API.Services.Speech;
 
 namespace VstepPractice.API.Services.BackgroundServices;

@@ -1,5 +1,5 @@
 ﻿using VstepPractice.API.Models.DTOs.AI;
-namespace VstepPractice.API.Services.AI;
+namespace VstepPractice.API.Services.BackgroundServices;
 
 public interface IEssayScoringQueue
 {
