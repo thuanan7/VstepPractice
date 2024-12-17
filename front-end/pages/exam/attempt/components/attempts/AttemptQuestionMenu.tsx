@@ -3,6 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom'
 import { selectPartsBySectionId } from '@/features/exam/attemptSelector.ts'
 import { useSelector } from 'react-redux'
 import QuizIcon from '@mui/icons-material/Quiz'
+
 const AttemptQuestionMenu = () => {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
@@ -14,6 +15,7 @@ const AttemptQuestionMenu = () => {
     newSearchParams.set('partId', String(partId))
     navigate(`?${newSearchParams.toString()}`)
   }
+
   return (
     <>
       <Box
@@ -66,7 +68,7 @@ const AttemptQuestionMenu = () => {
                 gap: 1,
               }}
             >
-              {part.questions.map((question) => (
+              {part.questions.map((question, index) => (
                 <Button
                   key={question.id}
                   variant="contained"
@@ -91,7 +93,7 @@ const AttemptQuestionMenu = () => {
                     textAlign: 'center',
                   }}
                 >
-                  {question.id}
+                  {index+1}
                 </Button>
               ))}
             </Box>

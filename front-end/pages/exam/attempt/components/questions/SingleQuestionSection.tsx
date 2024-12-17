@@ -24,7 +24,7 @@ const SingleQuestionSection = ({ questions }: SingleQuestionSectionProps) => {
 
   return (
     <>
-      {qu.map((question) => (
+      {qu.map((question, index) => (
         <Box
           key={question.id}
           sx={{
@@ -38,7 +38,7 @@ const SingleQuestionSection = ({ questions }: SingleQuestionSectionProps) => {
             variant="subtitle1"
             sx={{ fontWeight: 'bold', marginBottom: 1 }}
           >
-            Câu hỏi {question.id}
+            Câu hỏi {index+1}
           </Typography>
           <Typography
             sx={{

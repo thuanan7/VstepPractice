@@ -9,7 +9,12 @@ const ReadingSection = (props: ReadingSectionProps) => {
   const { part } = props
   return (
     <Typography variant="body1" gutterBottom>
-      {part?.content || ''}
+      {part?.content ? part.content.split('\n').map((line, index) => (
+        <span key={index}>
+          {line}
+          <br />
+        </span>
+      )) : ''}
     </Typography>
   )
 }
