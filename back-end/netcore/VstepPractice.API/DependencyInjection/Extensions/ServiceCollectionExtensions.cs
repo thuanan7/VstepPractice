@@ -43,5 +43,12 @@ public static class ServiceCollectionExtensions
             sp.GetRequiredService<HybridSpeakingAssessmentBackgroundService>());
         services.AddHostedService(sp =>
             sp.GetRequiredService<HybridSpeakingAssessmentBackgroundService>());
+
+        // Add status checking service
+        services.AddSingleton<AttemptStatusCheckingBackgroundService>();
+        services.AddSingleton<IAttemptStatusQueue>(sp =>
+            sp.GetRequiredService<AttemptStatusCheckingBackgroundService>());
+        services.AddHostedService(sp =>
+            sp.GetRequiredService<AttemptStatusCheckingBackgroundService>());
     }
 }

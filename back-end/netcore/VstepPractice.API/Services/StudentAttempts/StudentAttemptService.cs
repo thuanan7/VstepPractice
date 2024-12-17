@@ -8,6 +8,7 @@ using VstepPractice.API.Models.DTOs.StudentAttempts.Responses;
 using VstepPractice.API.Models.Entities;
 using VstepPractice.API.Repositories.Interfaces;
 using VstepPractice.API.Services.AI;
+using VstepPractice.API.Services.BackgroundServices;
 using VstepPractice.API.Services.ScoreCalculation;
 using VstepPractice.API.Services.Storage;
 using Exception = System.Exception;
@@ -23,12 +24,14 @@ public class StudentAttemptService : IStudentAttemptService
     private readonly IVstepScoreCalculator _scoreCalculator;
     private readonly ILogger<StudentAttemptService> _logger;
     private readonly IFileStorageService _storageService;
+    private readonly IAttemptStatusQueue _statusQueue;
 
     public StudentAttemptService(
         IUnitOfWork unitOfWork,
         IMapper mapper,
         IEssayScoringQueue scoringQueue,
         ISpeakingAssessmentQueue assessmentQueue,
+        IAttemptStatusQueue statusQueue,
         IVstepScoreCalculator scoreCalculator,
         IFileStorageService storageService,
         ILogger<StudentAttemptService> logger)
@@ -37,6 +40,7 @@ public class StudentAttemptService : IStudentAttemptService
         _mapper = mapper;
         _essayScoringQueue = scoringQueue;
         _speakingAssessmentQueue = assessmentQueue;
+        _statusQueue = statusQueue;
         _logger = logger;
         _scoreCalculator = scoreCalculator;
         _storageService = storageService;
@@ -751,13 +755,29 @@ public class StudentAttemptService : IStudentAttemptService
                 new Error("Attempt.NotInProgress", "This attempt is not in progress."));
 
         attempt.EndTime = DateTime.UtcNow;
-        attempt.Status = AttemptStatus.Completed;
+
+        // Check if there are any writing/speaking answers submitted
+        var hasAiAnswers = await _unitOfWork.AnswerRepository.FindAll(
+            a => a.AttemptId == attempt.Id &&
+                 (a.Question.Passage.SectionType == SectionTypes.Writing ||
+                  a.Question.Passage.SectionType == SectionTypes.Speaking))
+            .AnyAsync(cancellationToken);
+
+        // Set initial status
+        attempt.Status = hasAiAnswers ? AttemptStatus.AssessingByAI : AttemptStatus.AssessmentCompleted;
 
         _unitOfWork.StudentAttemptRepository.Update(attempt);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
+        // Queue status check if there are AI-graded answers
+        if (hasAiAnswers)
+        {
+            await _statusQueue.QueueStatusCheckAsync(attempt.Id);
+        }
+
         return await GetAttemptResultAsync(userId, request.AttemptId, cancellationToken);
     }
+
 
     public async Task<Result<AttemptResultResponse>> GetAttemptResultAsync(
         int userId,
