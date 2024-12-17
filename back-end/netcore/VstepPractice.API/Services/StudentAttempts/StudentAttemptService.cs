@@ -372,10 +372,10 @@ public class StudentAttemptService : IStudentAttemptService
     }
 
     public async Task<Result<BatchSubmitResponse>> BatchSubmitSpeakingAsync(
-        int userId,
-        int attemptId,
-        BatchSubmitSpeakingRequest request,
-        CancellationToken cancellationToken)
+    int userId,
+    int attemptId,
+    BatchSubmitSpeakingRequest request,
+    CancellationToken cancellationToken)
     {
         var attempt = await _unitOfWork.StudentAttemptRepository
             .FindByIdAsync(attemptId, cancellationToken);
@@ -511,16 +511,8 @@ public class StudentAttemptService : IStudentAttemptService
                         submission.AudioFile.FileName,
                         submission.AudioFile.ContentType);
 
-                    // Queue for assessment
-                    await _speakingAssessmentQueue.QueueAssessmentTaskAsync(new SpeakingAssessmentTask
-                    {
-                        AnswerId = answer.Id,
-                        AudioUrl = audioUrl,
-                        QuestionText = question.QuestionText ?? string.Empty
-                    });
-
                     answer.Score = null; // Reset score as it will be set by assessment
-                    answer.AiFeedback = audioUrl; // Reset feedback as it will be set by assessment
+                    answer.AiFeedback = audioUrl; // Store audio URL in AiFeedback
                     _unitOfWork.AnswerRepository.Update(answer);
 
                     processedAnswers.Add(answer);
@@ -545,6 +537,7 @@ public class StudentAttemptService : IStudentAttemptService
                 }
             }
 
+            // If there are validation errors, rollback
             if (validationErrors.Any())
             {
                 await _unitOfWork.RollbackAsync(cancellationToken);
@@ -556,8 +549,35 @@ public class StudentAttemptService : IStudentAttemptService
                 });
             }
 
+            // First save all answers to get their IDs
             await _unitOfWork.SaveChangesAsync(cancellationToken);
             await _unitOfWork.CommitAsync(cancellationToken);
+
+            // Re-fetch processed answers to ensure we have latest data
+            var savedAnswers = await _unitOfWork.AnswerRepository
+                .FindAll(a => processedAnswers.Select(pa => pa.Id).Contains(a.Id))
+                .Include(a => a.Question)
+                .ToListAsync(cancellationToken);
+
+            // Now queue assessments with saved answer IDs
+            foreach (var answer in savedAnswers)
+            {
+                if (answer.Id > 0) // Make sure answer has valid ID
+                {
+                    await _speakingAssessmentQueue.QueueAssessmentTaskAsync(
+                        new SpeakingAssessmentTask
+                        {
+                            AnswerId = answer.Id,
+                            AudioUrl = answer.AiFeedback!, // URL is stored in AiFeedback
+                            QuestionText = answer.Question.QuestionText ?? string.Empty
+                        });
+
+                    _logger.LogInformation(
+                        "Queued assessment for answer {AnswerId} in attempt {AttemptId}",
+                        answer.Id,
+                        attemptId);
+                }
+            }
 
             return Result.Success(new BatchSubmitResponse
             {
