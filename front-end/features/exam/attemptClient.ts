@@ -4,6 +4,7 @@ import {
   IAttemptExam,
   IAttemptStudentAnswer,
   IErrorAPI,
+  IReviewResultData,
   IStartStudentAttempt,
   ISubmitStudentAttempt,
   ISumaryAttemptExam,
@@ -21,6 +22,20 @@ export default class AttemptClient extends APIClient {
       })
   }
 
+  getAttemptResultById(
+    attemptId: string,
+    cancelToken?: any,
+  ): Promise<IReviewResultData | undefined> {
+    const subParams = getUrlGet(attemptConfigs.getAttemptResult, {
+      id: attemptId,
+    })
+    return super.get(subParams, undefined, cancelToken).then((r) => {
+      if (r?.success) {
+        return r?.data as IReviewResultData
+      }
+      return undefined
+    })
+  }
   getSummaryAttemptsByExamId(
     examId: string,
     cancelToken?: any,
@@ -95,7 +110,7 @@ export default class AttemptClient extends APIClient {
     })
 
     const formData = new FormData()
-    formData.append('section', answer.sectionType.toString())
+    formData.append('sectionType', answer.sectionType.toString())
     formData.append('partId', answer.partId.toString())
     formData.append('type', partType.toString())
     answer.questions.forEach((question, index) => {

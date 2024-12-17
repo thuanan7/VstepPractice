@@ -11,8 +11,6 @@ import {
   Typography,
 } from '@mui/material'
 import MenuIcon from '@mui/icons-material/Menu'
-
-import AccountCircleIcon from '@mui/icons-material/AccountCircle'
 import LogoutIcon from '@mui/icons-material/Logout'
 import { AdminLayoutProps } from './AdminLayout'
 import { useLocation, useNavigate } from 'react-router-dom'
@@ -101,12 +99,6 @@ const AdminHeader = (props: AdminLayoutProps) => {
                 },
               }}
             >
-              <MenuItem>
-                <ListItemIcon>
-                  <AccountCircleIcon fontSize="small" />
-                </ListItemIcon>
-                Profile
-              </MenuItem>
               <Divider />
               <MenuItem onClick={handleLogout}>
                 <ListItemIcon>

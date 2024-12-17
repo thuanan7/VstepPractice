@@ -152,3 +152,43 @@ export interface IErrorAPI {
   success: boolean
   message: string
 }
+export interface IReviewSectionScores {
+  Listening: number
+  Reading: number
+  Writing: number
+  Speaking: number
+}
+
+export interface IReviewWritingScore {
+  taskAchievement: number
+  coherenceCohesion: number
+  lexicalResource: number
+  grammarAccuracy: number
+  totalScore: number
+}
+
+export interface IReviewAnswer {
+  id: number
+  questionId: number
+  questionText: string
+  passageTitle: string
+  passageContent: string
+  questionOptionId: number | null
+  essayAnswer: string | null
+  aiFeedback: string | null
+  score: number | null
+  isCorrect: boolean
+  sectionType: number
+  writingScore: IReviewWritingScore | null
+  speakingScore: number | null
+}
+
+export interface IReviewResultData {
+  id: number
+  examTitle: string
+  startTime: string
+  endTime: string
+  sectionScores: IReviewSectionScores
+  finalScore: number
+  answers: IReviewAnswer[]
+}

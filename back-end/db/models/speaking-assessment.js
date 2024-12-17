@@ -58,6 +58,10 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.DECIMAL(4, 2),
         allowNull: false,
       },
+      transcribedText: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+      },
       transcribedFeedback: {
         type: DataTypes.TEXT,
         allowNull: true,

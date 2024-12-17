@@ -371,6 +371,7 @@ module.exports = {
       topicScore: Sequelize.DECIMAL(4, 2),
       prosody: Sequelize.DECIMAL(4, 2),
       transcribedFeedback: Sequelize.TEXT,
+      transcribedText: Sequelize.TEXT,
       audioUrl: Sequelize.STRING,
       assessedAt: Sequelize.DATE,
       answerId: {

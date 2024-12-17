@@ -20,6 +20,7 @@ import {
   Container,
 } from '@mui/material'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
+import ReviewModal from '@/pages/exam/attempt/components/attempts/ReviewModal.tsx'
 
 const AttemptStudent = () => {
   const dispatch = useDispatch()
@@ -31,6 +32,10 @@ const AttemptStudent = () => {
     ISummaryStudentAttempt | undefined
   >(undefined)
   const [isLoading, setIsLoading] = useState(true)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [selectedAttemptId, setSelectedAttemptId] = useState<string | null>(
+    null,
+  )
 
   useEffect(() => {
     if (!id || isNaN(Number(id))) {
@@ -82,6 +87,16 @@ const AttemptStudent = () => {
       toast.error('Hiện tại đang thiếu thông tin để start bài thi')
     }
   }
+
+  const handleOpenReviewModal = (attemptId: string) => {
+    setSelectedAttemptId(attemptId)
+    setIsModalOpen(true)
+  }
+
+  const handleCloseReviewModal = () => {
+    setIsModalOpen(false)
+    setSelectedAttemptId(null)
+  }
   const handleExamConfig = (response: IAttemptExam[] | undefined) => {
     try {
       if (!response) {
@@ -113,6 +128,7 @@ const AttemptStudent = () => {
   }
   if (isLoading) return <Box></Box>
   if (!examAttempt) return <Box>Không tạo được bài thi</Box>
+  // @ts-ignore
   return (
     <Container
       sx={{
@@ -120,13 +136,17 @@ const AttemptStudent = () => {
         padding: 4,
       }}
     >
+      <ReviewModal
+        open={isModalOpen}
+        onClose={handleCloseReviewModal}
+        attemptId={selectedAttemptId}
+      />
       <Box display="flex" alignItems="center">
         <Button
           variant="text"
-          color="darkColor"
           onClick={() => navigate('/exam')}
           startIcon={<ArrowBackIcon />}
-          sx={{ textTransform: 'none', mr: 2 }}
+          sx={{ textTransform: 'none', mr: 2, background: '#6C3483' }}
         />
         <Typography variant="h4" fontWeight="bold" gutterBottom>
           {examAttempt.examTitle}
@@ -165,7 +185,12 @@ const AttemptStudent = () => {
                       {attempt.finalScore}/10
                     </TableCell>
                     <TableCell align="center">
-                      <Button variant="text">Xem lại</Button>
+                      <Button
+                        variant="text"
+                        onClick={() => handleOpenReviewModal(`${attempt.id}`)}
+                      >
+                        Xem kết quả
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))

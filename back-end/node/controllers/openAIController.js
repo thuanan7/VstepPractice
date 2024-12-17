@@ -191,7 +191,7 @@ openAIController.resultStudentAnswer = async (req, res) => {
     let id = isNaN(req.params.attemptId)
       ? 0
       : parseInt(`${req.params.attemptId}`)
-    const userId = req.query.userId
+    const userId = req.user.id
     if (id > 0 && userId) {
       const host = `${hostNetCore}/StudentAttempt/${id}/result?userId=${userId}`
       const token = getGatewayJwtToken()
@@ -203,7 +203,11 @@ openAIController.resultStudentAnswer = async (req, res) => {
           Authorization: `Bearer ${token}`,
         },
       })
-      res.status(response.status).json(response.data)
+      res.status(response.status).json({
+        data: response.data,
+        success: true,
+        message: 'Get result successfully',
+      })
     } else {
       res.status(500).json({ error: 'Please send your attemptId and userId' })
     }
@@ -241,7 +245,7 @@ openAIController.submitStudentSection = async (req, res) => {
             Authorization: `Bearer ${token}`,
           },
         })
-        res.status(response.status).json(response.data)
+        res.status(response.status).json({ data: response.data, success: true })
       } else {
         return res
           .status(500)
