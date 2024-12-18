@@ -27,7 +27,7 @@ const SpeakingQuestionSection = ({ questions }: SingleQuestionSectionProps) => {
   }
 
   const handlePlayAudio = (questionId: number, audioBlob: Blob) => {
-    const blobUrl = URL.createObjectURL(audioBlob);
+    const blobUrl = URL.createObjectURL(audioBlob)
     const audio = new Audio(blobUrl)
     setPlayingQuestionId(questionId)
     audio.play()
@@ -101,6 +101,7 @@ const SpeakingQuestionSection = ({ questions }: SingleQuestionSectionProps) => {
                   if (playingQuestionId === question.id) {
                     setPlayingQuestionId(null)
                   } else {
+                    // @ts-ignore
                     handlePlayAudio(question.id, answerDictionary[question.id])
                   }
                 }}
@@ -169,12 +170,12 @@ const AudioRecorder = ({ questionId, onSave }: AudioRecorderProps) => {
       }
 
       mediaRecorder.onstop = () => {
-        const audioBlob = new Blob(audioChunks.current, { type: "audio/wav" });
-        const blobUrl = URL.createObjectURL(audioBlob);
-        setAudioUrl(blobUrl);
-        onSave(questionId, audioBlob); // Pass the recorded audio back
-        setRemainingTime(120); // Reset timer
-      };
+        const audioBlob = new Blob(audioChunks.current, { type: 'audio/wav' })
+        const blobUrl = URL.createObjectURL(audioBlob)
+        setAudioUrl(blobUrl)
+        onSave(questionId, audioBlob) // Pass the recorded audio back
+        setRemainingTime(120) // Reset timer
+      }
 
       mediaRecorder.start()
       setIsRecording(true)
