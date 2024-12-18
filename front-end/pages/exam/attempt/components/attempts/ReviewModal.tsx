@@ -273,7 +273,7 @@ const ReviewModal: React.FC<ReviewModalProps> = ({
               <CircularProgress />
             </Box>
           ) : resultData ? (
-            <Box position={'relative'}>
+            <Box position={'relative'} flex={1} width={'100%'}>
               <Box
                 mt={2}
                 display="flex"
