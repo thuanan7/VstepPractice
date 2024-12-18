@@ -13,6 +13,7 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  Grid,
   Paper,
 } from '@mui/material'
 import { toast } from 'react-hot-toast'
@@ -59,31 +60,179 @@ const ReviewModal: React.FC<ReviewModalProps> = ({
     } else if (answer.sectionType === 3 && answer.writingScore) {
       // Writing
       return (
-        <Box>
-          <Typography variant="body2" color="textSecondary">
-            {`Task: ${answer.writingScore.taskAchievement} | Cohesion: ${answer.writingScore.coherenceCohesion}`}
-          </Typography>
-          <Typography variant="body2" color="textSecondary">
-            {`Lexical: ${answer.writingScore.lexicalResource} | Grammar: ${answer.writingScore.grammarAccuracy}`}
-          </Typography>
-          <Typography variant="body2" color="textSecondary">
-            {`Total: ${answer.writingScore.totalScore}`}
-          </Typography>
-          <Typography variant="caption" color="primary">
-            {answer.aiFeedback || 'No Feedback'}
-          </Typography>
-        </Box>
+        <Grid container>
+          <Grid item xs={6} textAlign={'left'}>
+            <Typography variant="body2" color="textSecondary" component="span">
+              {`Hoàn thành: `}
+            </Typography>
+            <Typography
+              variant="body2"
+              color="error"
+              component="span"
+              fontWeight="bold"
+            >
+              {`${answer.writingScore.taskAchievement}`}
+            </Typography>
+          </Grid>
+          <Grid item xs={6} textAlign={'left'}>
+            <Typography variant="body2" color="textSecondary" component="span">
+              {`Mạch lạc: `}
+            </Typography>
+            <Typography
+              variant="body2"
+              color="error"
+              component="span"
+              fontWeight="bold"
+            >
+              {`${answer.writingScore.coherenceCohesion}`}
+            </Typography>
+          </Grid>
+
+          <Grid item xs={6} textAlign={'left'}>
+            <Typography variant="body2" color="textSecondary" component="span">
+              {`Từ vựng: `}
+            </Typography>
+            <Typography
+              variant="body2"
+              color="error"
+              component="span"
+              fontWeight="bold"
+            >
+              {`${answer.writingScore.lexicalResource}`}
+            </Typography>
+          </Grid>
+          <Grid item xs={6} textAlign={'left'}>
+            <Typography variant="body2" color="textSecondary" component="span">
+              {`Ngữ pháp: `}
+            </Typography>
+            <Typography
+              variant="body2"
+              color="error"
+              component="span"
+              fontWeight="bold"
+            >
+              {`${answer.writingScore.grammarAccuracy}`}
+            </Typography>
+          </Grid>
+
+          <Grid item xs={12} textAlign={'right'}>
+            <Typography variant="body2" color="textSecondary" component="span">
+              {`Tổng điểm: `}
+            </Typography>
+            <Typography
+              variant="body2"
+              color="error"
+              component="span"
+              fontWeight="bold"
+            >
+              {`${answer.writingScore.totalScore}`}
+            </Typography>
+          </Grid>
+        </Grid>
       )
-    } else if (answer.sectionType === 4) {
+    } else if (answer.sectionType === 4 && answer.speakingScore) {
       // Speaking
+      const {
+        pronunciation,
+        fluency,
+        accuracy,
+        prosody,
+        vocabulary,
+        totalScore,
+        audioUrl,
+      } = answer.speakingScore
       return (
-        <a
-          href={answer.aiFeedback || '#'}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Nghe Feedback
-        </a>
+        <Grid container>
+          <Grid item xs={6} textAlign={'left'}>
+            <Typography variant="body2" color="textSecondary" component="span">
+              {`Phát âm: `}
+            </Typography>
+            <Typography
+              variant="body2"
+              color="error"
+              component="span"
+              fontWeight="bold"
+            >
+              {`${pronunciation}`}
+            </Typography>
+          </Grid>
+          <Grid item xs={6} textAlign={'left'}>
+            <Typography variant="body2" color="textSecondary" component="span">
+              {`Lưu loát: `}
+            </Typography>
+            <Typography
+              variant="body2"
+              color="error"
+              component="span"
+              fontWeight="bold"
+            >
+              {`${fluency}`}
+            </Typography>
+          </Grid>
+
+          <Grid item xs={6} textAlign={'left'}>
+            <Typography variant="body2" color="textSecondary" component="span">
+              {`Độ chính xác: `}
+            </Typography>
+            <Typography
+              variant="body2"
+              color="error"
+              component="span"
+              fontWeight="bold"
+            >
+              {`${accuracy}`}
+            </Typography>
+          </Grid>
+          <Grid item xs={6} textAlign={'left'}>
+            <Typography variant="body2" color="textSecondary" component="span">
+              {`Ngữ điệu: `}
+            </Typography>
+            <Typography
+              variant="body2"
+              color="error"
+              component="span"
+              fontWeight="bold"
+            >
+              {`${prosody}`}
+            </Typography>
+          </Grid>
+
+          <Grid item xs={6} textAlign={'left'}>
+            <Typography variant="body2" color="textSecondary" component="span">
+              {`Từ vựng: `}
+            </Typography>
+            <Typography
+              variant="body2"
+              color="error"
+              component="span"
+              fontWeight="bold"
+            >
+              {`${vocabulary}`}
+            </Typography>
+          </Grid>
+
+          {audioUrl && (
+            <Grid item xs={12} style={{ textAlign: 'right' }}>
+              <a href={audioUrl} target="_blank" rel="noopener noreferrer">
+                <Typography
+                  variant="body2"
+                  color="textSecondary"
+                  component="span"
+                >
+                  {`Tổng điểm: `}
+                </Typography>
+                <Typography
+                  variant="body2"
+                  color="error"
+                  component="span"
+                  fontWeight="bold"
+                >
+                  {`${totalScore}`}
+                </Typography>
+              </a>
+            </Grid>
+          )}
+        </Grid>
       )
     }
     return 'N/A'
@@ -104,9 +253,10 @@ const ReviewModal: React.FC<ReviewModalProps> = ({
             top: '50%',
             left: '50%',
             transform: 'translate(-50%, -50%)',
-            width: 900,
+            width: { xs: '95%', sm: '90%', md: '80%', lg: '70%' },
             maxHeight: '90vh',
-            overflowY: 'auto',
+            overflowY: 'hidden',
+            display: 'flex',
             bgcolor: 'background.paper',
             boxShadow: 24,
             p: 4,
@@ -114,11 +264,28 @@ const ReviewModal: React.FC<ReviewModalProps> = ({
           }}
         >
           {loading ? (
-            <Box display="flex" justifyContent="center">
+            <Box
+              display="flex"
+              justifyContent="center"
+              alignItems={'center'}
+              flex={1}
+            >
               <CircularProgress />
             </Box>
           ) : resultData ? (
-            <Box>
+            <Box position={'relative'}>
+              <Box
+                mt={2}
+                display="flex"
+                justifyContent="flex-end"
+                position={'absolute'}
+                right={0}
+                top={0}
+              >
+                <Button variant="contained" color="primary" onClick={onClose}>
+                  Đóng
+                </Button>
+              </Box>
               <Typography variant="h6" fontWeight="bold" gutterBottom>
                 Kết quả bài thi: {resultData.examTitle}
               </Typography>
@@ -129,21 +296,85 @@ const ReviewModal: React.FC<ReviewModalProps> = ({
                 Kết thúc: {new Date(resultData.endTime).toLocaleString()}
               </Typography>
               <Typography variant="body1" gutterBottom>
-                Điểm tổng: {resultData.finalScore} / 10
+                Điểm tổng:{' '}
+                <Typography
+                  component="span"
+                  variant="body1"
+                  color={resultData.finalScore ? 'error' : 'textSecondary'}
+                  fontWeight={resultData.finalScore ? 'bold' : 'normal'}
+                >
+                  {resultData.finalScore} / 10
+                </Typography>
+              </Typography>
+
+              <Typography variant="body2" color="textSecondary" gutterBottom>
+                Listening:{' '}
+                <Typography
+                  component="span"
+                  color={
+                    resultData.sectionScores?.Listening
+                      ? 'error'
+                      : 'textSecondary'
+                  }
+                  fontWeight={
+                    resultData.sectionScores?.Listening ? 'bold' : 'normal'
+                  }
+                >
+                  {resultData.sectionScores?.Listening || 0}
+                </Typography>
               </Typography>
               <Typography variant="body2" color="textSecondary" gutterBottom>
-                Listening: {resultData.sectionScores?.Listening || 0}
+                Reading:{' '}
+                <Typography
+                  component="span"
+                  color={
+                    resultData.sectionScores?.Reading
+                      ? 'error'
+                      : 'textSecondary'
+                  }
+                  fontWeight={
+                    resultData.sectionScores?.Reading ? 'bold' : 'normal'
+                  }
+                >
+                  {resultData.sectionScores?.Reading || 0}
+                </Typography>
               </Typography>
               <Typography variant="body2" color="textSecondary" gutterBottom>
-                Reading: {resultData.sectionScores?.Reading || 0}
+                Writing:{' '}
+                <Typography
+                  component="span"
+                  color={
+                    resultData.sectionScores?.Writing
+                      ? 'error'
+                      : 'textSecondary'
+                  }
+                  fontWeight={
+                    resultData.sectionScores?.Writing ? 'bold' : 'normal'
+                  }
+                >
+                  {resultData.sectionScores?.Writing || 0}
+                </Typography>
               </Typography>
               <Typography variant="body2" color="textSecondary" gutterBottom>
-                Writing: {resultData.sectionScores?.Writing || 0}
+                Speaking:{' '}
+                <Typography
+                  component="span"
+                  color={
+                    resultData.sectionScores?.Speaking
+                      ? 'error'
+                      : 'textSecondary'
+                  }
+                  fontWeight={
+                    resultData.sectionScores?.Speaking ? 'bold' : 'normal'
+                  }
+                >
+                  {resultData.sectionScores?.Speaking || 0}
+                </Typography>
               </Typography>
-              <Typography variant="body2" color="textSecondary" gutterBottom>
-                Speaking: {resultData.sectionScores?.Speaking || 0}
-              </Typography>
-              <TableContainer component={Paper} sx={{ maxHeight: 400, mt: 2 }}>
+              <TableContainer
+                component={Paper}
+                sx={{ maxHeight: 'calc(100% - 250px)', mt: 2 }}
+              >
                 <Table stickyHeader>
                   <TableHead>
                     <TableRow>
@@ -166,9 +397,23 @@ const ReviewModal: React.FC<ReviewModalProps> = ({
                             {answer.passageTitle}
                           </TableCell>
                           <TableCell align="center">
-                            {answer.writingScore?.totalScore ||
-                              answer.score ||
-                              'N/A'}
+                            <Typography
+                              variant="body2"
+                              color={
+                                answer.writingScore?.totalScore || answer.score
+                                  ? 'error'
+                                  : 'textSecondary'
+                              }
+                              fontWeight={
+                                answer.writingScore?.totalScore || answer.score
+                                  ? 'bold'
+                                  : 'normal'
+                              }
+                            >
+                              {answer.writingScore?.totalScore ||
+                                answer.score ||
+                                'N/A'}
+                            </Typography>
                           </TableCell>
                           <TableCell align="center">
                             {renderResultCell(answer)}
@@ -179,11 +424,6 @@ const ReviewModal: React.FC<ReviewModalProps> = ({
                   </TableBody>
                 </Table>
               </TableContainer>
-              <Box mt={2} display="flex" justifyContent="flex-end">
-                <Button variant="contained" color="primary" onClick={onClose}>
-                  Đóng
-                </Button>
-              </Box>
             </Box>
           ) : (
             <Typography textAlign="center" color="error">

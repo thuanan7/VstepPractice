@@ -11,6 +11,6 @@ public class AttemptDetailResponse
     
     public int SectionId { get; set; }
     public int Duration { get; set; }
-    public AttemptStatus Status => EndTime.HasValue ? AttemptStatus.Completed : AttemptStatus.InProgress;
+    public AttemptStatus Status  { get; set; }
 
 }

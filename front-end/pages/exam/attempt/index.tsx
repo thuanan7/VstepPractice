@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { toast } from 'react-hot-toast'
 import { attemptRequest } from '@/app/api'
-import { useNavigate, useLocation, useParams } from 'react-router-dom'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { IAttemptExam, ISummaryStudentAttempt } from '@/features/exam/type'
 import { AttemptStatusType } from '@/features/exam/configs'
 import { useDispatch } from 'react-redux'
@@ -9,6 +9,7 @@ import { setAttempt } from '@/features/exam/attemptSlice'
 import {
   Box,
   Button,
+  Container,
   Paper,
   Table,
   TableBody,
@@ -17,7 +18,6 @@ import {
   TableHead,
   TableRow,
   Typography,
-  Container,
 } from '@mui/material'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import ReviewModal from '@/pages/exam/attempt/components/attempts/ReviewModal.tsx'
@@ -180,17 +180,28 @@ const AttemptStudent = () => {
                 examAttempt.attempts.map((attempt, index) => (
                   <TableRow key={index}>
                     <TableCell align="center">{index + 1}</TableCell>
-                    <TableCell align="center">Kết thúc</TableCell>
+                    <TableCell align="center">
+                      {attempt.status === AttemptStatusType.AssessmentCompleted
+                        ? 'Hoàn thành chấm điểm'
+                        : attempt.status === AttemptStatusType.AssessingByAI
+                          ? 'AI đang xử lý'
+                          : '_'}
+                    </TableCell>
                     <TableCell align="center">
                       {attempt.finalScore}/10
                     </TableCell>
                     <TableCell align="center">
-                      <Button
-                        variant="text"
-                        onClick={() => handleOpenReviewModal(`${attempt.id}`)}
-                      >
-                        Xem kết quả
-                      </Button>
+                      {attempt.status ===
+                      AttemptStatusType.AssessmentCompleted ? (
+                        <Button
+                          variant="text"
+                          onClick={() => handleOpenReviewModal(`${attempt.id}`)}
+                        >
+                          Xem kết quả
+                        </Button>
+                      ) : (
+                        '_'
+                      )}
                     </TableCell>
                   </TableRow>
                 ))

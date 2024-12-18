@@ -43,8 +43,10 @@ public class StudentAttemptRepository : RepositoryBase<StudentAttempt, int>, ISt
     {
         return await _context.StudentAttempts.Where(a =>
                 a.UserId == userId &&
-                a.ExamId == examId && 
-                (a.Status == AttemptStatus.Completed || a.EndTime != null))
+                a.ExamId == examId &&
+                a.EndTime != null &&
+                a.Status != AttemptStatus.Started &&
+                a.Status != AttemptStatus.InProgress)
             .ToListAsync(cancellationToken);
     }
 

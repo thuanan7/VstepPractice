@@ -122,6 +122,7 @@ export interface ISummaryAttempt {
   startTime: string
   endTime?: string
   finalScore: number
+  status: AttemptStatusType
 }
 export interface IAttemptStudentAnswer {
   sectionType: SectionType
@@ -159,6 +160,18 @@ export interface IReviewSectionScores {
   Speaking: number
 }
 
+export interface IReviewSpeakingScore {
+  pronunciation: number
+  fluency: number
+  accuracy: number
+  prosody: number
+  vocabulary: number
+  topicScore: number
+  totalScore: number
+  audioUrl: string | null
+  transcribedText: string
+}
+
 export interface IReviewWritingScore {
   taskAchievement: number
   coherenceCohesion: number
@@ -180,7 +193,7 @@ export interface IReviewAnswer {
   isCorrect: boolean
   sectionType: number
   writingScore: IReviewWritingScore | null
-  speakingScore: number | null
+  speakingScore: IReviewSpeakingScore | null
 }
 
 export interface IReviewResultData {

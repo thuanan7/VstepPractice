@@ -52,6 +52,8 @@ export enum AttemptStatusType {
   Started = -1,
   InProgress = 0,
   Completed = 1,
+  AssessingByAI = 2,
+  AssessmentCompleted = 3,
 }
 
 export enum KEY_SUBMIT_RESPONSE {
