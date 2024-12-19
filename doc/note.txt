@@ -12,6 +12,11 @@
 4. install npm/yarn/pnpm (any for install node_modules + run app)
 5. dotnet cli (need if use macosx)
 ------------------------------------------------------------------------------------------------------------------------
+host: https://tkpm-jgi6.onrender.com
+------------------------------------------------------------------------------------------------------------------------
+Doc:
+https://studenthcmusedu-my.sharepoint.com/personal/21810201_student_hcmus_edu_vn/_layouts/15/onedrive.aspx?id=%2Fpersonal%2F21810201%5Fstudent%5Fhcmus%5Fedu%5Fvn%2FDocuments%2FTKPM2024&ga=1
+------------------------------------------------------------------------------------------------------------------------
 ***** Run app:
 1. Clone source form GitLab with url: git@gitlab.com:nguyenromio/tkpm.git
 
