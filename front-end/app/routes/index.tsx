@@ -4,10 +4,8 @@ import {
   LoginPage,
   ExamPage,
   QuestionPage,
-  AdminPage,
   StudentExamAttemptPage,
-  StudentExamResultPage,
-  StudentExamSubmitPage,
+  StudentStartAttemptPage,
   StudentExamPage,
   NotFoundPage,
 } from '@/pages'
@@ -27,7 +25,7 @@ export const routes: RouteObject[] = [
         index: true,
         element: (
           <PrivateRoute>
-            <AdminPage />
+            <ExamPage />
           </PrivateRoute>
         ),
       },
@@ -80,7 +78,7 @@ export const routes: RouteObject[] = [
         ),
       },
       {
-        path: ':id/attempt',
+        path: ':id/attempts',
         element: (
           <PrivateRoute>
             <StudentExamAttemptPage />
@@ -88,18 +86,10 @@ export const routes: RouteObject[] = [
         ),
       },
       {
-        path: ':id/result',
+        path: ':id/attempts/start',
         element: (
           <PrivateRoute>
-            <StudentExamResultPage />
-          </PrivateRoute>
-        ),
-      },
-      {
-        path: ':id/submit',
-        element: (
-          <PrivateRoute>
-            <StudentExamSubmitPage />
+            <StudentStartAttemptPage />
           </PrivateRoute>
         ),
       },
@@ -107,6 +97,10 @@ export const routes: RouteObject[] = [
   },
   {
     path: '*',
+    element: <Navigate to="/404" replace />,
+  },
+  {
+    path: '/404',
     element: <NotFoundPage />,
   },
 ]
@@ -114,7 +108,8 @@ export const routes: RouteObject[] = [
 export const allowedRoutes = {
   [Role.STUDENT]: [
     '/exam',
-    '/exam/:id/attempt',
+    '/exam/:id/attempts',
+    '/exam/:id/attempts/start',
     '/exam/:id/submit',
     '/exam/:id/result',
   ],

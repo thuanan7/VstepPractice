@@ -16,4 +16,5 @@ public class AnswerResponse
     public bool IsCorrect { get; set; }
     public SectionTypes SectionType { get; set; }
     public WritingScoreDetails? WritingScore { get; set; }
+    public SpeakingScoreDetails? SpeakingScore { get; set; }
 }

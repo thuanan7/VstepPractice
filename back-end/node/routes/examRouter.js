@@ -2,6 +2,7 @@
 const express = require('express')
 const router = express.Router()
 const examController = require('../controllers/examController')
+const authMiddleware = require('../middlewares/authMiddleware')
 /**
  * @swagger
  * tags:
@@ -21,4 +22,7 @@ const examController = require('../controllers/examController')
  *         description: Thành công
  */
 router.get('/', examController.getAllExam)
+router.post('/', authMiddleware, examController.createEmptyExam)
+router.put('/:id', authMiddleware, examController.updateExam)
+router.delete('/:id', authMiddleware, examController.deleteExam)
 module.exports = router

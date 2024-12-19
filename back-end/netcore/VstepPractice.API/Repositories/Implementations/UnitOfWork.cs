@@ -15,9 +15,12 @@ public class UnitOfWork : IUnitOfWork
     private IExamRepository? _examRepository;
     private IQuestionOptionRepository? _questionOptionRepository;
     private IStudentAttemptRepository? _studentAttemptRepository;
+    private IStudentAttemptDetailRepository? _studentAttemptDetailRepository;
     private IAnswerRepository? _answerRepository;
     private IQuestionRepository? _questionRepository;
     private IWritingAssessmentRepository? _writingAssessmentRepository;
+    private ISpeakingAssessmentRepository? _speakingAssessmentRepository;
+    private ISectionPartRepository? _sectionPartRepository;
 
     public UnitOfWork(
         ApplicationDbContext context) // Inject các dependencies cần thiết
@@ -33,7 +36,8 @@ public class UnitOfWork : IUnitOfWork
 
     public IStudentAttemptRepository StudentAttemptRepository =>
         _studentAttemptRepository ??= new StudentAttemptRepository(_context);
-
+    public IStudentAttemptDetailRepository StudentAttemptDetailRepository =>
+        _studentAttemptDetailRepository ??= new StudentAttemptDetailRepository(_context);
     public IAnswerRepository AnswerRepository =>
         _answerRepository ??= new AnswerRepository(_context);
 
@@ -41,6 +45,11 @@ public class UnitOfWork : IUnitOfWork
 
     public IWritingAssessmentRepository WritingAssessmentRepository =>
         _writingAssessmentRepository ??= new WritingAssessmentRepository(_context);
+
+    public ISpeakingAssessmentRepository SpeakingAssessmentRepository =>
+        _speakingAssessmentRepository ??= new SpeakingAssessmentRepository(_context);
+
+    public ISectionPartRepository SectionPartRepository => _sectionPartRepository ??= new SectionPartRepository(_context);
     public async Task BeginTransactionAsync(CancellationToken cancellationToken = default)
     {
         if (_transaction != null)

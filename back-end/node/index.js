@@ -17,12 +17,12 @@ const basePath = path.resolve(__dirname, '../..')
 app.use(cors())
 app.use(express.static(basePath + '/dist'))
 app.use(express.json())
-app.use(express.urlencoded({ extended: false }))
+app.use(express.urlencoded({ extended: true }))
 
 app.use(
   session({
     store: new RedisStore({ client: redisClient }),
-    secret: process.env.REDIS_URL,
+    secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
   }),
@@ -30,13 +30,18 @@ app.use(
 
 app.use(express.json())
 app.use(passport.initialize())
-
 app.use('/swagger', swaggerUi.serve, swaggerUi.setup(swaggerDocs))
+app.use('/api/uploads', express.static(path.join(__dirname, 'uploads')))
 app.use('/', require('./routes/rootRouter'))
 app.use('/api/users', require('./routes/authRouter'))
 app.use('/api/exams', require('./routes/examRouter'))
 app.use('/api/section-parts', require('./routes/sectionPartRouter'))
+app.use('/api/questions', require('./routes/questionRouter'))
+app.use('/api/attempts', require('./routes/attemptRouter'))
 app.use('/api/ai', require('./routes/openAIRouter'))
+app.get('*', (req, res) => {
+  res.sendFile(path.join(basePath, 'dist', 'index.html'))
+})
 app.use(errorHandler)
 app.listen(port, () => {
   console.log(`server start at port: ${port}`)

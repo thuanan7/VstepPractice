@@ -2,33 +2,32 @@ import React, { useEffect, useState } from 'react'
 import {
   Box,
   Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
-  TextField,
   IconButton,
   Tooltip,
 } from '@mui/material'
 import DeleteIcon from '@mui/icons-material/Delete'
 import EditIcon from '@mui/icons-material/Edit'
-import AddIcon from '@mui/icons-material/Add'
 import { examRequest } from '@/app/api'
 import { IExam } from '@/features/exam/type'
 import { Quiz } from '@mui/icons-material'
 import { useNavigate } from 'react-router-dom'
+import AddCircleIcon from '@mui/icons-material/AddCircle'
+import { toast } from 'react-hot-toast'
+import EditExamDialog from './components/EditExamDialog'
+import ConfirmDeleteDialog from './components/ConfirmDeleteDialog'
 
 const ExamManagement: React.FC = () => {
   const [exams, setExams] = useState<IExam[]>([])
   const [openDialog, setOpenDialog] = useState(false)
   const [editExam, setEditExam] = useState<IExam | null>(null)
-  const [newExam, setNewExam] = useState({ title: '', date: '', duration: 0 })
+  const [deleteExamId, setDeleteExamId] = useState<number | null>(null)
+
   const navigate = useNavigate()
   useEffect(() => {
     void handleGetExams()
@@ -39,7 +38,6 @@ const ExamManagement: React.FC = () => {
       setExams(data)
     }
   }
-  // Xử lý mở/đóng dialog
   const handleOpenDialog = (exam?: IExam) => {
     if (exam) setEditExam(exam)
     setOpenDialog(true)
@@ -48,53 +46,95 @@ const ExamManagement: React.FC = () => {
   const handleCloseDialog = () => {
     setEditExam(null)
     setOpenDialog(false)
-    setNewExam({ title: '', date: '', duration: 0 })
   }
 
-  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = event.target
-    if (editExam) {
-      setEditExam({ ...editExam, [name]: name === 'duration' ? +value : value })
-    } else {
-      setNewExam({ ...newExam, [name]: name === 'duration' ? +value : value })
-    }
-  }
-  const handleSaveExam = () => {
-    if (editExam) {
-      setExams(exams.map((exam) => (exam.id === editExam.id ? editExam : exam)))
-    } else {
-      // const newId = exams.length ? exams[exams.length - 1].id + 1 : 1;
-      // setExams([...exams, {...newExam, id: newId}]);
-    }
-    handleCloseDialog()
-  }
-  const handleDeleteExam = (id: number) => {
-    setExams(exams.filter((exam) => exam.id !== id))
+  const handleSaveExam = async (editedExam: IExam) => {
+    try {
+      const updatedExam = await examRequest.updateExam(
+        editedExam.id,
+        editedExam,
+      )
+      if (updatedExam) {
+        toast.success('Cập nhật đề thi thành công')
+        setExams((prevExams) =>
+          prevExams.map((exam) =>
+            exam.id === updatedExam.id ? updatedExam : exam,
+          ),
+        )
+
+        handleCloseDialog()
+      } else {
+        toast.error('Cập nhật đề thi thất bại')
+      }
+    } catch (e) {}
   }
   const handleManageQuestions = (id: number) => {
     navigate(`/admin/questions/${id}`)
   }
 
+  const handleCreateNewExam = async () => {
+    try {
+      const rs = await examRequest.createNewExam()
+      if (rs) {
+        setExams((prevState) => [rs, ...prevState])
+        toast.success('Tạo đề thi thành công')
+      } else {
+        toast.error('Tạo đề thi thất bại')
+      }
+    } catch (e) {}
+  }
+  const handleDeleteExam = async (id: number) => {
+    try {
+      const response = await examRequest.deleteExam(id) // Gọi API để xóa
+      if (response?.success) {
+        setExams((prevExams) => prevExams.filter((exam) => exam.id !== id))
+        toast.success('Đã xóa đề thi thành công')
+      } else {
+        toast.error(response?.message || 'Không thể xóa đề thi')
+      }
+    } catch (e) {
+      toast.error('Không thể xóa đề thi. Vui lòng thử lại.')
+    } finally {
+      setDeleteExamId(null)
+    }
+  }
+  const handleOpenDeleteDialog = (id: number) => {
+    setDeleteExamId(id)
+  }
+
+  const handleCloseDeleteDialog = () => {
+    setDeleteExamId(null)
+  }
+
   return (
     <Box sx={{ p: 3 }}>
-      <Button
-        variant="contained"
-        color="primary"
-        startIcon={<AddIcon />}
-        onClick={() => handleOpenDialog()}
-      >
-        Add New Exam
-      </Button>
+      <Box display={'flex'} justifyContent={'flex-end'}>
+        <Button
+          variant="outlined"
+          color="primary"
+          startIcon={<AddCircleIcon />}
+          onClick={() => handleCreateNewExam()}
+          sx={{
+            border: '2px dashed',
+            color: 'text.secondary',
+            borderColor: 'text.secondary',
+            borderRadius: '4px',
+            padding: '8px',
+            transition: 'background-color 0.3s',
+          }}
+        >
+          Tạo mới đề thi
+        </Button>
+      </Box>
 
       <TableContainer sx={{ mt: 3 }}>
         <Table>
           <TableHead>
             <TableRow>
               <TableCell></TableCell>
-              <TableCell>Name</TableCell>
-              <TableCell>Date</TableCell>
-              <TableCell>Description</TableCell>
-              <TableCell align="center">Actions</TableCell>
+              <TableCell>Tên đề thi</TableCell>
+              <TableCell>Mô tả</TableCell>
+              <TableCell align="center">Tác vụ</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -109,12 +149,11 @@ const ExamManagement: React.FC = () => {
                       onClick={() => handleManageQuestions(exam.id)}
                       sx={{ mb: 1 }}
                     >
-                      Manage Questions
+                      Câu hỏi
                     </Button>
                   </Tooltip>
                 </TableCell>
                 <TableCell>{exam.title}</TableCell>
-                <TableCell>{exam.createdAt}</TableCell>
                 <TableCell>{exam.description}</TableCell>
                 <TableCell align="center">
                   <IconButton
@@ -125,7 +164,7 @@ const ExamManagement: React.FC = () => {
                   </IconButton>
                   <IconButton
                     color="error"
-                    onClick={() => handleDeleteExam(exam.id)}
+                    onClick={() => handleOpenDeleteDialog(exam.id)}
                   >
                     <DeleteIcon />
                   </IconButton>
@@ -135,54 +174,22 @@ const ExamManagement: React.FC = () => {
           </TableBody>
         </Table>
       </TableContainer>
-
-      {/* Dialog tạo/sửa exam */}
-      <Dialog open={openDialog} onClose={handleCloseDialog}>
-        <DialogTitle>{editExam ? 'Edit Exam' : 'Add New Exam'}</DialogTitle>
-        <DialogContent>
-          <TextField
-            autoFocus
-            margin="dense"
-            label="Title"
-            name="title"
-            value={editExam ? editExam.title : newExam.title}
-            onChange={handleInputChange}
-            fullWidth
-            variant="outlined"
-          />
-          <TextField
-            margin="dense"
-            label="Date"
-            type="date"
-            name="date"
-            value={editExam ? editExam.createdAt : newExam.date}
-            onChange={handleInputChange}
-            fullWidth
-            variant="outlined"
-            InputLabelProps={{
-              shrink: true,
-            }}
-          />
-          <TextField
-            margin="dense"
-            label="Duration (minutes)"
-            type="number"
-            name="duration"
-            value={editExam ? editExam.description : newExam.duration}
-            onChange={handleInputChange}
-            fullWidth
-            variant="outlined"
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDialog} color="secondary">
-            Cancel
-          </Button>
-          <Button onClick={handleSaveExam} color="primary">
-            {editExam ? 'Update' : 'Save'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+      {openDialog && editExam && (
+        <EditExamDialog
+          open={openDialog}
+          handleClose={handleCloseDialog}
+          currentExam={editExam}
+          onSave={handleSaveExam}
+        />
+      )}
+      {!!deleteExamId && (
+        <ConfirmDeleteDialog
+          open={!!deleteExamId}
+          title="Bạn có chắc chắn muốn xóa đề thi này?"
+          onConfirm={() => handleDeleteExam(deleteExamId!)}
+          onClose={handleCloseDeleteDialog}
+        />
+      )}
     </Box>
   )
 }

@@ -1,5 +1,7 @@
 import CloseIcon from '@mui/icons-material/Close'
 import { AdminLayoutProps } from './AdminLayout'
+import AdminExamManagementMenu from './AdminExamManagementMenu'
+import AdminDefaultMenu from './AdminDefaultMenu'
 import { useNavigate } from 'react-router-dom'
 import {
   IconButton,
@@ -7,27 +9,34 @@ import {
   Box,
   Divider,
   List,
-  ListItem,
   ListItemButton,
   ListItemText,
   ListItemIcon,
   Typography,
   Avatar,
 } from '@mui/material'
-import DashboardIcon from '@mui/icons-material/Dashboard'
-import AssignmentIcon from '@mui/icons-material/Assignment'
-import QuizIcon from '@mui/icons-material/Quiz'
-import BarChartIcon from '@mui/icons-material/BarChart'
-import SettingsIcon from '@mui/icons-material/Settings'
 import ExitToAppIcon from '@mui/icons-material/ExitToApp'
 import logoUrl from '@/assets/logo.webp'
-import { useDispatch } from 'react-redux'
 import { clearCredentials } from '@/features/auth/authSlice'
+import { useSelector, useDispatch } from 'react-redux'
+import { RootState } from '@/app/store'
+import { useLocation } from 'react-router-dom'
+import { isMatchWithManageExam } from '@/features/exam/utils.ts'
+import { useMemo } from 'react'
 
 const AdminLeftMenu = (props: AdminLayoutProps) => {
+  const location = useLocation()
+
   const navigate = useNavigate()
+  const exam = useSelector((state: RootState) => state.examAdmin.exam)
+
   const dispatch = useDispatch()
   const { window, width, isOpen, onDrawerToggle } = props
+
+  const isExamManagement = useMemo(() => {
+    return isMatchWithManageExam(location.pathname)
+  }, [location.pathname])
+
   const container =
     window !== undefined ? () => window().document.body : undefined
   const handleAccessToPage = (path: string) => {
@@ -67,26 +76,11 @@ const AdminLeftMenu = (props: AdminLayoutProps) => {
         </IconButton>
       </Box>
       <Divider />
-      <List>
-        <ListItemButton onClick={() => handleAccessToPage('/admin')}>
-          <ListItemIcon>
-            <DashboardIcon />
-          </ListItemIcon>
-          <ListItemText primary="Dashboard" />
-        </ListItemButton>
-        <ListItemButton onClick={() => handleAccessToPage('/admin/exams')}>
-          <ListItemIcon>
-            <AssignmentIcon />
-          </ListItemIcon>
-          <ListItemText primary="Exam Management" />
-        </ListItemButton>
-        <ListItemButton onClick={() => handleAccessToPage('/admin/questions')}>
-          <ListItemIcon>
-            <QuizIcon />
-          </ListItemIcon>
-          <ListItemText primary="Quản lý Câu hỏi" />
-        </ListItemButton>
-      </List>
+      {exam && isExamManagement ? (
+        <AdminExamManagementMenu exam={exam} />
+      ) : (
+        <AdminDefaultMenu />
+      )}
     </Box>
   )
 
@@ -108,36 +102,11 @@ const AdminLeftMenu = (props: AdminLayoutProps) => {
       {drawer}
       <Divider />
       <List>
-        <ListItemButton
-          onClick={() => {
-            navigate('/exam')
-          }}
-        >
-          <ListItemIcon>
-            <ExitToAppIcon />
-          </ListItemIcon>
-          <ListItemText primary="Student exam" />
-        </ListItemButton>
-      </List>
-      <Divider />
-      <List>
-        <ListItem button>
-          <ListItemIcon>
-            <BarChartIcon />
-          </ListItemIcon>
-          <ListItemText primary="Analytics" />
-        </ListItem>
-        <ListItem button>
-          <ListItemIcon>
-            <SettingsIcon />
-          </ListItemIcon>
-          <ListItemText primary="Settings" />
-        </ListItem>
         <ListItemButton onClick={handleLogout}>
           <ListItemIcon>
             <ExitToAppIcon />
           </ListItemIcon>
-          <ListItemText primary="Logout" />
+          <ListItemText primary="Đăng xuất" />
         </ListItemButton>
       </List>
     </Drawer>

@@ -24,6 +24,20 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.DATE,
         allowNull: true,
       },
+      duration: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: 30,
+      },
+      finalScore: {
+        type: DataTypes.DECIMAL(4, 2),
+        allowNull: false,
+        defaultValue: 0,
+        validate: {
+          min: 0,
+          max: 10,
+        },
+      },
       status: DataTypes.INTEGER,
     },
     {

@@ -15,10 +15,17 @@ public class StudentAttempt : BaseEntity
     public DateTime? EndTime { get; set; }
     [Column("status")]
     public AttemptStatus? Status { get; set; } = AttemptStatus.InProgress;
+    
+    [Column("duration")]
+    public int Duration { get; set; }
+    
+    [Column("finalScore", TypeName = "decimal(4,2)")]
+    public decimal FinalScore { get; set; } = 0;
     // Navigation properties
     [ForeignKey(nameof(ExamId))]
     public virtual Exam Exam { get; set; } = default!;
     [ForeignKey(nameof(UserId))]
     public virtual User User { get; set; } = default!;
     public virtual ICollection<Answer> Answers { get; set; } = default!;
+    public virtual ICollection<StudentAttemptDetail> StudentAttemptDetails { get; set; } = default!;
 }

@@ -8,10 +8,9 @@ import {
   MenuItem,
   Box,
   Avatar,
-  Divider,
   ListItemIcon,
 } from '@mui/material'
-import { Logout, AdminPanelSettings } from '@mui/icons-material'
+import { Logout } from '@mui/icons-material'
 import { useNavigate } from 'react-router-dom'
 import { useSelector, useDispatch } from 'react-redux'
 import { RootState } from '@/app/store'
@@ -58,7 +57,7 @@ const StudentHeader: React.FC = () => {
             </Typography>
             <IconButton onClick={handleMenuOpen} size="small" sx={{ ml: 2 }}>
               <Avatar sx={{ bgcolor: 'primary.main' }}>
-                {user.fullName?.charAt(0).toUpperCase()}
+                {user.lastName?.charAt(0).toUpperCase()}
               </Avatar>
             </IconButton>
           </Box>
@@ -76,13 +75,6 @@ const StudentHeader: React.FC = () => {
             },
           }}
         >
-          <MenuItem onClick={() => navigate('/admin/users')}>
-            <ListItemIcon>
-              <AdminPanelSettings fontSize="small" />
-            </ListItemIcon>
-            User Management
-          </MenuItem>
-          <Divider />
           <MenuItem onClick={handleLogout}>
             <ListItemIcon>
               <Logout fontSize="small" />

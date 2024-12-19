@@ -1,4 +1,5 @@
-﻿using System.Threading.Channels;
+﻿using AutoMapper;
+using System.Threading.Channels;
 using VstepPractice.API.Common.Enums;
 using VstepPractice.API.Models.DTOs.AI;
 using VstepPractice.API.Models.Entities;
@@ -12,26 +13,24 @@ public class EssayScoringBackgroundService : BackgroundService, IEssayScoringQue
     private readonly Channel<EssayScoringTask> _taskChannel;
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly ILogger<EssayScoringBackgroundService> _logger;
+    private readonly IMapper _mapper;
 
     public EssayScoringBackgroundService(
         IServiceScopeFactory scopeFactory,
+        IMapper mapper,
         ILogger<EssayScoringBackgroundService> logger)
     {
         _scopeFactory = scopeFactory;
+        _mapper = mapper;
         _logger = logger;
-
-        _taskChannel = Channel.CreateUnbounded<EssayScoringTask>(new UnboundedChannelOptions
-        {
-            SingleReader = true,
-            SingleWriter = false
-        });
+        _taskChannel = Channel.CreateUnbounded<EssayScoringTask>(
+            new UnboundedChannelOptions { SingleReader = true });
     }
 
     public async Task QueueScoringTaskAsync(EssayScoringTask task)
     {
         if (task == null) throw new ArgumentNullException(nameof(task));
 
-        // Verify this is a writing task
         if (task.SectionType != SectionTypes.Writing)
         {
             _logger.LogWarning("Attempted to queue non-writing task for scoring. SectionType: {SectionType}", task.SectionType);
@@ -62,118 +61,97 @@ public class EssayScoringBackgroundService : BackgroundService, IEssayScoringQue
         }
     }
 
-    private async Task ProcessScoringTaskAsync(EssayScoringTask task, CancellationToken cancellationToken)
+    private async Task ProcessScoringTaskAsync(
+        EssayScoringTask task,
+        CancellationToken cancellationToken)
     {
+        using var scope = _scopeFactory.CreateScope();
+        var aiScoringService = scope.ServiceProvider.GetRequiredService<IAiScoringService>();
+        var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+
         try
         {
-            using var scope = _scopeFactory.CreateScope();
-            var aiScoringService = scope.ServiceProvider.GetRequiredService<IAiScoringService>();
-            var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
-
             await unitOfWork.BeginTransactionAsync(cancellationToken);
 
-            try
+            // 1. Get answer with details
+            var answer = await unitOfWork.AnswerRepository
+                .GetAnswerWithDetailsAsync(task.AnswerId, cancellationToken);
+
+            if (answer == null)
             {
-                _logger.LogInformation(
-                    "Starting to process writing assessment for answerId {AnswerId}", task.AnswerId);
+                _logger.LogError("Answer not found for answerId {AnswerId}", task.AnswerId);
+                return;
+            }
 
-                // Get answer with tracking
-                var answer = await unitOfWork.AnswerRepository.GetAnswerWithDetailsAsync(task.AnswerId, cancellationToken);
+            // 2. Check if assessment exists
+            var existingAssessment = await unitOfWork.WritingAssessmentRepository
+                .GetByAnswerIdAsync(task.AnswerId, cancellationToken);
 
-                if (answer == null)
-                {
-                    _logger.LogError("Answer not found for answerId {AnswerId}", task.AnswerId);
-                    return;
-                }
+            // 3. Get AI assessment
+            var assessmentResult = await aiScoringService.AssessEssayAsync(
+                task,
+                cancellationToken);
 
-                // Verify this is a writing question
-                if (answer.Question.Section.SectionType != SectionTypes.Writing)
-                {
-                    _logger.LogError(
-                        "Invalid section type for writing assessment. AnswerId: {AnswerId}, SectionType: {SectionType}",
-                        task.AnswerId,
-                        answer.Question.Section.SectionType);
-                    return;
-                }
-
-                // Check if assessment already exists
-                var existingAssessment = await unitOfWork.WritingAssessmentRepository
-                    .GetByAnswerIdAsync(task.AnswerId, cancellationToken);
-
-                if (existingAssessment != null)
-                {
-                    _logger.LogInformation(
-                        "Writing assessment already exists for answerId {AnswerId}", task.AnswerId);
-                    return;
-                }
-
-                // Get AI assessment
-                var assessmentResult = await aiScoringService.AssessEssayAsync(
-                    task,
-                    cancellationToken);
-
-                if (!assessmentResult.IsSuccess)
-                {
-                    _logger.LogError(
-                        "Failed to get AI assessment for answerId {AnswerId}: {Error}",
-                        task.AnswerId,
-                        assessmentResult.Error.Message);
-                    return;
-                }
-
-                var assessment = assessmentResult.Value;
-
-                // Create WritingAssessment
-                var writingAssessment = new WritingAssessment
-                {
-                    AnswerId = task.AnswerId,
-                    TaskAchievement = assessment.TaskAchievement,
-                    CoherenceCohesion = assessment.CoherenceCohesion,
-                    LexicalResource = assessment.LexicalResource,
-                    GrammarAccuracy = assessment.GrammarAccuracy,
-                    DetailedFeedback = assessment.DetailedFeedback,
-                    AssessedAt = DateTime.UtcNow
-                };
-
-                // Update Answer score and feedback
-                answer.Score = assessment.TotalScore;
-                answer.AiFeedback = assessment.DetailedFeedback;
-
-                _logger.LogDebug(
-                    "Writing Assessment details for answerId {AnswerId}: " +
-                    "TaskAchievement={TaskAchievement}, CoherenceCohesion={CoherenceCohesion}, " +
-                    "LexicalResource={LexicalResource}, GrammarAccuracy={GrammarAccuracy}, " +
-                    "TotalScore={TotalScore}",
+            if (!assessmentResult.IsSuccess)
+            {
+                _logger.LogError(
+                    "Failed to get AI assessment for answerId {AnswerId}: {Error}",
                     task.AnswerId,
-                    writingAssessment.TaskAchievement,
-                    writingAssessment.CoherenceCohesion,
-                    writingAssessment.LexicalResource,
-                    writingAssessment.GrammarAccuracy,
-                    assessment.TotalScore);
+                    assessmentResult.Error.Message);
+                return;
+            }
 
-                unitOfWork.AnswerRepository.Update(answer);
+            var assessment = assessmentResult.Value;
+
+            // 4. Update or create writing assessment using AutoMapper
+            if (existingAssessment != null)
+            {
+                // Update existing assessment
+                _mapper.Map(assessment, existingAssessment);
+                unitOfWork.WritingAssessmentRepository.Update(existingAssessment);
+
+                _logger.LogInformation(
+                    "Updated existing writing assessment for answerId {AnswerId}",
+                    task.AnswerId);
+            }
+            else
+            {
+                // Create new assessment
+                var writingAssessment = _mapper.Map<WritingAssessment>(assessment);
+                writingAssessment.AnswerId = task.AnswerId;
+
                 unitOfWork.WritingAssessmentRepository.Add(writingAssessment);
 
-                await unitOfWork.SaveChangesAsync(cancellationToken);
-                await unitOfWork.CommitAsync(cancellationToken);
-
                 _logger.LogInformation(
-                    "Successfully processed writing assessment for answerId {AnswerId}", task.AnswerId);
+                    "Created new writing assessment for answerId {AnswerId}",
+                    task.AnswerId);
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex,
-                    "Error processing writing assessment for answerId {AnswerId}: {ErrorMessage}",
-                    task.AnswerId,
-                    ex.ToString());
-                await unitOfWork.RollbackAsync(cancellationToken);
-                throw;
-            }
+
+            // 5. Update answer score and feedback
+            answer.Score = assessment.TotalScore;
+            answer.AiFeedback = assessment.DetailedFeedback;
+            unitOfWork.AnswerRepository.Update(answer);
+
+            await unitOfWork.SaveChangesAsync(cancellationToken);
+            await unitOfWork.CommitAsync(cancellationToken);
+
+            _logger.LogInformation(
+                "Successfully processed writing assessment for answerId {AnswerId}. " +
+                "Scores - Task: {TaskScore}, Coherence: {CoherenceScore}, " +
+                "Lexical: {LexicalScore}, Grammar: {GrammarScore}",
+                task.AnswerId,
+                assessment.TaskAchievement,
+                assessment.CoherenceCohesion,
+                assessment.LexicalResource,
+                assessment.GrammarAccuracy);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex,
-                "Error processing writing assessment for answerId {AnswerId}", task.AnswerId);
+                "Error processing writing assessment for answerId {AnswerId}",
+                task.AnswerId);
+            await unitOfWork.RollbackAsync(cancellationToken);
+            throw;
         }
     }
 }

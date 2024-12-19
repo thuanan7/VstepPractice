@@ -1,180 +1,261 @@
-import React, { useEffect, useState } from 'react'
-import { Box, Button, Grid, Paper } from '@mui/material'
-import { VSTEPExamConfig } from './fake'
-import AttemptTabs from '@/pages/exam/attempt/components/AttemptTabs'
-import TableQuestion from '@/pages/exam/attempt/components/TableQuestion'
-import SpeakingSection from '@/pages/exam/attempt/components/SpeakingSection'
-import WritingSection from '@/pages/exam/attempt/components/WritingSection'
-import ReadingSection from '@/pages/exam/attempt/components/ReadingSection'
-import ListeningSection from '@/pages/exam/attempt/components/ListeningSection'
-import { useNavigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { toast } from 'react-hot-toast'
+import { attemptRequest } from '@/app/api'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
+import { IAttemptExam, ISummaryStudentAttempt } from '@/features/exam/type'
+import { AttemptStatusType } from '@/features/exam/configs'
+import { useDispatch } from 'react-redux'
+import { setAttempt } from '@/features/exam/attemptSlice'
+import {
+  Box,
+  Button,
+  Container,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Typography,
+} from '@mui/material'
+import ArrowBackIcon from '@mui/icons-material/ArrowBack'
+import ReviewModal from '@/pages/exam/attempt/components/attempts/ReviewModal.tsx'
 
-const ExamPage: React.FC = () => {
+const AttemptStudent = () => {
+  const dispatch = useDispatch()
+  const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const [currentSectionIndex, setCurrentSectionIndex] = useState(0)
-  const [currentPartIndex, setCurrentPartIndex] = useState(0)
-  const [answers, setAnswers] = useState<Record<string, string>>({})
-
-  const flatQuestions = VSTEPExamConfig.sections.flatMap(
-    (section, sectionIndex) =>
-      section.sectionPart.map((question, questionIndex) => ({
-        ...question,
-        sectionIndex,
-        questionIndex,
-      })),
+  const location = useLocation()
+  const [examConfigs, setExamConfigs] = useState<IAttemptExam[]>([])
+  const [examAttempt, setExamAttempt] = useState<
+    ISummaryStudentAttempt | undefined
+  >(undefined)
+  const [isLoading, setIsLoading] = useState(true)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [selectedAttemptId, setSelectedAttemptId] = useState<string | null>(
+    null,
   )
 
-  // console.log(flatQuestions);
-      console.log("answers: ");
-      console.log(answers);
   useEffect(() => {
-    //console.log("useEffect currentQuestion.sectionIndex: "+currentQuestion.sectionIndex)
-    setCurrentSectionIndex(currentPart.sectionIndex)
-    document.body.style.overflow = 'hidden'
-    return () => {
-      document.body.style.overflow = 'auto'
+    if (!id || isNaN(Number(id))) {
+      toast.error('Invalid exam ID!')
+      navigate('/exam')
+      return
     }
-  }, [currentPartIndex])
-
-  const currentPart = flatQuestions[currentPartIndex]
-  const currentSection = VSTEPExamConfig.sections[currentPart.sectionIndex]
-  const findFirstPartIndexOfSection = (sectionIndex: number) => {
-    return flatQuestions.findIndex((q) => q.sectionIndex === sectionIndex)
-  }
-
-  const handleAnswerChange = (questionId: string, answer: string) => {
-    console.log(answer);
-    setAnswers((prev) => ({
-      ...prev,
-      [questionId]: answer,
-    }))
-  }
-
-  const handleNextQuestion = () => {
-    if (currentPartIndex < flatQuestions.length - 1) {
-      setCurrentPartIndex((prev) => prev + 1)
+    function getDataStudentExam() {
+      if (id) {
+        setIsLoading(true)
+        Promise.allSettled([
+          attemptRequest.getAttemptByExamId(id),
+          attemptRequest.getSummaryAttemptsByExamId(id),
+        ])
+          .then((rs) => {
+            const [rsExam, rsAttempt] = rs
+            if (rsExam.status === 'fulfilled') {
+              handleExamConfig(rsExam.value)
+            }
+            if (rsAttempt.status === 'fulfilled') {
+              handleExamAttempt(rsAttempt.value)
+            }
+          })
+          .finally(() => {
+            setIsLoading(false)
+          })
+      }
+    }
+    getDataStudentExam()
+  }, [id, navigate])
+  const navigateToStart = async () => {
+    if (examAttempt) {
+      const rsStart = await attemptRequest.startAttempt(`${id}`)
+      if (rsStart) {
+        const currentPath = location.pathname
+        const newPath = `${currentPath}/start`
+        dispatch(
+          setAttempt({
+            examId: parseInt(`${id}`),
+            attempt: rsStart,
+            sections: examConfigs,
+          }),
+        )
+        navigate(newPath)
+      } else {
+        toast.error('Không thể tạo bài thi. Thử lại nhé')
+      }
+    } else {
+      toast.error('Hiện tại đang thiếu thông tin để start bài thi')
     }
   }
 
-  const handlePreviousQuestion = () => {
-    if (currentPartIndex > 0) {
-      setCurrentPartIndex((prev) => prev - 1)
+  const handleOpenReviewModal = (attemptId: string) => {
+    setSelectedAttemptId(attemptId)
+    setIsModalOpen(true)
+  }
+
+  const handleCloseReviewModal = () => {
+    setIsModalOpen(false)
+    setSelectedAttemptId(null)
+  }
+  const handleExamConfig = (response: IAttemptExam[] | undefined) => {
+    try {
+      if (!response) {
+        toast.error('Invalid exam ID!')
+        // navigate('/exam')
+        return
+      } else {
+        setExamConfigs(response)
+      }
+    } catch (error) {
+      toast.error('Không tìm thấy đề thi')
+      // navigate('/exam')
     }
   }
 
-  const handleSectionChange = (sectionIndex: number) => {
-    setCurrentSectionIndex(sectionIndex)
-    const firstPartIndex = findFirstPartIndexOfSection(sectionIndex)
-    setCurrentPartIndex(firstPartIndex)
+  const handleExamAttempt = (response: ISummaryStudentAttempt | undefined) => {
+    try {
+      if (!response) {
+        toast.error('Không tạo được bài thi')
+        // navigate('/exam')
+        return
+      } else {
+        setExamAttempt(response)
+      }
+    } catch (error) {
+      toast.error('Không tìm thấy đề thi')
+      // navigate('/exam')
+    }
   }
-
-  const handlePartClick = (partIndex: number) => {
-    setCurrentPartIndex(partIndex)
-    // Chi hien thi cac part tong section nen ko can
-    //setCurrentSectionIndex(flatQuestions[partIndex].sectionIndex)
-    // console.log("handleQuestionClick-questionIndex: "+questionIndex)
-    // console.log("handleQuestionClick - flatQuestions[questionIndex].sectionIndex: "+flatQuestions[questionIndex].sectionIndex);
-  }
-
-  const handleSubmit = () => {
-    navigate('/exam/1/submit')
-  }
-
+  if (isLoading) return <Box></Box>
+  if (!examAttempt) return <Box>Không tạo được bài thi</Box>
+  // @ts-ignore
   return (
-    <Grid container spacing={2} sx={{ height: '100vh', padding: 2 }}>
-      <AttemptTabs
-        tabs={VSTEPExamConfig.sections.map((x) => x.title)}
-        active={currentSectionIndex}
-        onChoose={handleSectionChange}
+    <Container
+      sx={{
+        margin: '0 auto',
+        padding: 4,
+      }}
+    >
+      <ReviewModal
+        open={isModalOpen}
+        onClose={handleCloseReviewModal}
+        attemptId={selectedAttemptId}
       />
-      <Grid item xs={8} sx={{ position: 'relative' }}>
-        <Paper
-          elevation={3}
+      <Box display="flex" alignItems="center">
+        <Button
+          variant="text"
+          onClick={() => navigate('/exam')}
+          startIcon={<ArrowBackIcon />}
+          sx={{ textTransform: 'none', mr: 2, background: '#6C3483' }}
+        />
+        <Typography variant="h4" fontWeight="bold" gutterBottom>
+          {examAttempt.examTitle}
+        </Typography>
+      </Box>
+
+      <Typography variant="body1" color="textSecondary" gutterBottom>
+        {examAttempt.examDescription}
+      </Typography>
+      <Box mt={4}>
+        <Typography variant="h5" gutterBottom>
+          Tổng quan các lần làm bài trước của bạn
+        </Typography>
+        <TableContainer
+          component={Paper}
           sx={{
-            padding: 3,
-            paddingBottom: 10,
-            overflowY: 'auto',
-            height: 'calc(100vh - 100px)',
+            maxHeight: 400,
           }}
         >
-          {currentSection.type === 'listening' &&
-            currentPart.type === 'audio' && (
-              <ListeningSection
-                currentPart={currentPart}
-                answers={answers}
-                handleAnswerChange={handleAnswerChange}
-              />
-            )}
+          <Table stickyHeader>
+            <TableHead>
+              <TableRow>
+                <TableCell align="center">Lần làm</TableCell>
+                <TableCell align="center">Trạng thái</TableCell>
+                <TableCell align="center">Điểm</TableCell>
+                <TableCell align="center">Xem lại</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {examAttempt.attempts.length > 0 ? (
+                examAttempt.attempts.map((attempt, index) => (
+                  <TableRow key={index}>
+                    <TableCell align="center">{index + 1}</TableCell>
+                    <TableCell align="center">
+                      {attempt.status === AttemptStatusType.AssessmentCompleted
+                        ? 'Hoàn thành chấm điểm'
+                        : attempt.status === AttemptStatusType.AssessingByAI
+                          ? 'AI đang xử lý'
+                          : '_'}
+                    </TableCell>
+                    <TableCell align="center">
+                      {attempt.finalScore}/10
+                    </TableCell>
+                    <TableCell align="center">
+                      {attempt.status ===
+                      AttemptStatusType.AssessmentCompleted ? (
+                        <Button
+                          variant="text"
+                          onClick={() => handleOpenReviewModal(`${attempt.id}`)}
+                        >
+                          Xem kết quả
+                        </Button>
+                      ) : (
+                        '_'
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell align="center" colSpan={4}>
+                    Bạn chưa có kết quả nào
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Box>
 
-          {currentSection.type === 'reading' &&
-            currentPart.type === 'multiple-choice' && (
-              <ReadingSection
-                currentSection={currentSection}
-                currentPart={currentPart}
-                answers={answers}
-                handleAnswerChange={handleAnswerChange}
-              />
-            )}
-
-          {currentSection.type === 'writing' &&
-            currentPart.type === 'essay' && (
-              <WritingSection
-                currentPart={currentPart}
-                answers={answers}
-                handleAnswerChange={handleAnswerChange}
-              />
-            )}
-
-          {currentSection.type === 'speaking' &&
-            currentPart.type === 'speaking' && (
-              <SpeakingSection currentPart={currentPart} />
-            )}
-        </Paper>
-
-        <Box
-          sx={{
-            position: 'fixed',
-            bottom: 0,
-            left: '16%',
-            right: '16%',
-            backgroundColor: 'white',
-            padding: 2,
-            boxShadow: '0 -2px 5px rgba(0,0,0,0.1)',
-            display: 'flex',
-            justifyContent: 'space-between',
-          }}
-        >
+      <Box
+        mt={4}
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        gap={2}
+      >
+        {examAttempt?.inprocess?.status === AttemptStatusType.Started ? (
+          <>
+            <Button
+              variant="contained"
+              color="warning"
+              fullWidth
+              onClick={navigateToStart}
+            >
+              Tiếp tục làm bài thi
+            </Button>
+            <Button
+              variant="outlined"
+              color="success"
+              fullWidth
+              onClick={() => toast.success('Bài làm đã kết thúc!')}
+            >
+              Kết thúc bài làm
+            </Button>
+          </>
+        ) : (
           <Button
-            variant="outlined"
-            disabled={currentPartIndex === 0}
-            onClick={handlePreviousQuestion}
+            variant="contained"
+            color="success"
+            fullWidth
+            onClick={navigateToStart}
           >
-            Previous Part
+            Bắt đầu mới bài thi
           </Button>
-          {currentPartIndex === flatQuestions.length - 1 ? (
-            <Button variant="contained" color="success" onClick={handleSubmit}>
-              Submit Exam
-            </Button>
-          ) : (
-            <Button variant="contained" onClick={handleNextQuestion}>
-              Next Part
-            </Button>
-          )}
-        </Box>
-      </Grid>
-
-      <TableQuestion
-        // mang flatQuestions phai duoc sort theo id roi
-        data={flatQuestions.map((item, index) => item.sectionIndex === currentSectionIndex ? index : -1 )}
-        onChoose={handlePartClick}
-        onAutoSubmit={handleSubmit}
-        active={currentPartIndex}
-        currentSectionIndex={currentSectionIndex}
-        totalAnswerOnPart={Object.keys(answers).filter(obj => obj.includes(flatQuestions[currentPartIndex].id)).length || 0}
-        totalQuestions={(() => { try { return flatQuestions[currentPartIndex].questions.length ; } catch { return 0; }})()}
-      />
-    </Grid>
+        )}
+      </Box>
+    </Container>
   )
 }
 
-export default ExamPage
+export default AttemptStudent

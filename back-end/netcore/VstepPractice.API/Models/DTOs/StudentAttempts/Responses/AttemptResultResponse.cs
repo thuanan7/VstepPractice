@@ -10,5 +10,6 @@ public class AttemptResultResponse
     public DateTime EndTime { get; set; }
     public Dictionary<SectionTypes, decimal> SectionScores { get; set; } = new();
     public decimal FinalScore { get; set; }
+    public AttemptStatus? Status { get; set; }
     public List<AnswerResponse> Answers { get; set; } = new();
 }

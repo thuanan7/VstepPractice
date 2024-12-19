@@ -58,4 +58,28 @@ public class SectionPartRepository : RepositoryBase<SectionPart, int>, ISectionP
 
         return false;
     }
+    
+    public async Task<SectionPart?> FindFirstSectionPartAsync(int examId, CancellationToken cancellationToken = default)
+    {
+        return await _context.SectionParts
+            .Where(sp => sp.ExamId == examId && sp.ParentId == null)
+            .OrderBy(sp => sp.OrderNum)
+            .FirstOrDefaultAsync(cancellationToken);
+    }
+    
+    public async Task<SectionPart?> FindNextSectionByOrderNumAsync(int currentSectionId, CancellationToken cancellationToken = default)
+    {
+        var currentSection = await _context.SectionParts
+            .Where(s => s.Id == currentSectionId)
+            .SingleOrDefaultAsync(cancellationToken);
+
+        if (currentSection == null)
+            return null;
+
+        return await _context.SectionParts
+            .Where(s => s.ExamId == currentSection.ExamId && s.OrderNum > currentSection.OrderNum && s.ParentId == null)
+            .OrderBy(s => s.OrderNum)
+            .FirstOrDefaultAsync(cancellationToken);
+    }
+
 }

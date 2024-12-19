@@ -1,6 +1,7 @@
 ﻿using Asp.Versioning;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Http.HttpResults;
 using VstepPractice.API.Common.Utils;
 using VstepPractice.API.Models.DTOs.StudentAttempts.Requests;
 using VstepPractice.API.Models.DTOs.StudentAttempts.Responses;
@@ -12,10 +13,12 @@ namespace VstepPractice.API.Controllers.V1;
 public class StudentAttemptController : ApiController
 {
     private readonly IStudentAttemptService _studentAttemptService;
+    private readonly ILogger<StudentAttemptController> _logger;
 
-    public StudentAttemptController(IStudentAttemptService studentAttemptService)
+    public StudentAttemptController(IStudentAttemptService studentAttemptService, ILogger<StudentAttemptController> logger)
     {
         _studentAttemptService = studentAttemptService;
+        _logger = logger;
     }
 
     [HttpGet("test")]
@@ -23,7 +26,56 @@ public class StudentAttemptController : ApiController
     [ProducesResponseType(typeof(Error), StatusCodes.Status404NotFound)]
     public ActionResult GetTest(CancellationToken cancellationToken = default)
     {
+        _logger.LogInformation("This is a test INFO message");
+        _logger.LogWarning("This is a test WARNING message");
+        _logger.LogError("This is a test ERROR message");
+
+        try
+        {
+            throw new Exception("This is a test exception");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Caught test exception");
+        }
+
         return Ok("You connected to .NetServer");
+    }
+    
+    /// <summary>
+    /// Get all exam for user make attempt
+    /// </summary>
+    [HttpGet("exams")]
+    [ProducesResponseType(typeof(ExamStudentResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Error), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> GetAllExams(
+        CancellationToken cancellationToken)
+    {
+        var result = await _studentAttemptService.GetExamAsync(cancellationToken);
+        
+        if (!result.IsSuccess)
+            return BadRequest(result.Error);
+        return Ok(result.Value);
+    }
+    
+    
+    [HttpGet("attempts")]
+    [ProducesResponseType(typeof(AttemptStudentSummaryResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Error), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> Attempts(
+        [FromBody] StartAttemptRequest request,
+        CancellationToken cancellationToken)
+    {
+        var userId = request.UserId;
+        var result = await _studentAttemptService.ListAllAttemptAsync(
+            userId, request, cancellationToken);
+
+        if (!result.IsSuccess)
+            return BadRequest(result.Error);
+
+        return Ok(result.Value);
     }
     /// <summary>
     /// Start a new exam attempt
@@ -48,6 +100,7 @@ public class StudentAttemptController : ApiController
             new { attemptId = result.Value.Id },
             result.Value);
     }
+    
 
     /// <summary>
     /// Submit an answer for a question
@@ -68,6 +121,83 @@ public class StudentAttemptController : ApiController
 
         if (!result.IsSuccess)
             return result.Error == Error.NotFound ? NotFound(result.Error) : BadRequest(result.Error);
+
+        return Ok(result.Value);
+    }
+
+    /// <summary>
+    /// Submit an answer for a speaking question
+    /// </summary>
+    [HttpPost("{attemptId}/submit-speaking-answer")]
+    [ProducesResponseType(typeof(AnswerResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Error), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(Error), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> SubmitSpeakingAnswer(
+    int attemptId,
+    [FromForm] SubmitSpeakingAnswerRequest request,
+    CancellationToken cancellationToken)
+    {
+        var userId = request.UserId;
+
+        if (request.AudioFile == null || request.AudioFile.Length == 0)
+            return BadRequest("No audio file uploaded");
+
+        var result = await _studentAttemptService.SubmitSpeakingAnswerAsync(
+            userId,
+            attemptId,
+            request,
+            cancellationToken);
+
+        if (!result.IsSuccess)
+            return result.Error == Error.NotFound ? NotFound(result.Error) : BadRequest(result.Error);
+
+        return Ok(result.Value);
+    }
+
+    [HttpPost("{attemptId}/submit-speaking-section")]
+    public async Task<IActionResult> BatchSubmitSpeaking(
+    int attemptId,
+    [FromForm] BatchSubmitSpeakingRequest request, // Note: FromForm for file upload
+    CancellationToken cancellationToken)
+    {
+        var result = await _studentAttemptService.BatchSubmitSpeakingAsync(
+            request.UserId,
+            attemptId,
+            request,
+            cancellationToken);
+
+        if (!result.IsSuccess)
+            return result.Error == Error.NotFound ? NotFound(result.Error) : BadRequest(result.Error);
+
+        return Ok(result.Value);
+    }
+
+    /// <summary>
+    /// Submit multiple answers in a single request
+    /// </summary>
+    [HttpPost("{attemptId}/submit-section")]
+    [ProducesResponseType(typeof(BatchSubmitResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Error), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(Error), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> BatchSubmitAnswers(
+        int attemptId,
+        [FromBody] BatchSubmitAnswersRequest request,
+        CancellationToken cancellationToken)
+    {
+        var result = await _studentAttemptService.BatchSubmitAnswersAsync(
+            request.UserId,
+            attemptId,
+            request,
+            cancellationToken);
+
+        if (!result.IsSuccess)
+            return result.Error == Error.NotFound ? NotFound(result.Error) : BadRequest(result.Error);
+
+        // If there are validation errors, return BadRequest
+        if (result.Value.ValidationErrors?.Any() == true)
+            return BadRequest(result.Value);
 
         return Ok(result.Value);
     }

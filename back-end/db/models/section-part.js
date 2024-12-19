@@ -9,7 +9,7 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      SectionPart.belongsTo(models.Exam, { foreignKey: 'examId' })
+      SectionPart.belongsTo(models.Exam, { foreignKey: 'examId', as: 'exam' })
       SectionPart.hasMany(models.SectionPart, {
         foreignKey: 'parentId',
         as: 'children',
@@ -20,7 +20,8 @@ module.exports = (sequelize, DataTypes) => {
         as: 'parent',
       })
       SectionPart.hasMany(models.Question, {
-        foreignKey: 'sectionId',
+        foreignKey: 'passageId',
+        as: 'questions',
       })
     }
   }
@@ -36,6 +37,7 @@ module.exports = (sequelize, DataTypes) => {
       instructions: { type: DataTypes.TEXT, allowNull: true },
       content: { type: DataTypes.TEXT, allowNull: true },
       orderNum: DataTypes.INTEGER,
+      sectionType: DataTypes.INTEGER,
       type: DataTypes.INTEGER,
       examId: {
         type: DataTypes.INTEGER,

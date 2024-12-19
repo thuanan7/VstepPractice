@@ -25,6 +25,31 @@ public class StudentAttemptRepository : RepositoryBase<StudentAttempt, int>, ISt
                 cancellationToken);
     }
 
+    
+    public async Task<StudentAttempt?> FindAttemptInProgress(
+        int userId,
+        int examId,
+        CancellationToken cancellationToken = default)
+    {
+        return await _context.StudentAttempts
+                .Where(a=>
+                    a.UserId == userId &&
+                    a.ExamId == examId &&
+                    a.Status == AttemptStatus.InProgress)
+                .FirstOrDefaultAsync(cancellationToken);
+    }
+
+    public async Task<List<StudentAttempt>?> FindAllAttemptCompleted(int userId, int examId, CancellationToken cancellationToken = default)
+    {
+        return await _context.StudentAttempts.Where(a =>
+                a.UserId == userId &&
+                a.ExamId == examId &&
+                a.EndTime != null &&
+                a.Status != AttemptStatus.Started &&
+                a.Status != AttemptStatus.InProgress)
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<StudentAttempt?> GetAttemptWithDetailsAsync(
     int attemptId,
     CancellationToken cancellationToken = default)
@@ -36,7 +61,7 @@ public class StudentAttemptRepository : RepositoryBase<StudentAttempt, int>, ISt
                         .ThenInclude(q => q.Options) // Add this
             .Include(a => a.Answers)
                 .ThenInclude(ans => ans.Question)
-                    .ThenInclude(q => q.Section)  // Add section to get sectionType
+                    .ThenInclude(q => q.Passage)  // Add section to get sectionType
             .Include(a => a.Answers)
                 .ThenInclude(ans => ans.Question)
                     .ThenInclude(q => q.Options)

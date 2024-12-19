@@ -3,13 +3,14 @@ const express = require('express')
 const router = express.Router()
 const openAIController = require('../controllers/openAIController')
 const authMiddleware = require('../middlewares/authMiddleware')
+router.get('/exams', authMiddleware, openAIController.allExams)
+router.get('/:examId/attempts', authMiddleware, openAIController.allAttempts)
 /**
  * @swagger
  * tags:
  *   name: AI
  *   description: Call AI API from .NetCore
  */
-
 /**
  * @swagger
  * /ai/test:
@@ -57,20 +58,25 @@ router.get('/test', authMiddleware, openAIController.testConnection)
  *         description: Unauthorized
  */
 router.post('/start', authMiddleware, openAIController.startStudentAttempt)
-
+router.post(
+  '/:attemptId/submit',
+  authMiddleware,
+  openAIController.upload.any(),
+  openAIController.submitStudentSection,
+)
 /**
  * @swagger
  * /ai/{attemptId}/submit-answer:
  *   post:
  *     summary: Start Student Attempt
- *     description: Submit an answer for a specific student attempt
+ *     description: Submit an answer for a specific student attempts
  *     parameters:
  *       - in: path
  *         name: attemptId
  *         schema:
  *           type: integer
  *         required: true
- *         description: ID of the attempt
+ *         description: ID of the attempts
  *     requestBody:
  *       required: true
  *       content:
@@ -124,7 +130,7 @@ router.post(
  *         schema:
  *           type: integer
  *         required: true
- *         description: ID of the attempt
+ *         description: ID of the attempts
  *     requestBody:
  *       required: true
  *       content:
@@ -162,7 +168,7 @@ router.post(
  *         schema:
  *           type: integer
  *         required: true
- *         description: ID of the attempt
+ *         description: ID of the attempts
  *       - in: query
  *         name: userId
  *         schema:
@@ -182,12 +188,12 @@ router.post(
  *               properties:
  *                 result:
  *                   type: string
- *                   description: The result of the student attempt
+ *                   description: The result of the student attempts
  *       401:
  *         description: Unauthorized
  */
 router.get(
-  '/:attemptId/result',
+  '/:attemptId/review',
   authMiddleware,
   openAIController.resultStudentAnswer,
 )

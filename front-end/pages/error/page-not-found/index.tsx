@@ -1,7 +1,13 @@
 import { Box, Typography, Button } from '@mui/material'
 import { Link } from 'react-router-dom'
+import { useSelector } from 'react-redux'
+import { RootState } from '@/app/store'
+import { selectIsAuthenticated } from '@/features/auth/authSlice'
+import { Role } from '@/features/auth/configs'
 
 const NotFoundPage = () => {
+  const isAuthenticated = useSelector(selectIsAuthenticated)
+  const user = useSelector((state: RootState) => state.auth.user)
   return (
     <Box
       sx={{
@@ -23,17 +29,23 @@ const NotFoundPage = () => {
         404
       </Typography>
       <Typography variant="h5" sx={{ marginTop: 2, color: '#555' }}>
-        Oops! The page you're looking for doesn't exist.
+        Trang bạn đang tìm kiếm không tồn tại.
       </Typography>
       <Typography variant="body1" sx={{ marginTop: 1, color: '#777' }}>
-        It might have been removed, renamed, or didn't exist in the first place.
+        Trang có thể đã bị xóa, đổi tên hoặc không tồn tại.
       </Typography>
       <Box sx={{ marginTop: 4 }}>
         <Button
           variant="contained"
           color="primary"
           component={Link}
-          to="/"
+          to={
+            isAuthenticated
+              ? user?.role === Role.ADMIN || user?.role === Role.TEACHER
+                ? '/admin'
+                : '/exam'
+              : '/users/login'
+          }
           sx={{
             textTransform: 'none',
             fontWeight: 'bold',
@@ -41,7 +53,7 @@ const NotFoundPage = () => {
             fontSize: '16px',
           }}
         >
-          Back to Home
+          Trở về trang chủ
         </Button>
       </Box>
     </Box>
